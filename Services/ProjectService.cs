@@ -18,7 +18,7 @@ public class ProjectService : IProjectService
     _unitOfWork = unitOfWork;
   }
 
-  public async Task<IEnumerable<Project>> GetActiveProjects( long userId )
+  public async Task<IEnumerable<Project>> GetActiveProjects( long userId)
   {
     return await _projectRepository.GetActiveProjects( userId );
   }

@@ -37,11 +37,14 @@ builder.Services.AddCors( options =>
     } );
 } );
 
-builder.Services.AddControllers();
+builder.Services.AddControllers().AddJsonOptions( options =>
+{
+  options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+  options.JsonSerializerOptions.Converters.Add( new JsonStringEnumConverter() );
+} );
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddControllers().AddJsonOptions( x => x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles );
 builder.Configuration.AddJsonFile(
   path: $"appsettings.{Environment.GetEnvironmentVariable( "DOTTNET_ENVIRONMENT" )}.json",
   optional: true,
