@@ -66,7 +66,7 @@ public class ProjectsController : ControllerBase
       } );
     }
 
-    var pagedListprojects = PagedList<Project>.ToPagedList( projects, formData.PageNumber, formData.PageSize );
+    var pagedListprojects = PagedList<Project>.ToPagedList( projects.OrderBy( project => project.ModifiedDate ), formData.PageNumber, formData.PageSize );
     
     var resources = _mapper.Map<IEnumerable<ProjectResource>>( pagedListprojects );
     return Ok( new
@@ -94,6 +94,7 @@ public class ProjectsController : ControllerBase
       ProjectName = formData.ProjectName,
       UserId = userId,
       CreatedDate = DateTime.Now,
+      ModifiedDate = DateTime.Now,
       IsActivated = true,
       NumberOfMonths = formData.NumberOfMonths
     };
