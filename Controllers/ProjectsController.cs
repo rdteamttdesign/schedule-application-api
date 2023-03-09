@@ -7,6 +7,7 @@ using SchedulingTool.Api.Extension;
 using SchedulingTool.Api.Notification;
 using SchedulingTool.Api.Resources;
 using SchedulingTool.Api.Resources.FormBody;
+using System.Drawing.Printing;
 
 namespace SchedulingTool.Api.Controllers;
 
@@ -38,15 +39,25 @@ public class ProjectsController : ControllerBase
 
   [HttpGet()]
   [Authorize]
-  public async Task<IActionResult> GetProjects()
+  public async Task<IActionResult> GetProjects( [FromBody] QueryProjectFormData formData)
   {
     var userId = long.Parse( HttpContext.User.Claims.FirstOrDefault( x => x.Type.ToLower() == "sid" )?.Value! );
     var projects = await _projectService.GetActiveProjects( userId );
     if ( !projects.Any() ) {
       return BadRequest( ProjectNotification.NonExisted );
     }
-    var resources = _mapper.Map<IEnumerable<ProjectResource>>( projects );
-    return Ok( resources );
+
+    var pagedListprojects = PagedList<Project>.ToPagedList( projects, formData.PageNumber, formData.PageSize );
+
+    var resources = _mapper.Map<IEnumerable<ProjectResource>>( pagedListprojects );
+    return Ok( new
+    {
+      Data = resources,
+      CurrentPage = pagedListprojects.CurrentPage,
+      PageSize = pagedListprojects.PageSize,
+      HasNext = pagedListprojects.HasNext,
+      HasPrevious = pagedListprojects.HasPrevious
+    } );
   }
 
   [HttpPost()]
