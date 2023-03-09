@@ -112,6 +112,8 @@ namespace SchedulingTool.Api.Persistence.Context
                     .HasMaxLength(125)
                     .HasColumnName("group_task_name");
 
+                entity.Property(e => e.Index).HasColumnName("index");
+
                 entity.Property(e => e.ProjectId).HasColumnName("project_id");
 
                 entity.HasOne(d => d.Project)
