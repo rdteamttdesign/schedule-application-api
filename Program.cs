@@ -51,7 +51,7 @@ builder.Configuration.AddJsonFile(
 builder.Services.AddDbContext<AppDbContext>(
     options =>
     {
-      options.UseMySql( builder.Configuration.GetConnectionString( "SchedulingTool1" ),
+      options.UseMySql( builder.Configuration.GetConnectionString( "SchedulingTool" ),
         ServerVersion.Parse( builder.Configuration.GetSection( "ServerVersion" ).Value ) );
     } );
 
