@@ -37,6 +37,17 @@ public class ProjectsController : ControllerBase
     return Ok( resource );
   }
 
+  [HttpGet( "name-list" )]
+  [Authorize]
+  public async Task<IActionResult> GetProjectNameList()
+  {
+    var userId = long.Parse( HttpContext.User.Claims.FirstOrDefault( x => x.Type.ToLower() == "sid" )?.Value! );
+    var projects = await _projectService.GetActiveProjects( userId );
+    var nameList = projects.Select( p => p.ProjectName ).ToList();
+
+    return Ok( nameList );
+  }
+
   [HttpGet()]
   [Authorize]
   public async Task<IActionResult> GetProjects( [FromQuery] QueryProjectFormData formData)
