@@ -44,7 +44,15 @@ public class ProjectsController : ControllerBase
     var userId = long.Parse( HttpContext.User.Claims.FirstOrDefault( x => x.Type.ToLower() == "sid" )?.Value! );
     var projects = await _projectService.GetActiveProjects( userId );
     if ( !projects.Any() ) {
-      return BadRequest( ProjectNotification.NonExisted );
+      return Ok( new
+      {
+        Data = new object [] { },
+        CurrentPage = 0,
+        PageSize = 0,
+        PageCount = 0,
+        HasNext = false,
+        HasPrevious = false
+      } );
     }
 
     var pagedListprojects = PagedList<Project>.ToPagedList( projects, formData.PageNumber, formData.PageSize );
