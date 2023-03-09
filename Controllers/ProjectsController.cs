@@ -39,7 +39,7 @@ public class ProjectsController : ControllerBase
 
   [HttpGet()]
   [Authorize]
-  public async Task<IActionResult> GetProjects( [FromBody] QueryProjectFormData formData)
+  public async Task<IActionResult> GetProjects( [FromQuery] QueryProjectFormData formData)
   {
     var userId = long.Parse( HttpContext.User.Claims.FirstOrDefault( x => x.Type.ToLower() == "sid" )?.Value! );
     var projects = await _projectService.GetActiveProjects( userId );
