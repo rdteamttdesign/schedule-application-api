@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Mvc;
 using SchedulingTool.Api.Domain.Models;
 using SchedulingTool.Api.Domain.Services;
 using SchedulingTool.Api.Extension;
+using SchedulingTool.Api.Notification;
+using SchedulingTool.Api.Resources;
 using SchedulingTool.Api.Resources.FormBody;
 using ModelTask = SchedulingTool.Api.Domain.Models.Task;
 
@@ -40,7 +42,29 @@ public class ProjectDetailsController : ControllerBase
   [Authorize]
   public async Task<IActionResult> GetProjectDetails( long projectId )
   {
-    return Ok();
+    var userId = long.Parse( HttpContext.User.Claims.FirstOrDefault( x => x.Type.ToLower() == "sid" )?.Value! );
+    var project = await _projectService.GetProject( userId, projectId );
+    if ( project == null ) {
+      return BadRequest( ProjectNotification.NonExisted );
+    }
+
+    var groupTasks = await _groupTaskService.GetGroupTasksByProjectId( projectId );
+    var groupTaskResources = _mapper.Map<List<GroupTaskDetailResource>>( groupTasks );
+
+    foreach ( var groupTaskResource in groupTaskResources ) {
+      var tasks = await _taskService.GetTasksByGroupTaskId( groupTaskResource.GroupTaskId );
+      groupTaskResource.Tasks = _mapper.Map<List<TaskDetailResource>>( tasks );
+      foreach ( var taskResource in groupTaskResource.Tasks ) {
+        var stepworks = await _stepworkService.GetStepworksByTaskId( taskResource.TaskId );
+        taskResource.Stepworks = _mapper.Map<List<StepworkDetailResource>>( stepworks );
+        foreach ( var stepworkResource in taskResource.Stepworks ) {
+          var predecessor = await _predecessorService.GetPredecessorsByStepworkId( stepworkResource.StepworkId );
+          stepworkResource.Predecessors = _mapper.Map<List<PredecessorDetailResource>>( predecessor );
+        }
+      }
+    }
+
+    return Ok( groupTaskResources );
   }
 
   [HttpPost( "{projectId}/details" )]
@@ -50,11 +74,15 @@ public class ProjectDetailsController : ControllerBase
     if ( !ModelState.IsValid ) {
       return BadRequest( ModelState.GetErrorMessages() );
     }
-
+    var userId = long.Parse( HttpContext.User.Claims.FirstOrDefault( x => x.Type.ToLower() == "sid" )?.Value! );
+    var project = await _projectService.GetProject( userId, projectId );
+    if ( project == null ) {
+      return BadRequest( ProjectNotification.NonExisted );
+    }
     try {
       await _projectService.BatchDeleteProjectDetails( projectId );
     }
-    catch ( Exception ex) {
+    catch ( Exception ex ) {
       return BadRequest( ex.Message );
     }
 
@@ -113,10 +141,10 @@ public class ProjectDetailsController : ControllerBase
 
     foreach ( var stepworkData in formData.Stepworks ) {
       foreach ( var predecessorData in stepworkData.Predecessors ) {
-        var stepwork = formData.Stepworks.FirstOrDefault( 
-          sw => sw.Index == predecessorData.RelatedStepworkIndex 
+        var stepwork = formData.Stepworks.FirstOrDefault(
+          sw => sw.Index == predecessorData.RelatedStepworkIndex
           && sw.TaskIndex == predecessorData.RelatedTaskIndex
-          && sw.GroupTaskIndex == predecessorData.RelatedGroupTaskIndex);
+          && sw.GroupTaskIndex == predecessorData.RelatedGroupTaskIndex );
         if ( stepwork == null ) {
           continue;
         }
