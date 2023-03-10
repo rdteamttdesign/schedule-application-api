@@ -35,7 +35,7 @@ public class ViewsController : ControllerBase
   {
     var views = await _viewService.GetViewsByProjectId( projectId );
     var viewResources = _mapper.Map<IEnumerable<ViewResource>>( views );
-    if ( viewResources.Any() ) {
+    if ( !viewResources.Any() ) {
       return BadRequest( ViewNotification.NonExisted );
     }
     foreach ( var viewResource in viewResources ) {
@@ -118,7 +118,7 @@ public class ViewsController : ControllerBase
   public async Task<IActionResult> DeleteView( long viewId )
   {
     try {
-      _viewService.DeleteView( viewId );
+      await _viewService.DeleteView( viewId );
     }
     catch ( Exception ex ) {
       return BadRequest( $"{ViewNotification.ErrorDeleting} {ex.Message}" );

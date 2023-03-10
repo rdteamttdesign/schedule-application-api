@@ -55,6 +55,6 @@ public class ViewService : IViewService
 
   public async Task DeleteView( long viewId )
   {
-    _viewRepository.DeleteView( viewId );
+    await _viewRepository.DeleteView( viewId );
   }
 }
