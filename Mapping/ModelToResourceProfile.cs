@@ -3,6 +3,7 @@ using SchedulingTool.Api.Domain.Models;
 using SchedulingTool.Api.Domain.Security.Tokens;
 using SchedulingTool.Api.Resources;
 using SchedulingTool.Api.Resources.Extended;
+using Task = SchedulingTool.Api.Domain.Models.Task;
 
 namespace SchedulingTool.Api.Mapping;
 
@@ -20,5 +21,10 @@ public class ModelToResourceProfile : Profile
     CreateMap<ColorDef, ColorDefResource>();
     CreateMap<ProjectSetting, ProjectSettingResource>();
     CreateMap<ProjectBackground, BackgroundResource>();
+
+    CreateMap<GroupTask, GroupTaskDetailResource>();
+    CreateMap<Task, TaskDetailResource>();
+    CreateMap<Stepwork, StepworkDetailResource>();
+    CreateMap<Predecessor, PredecessorDetailResource>();
   }
 }
