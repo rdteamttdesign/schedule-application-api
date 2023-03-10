@@ -50,8 +50,17 @@ public class ProjectDetailsController : ControllerBase
     if ( !ModelState.IsValid ) {
       return BadRequest( ModelState.GetErrorMessages() );
     }
+
+    try {
+      await _projectService.BatchDeleteProjectDetails( projectId );
+    }
+    catch ( Exception ex) {
+      return BadRequest( ex.Message );
+    }
+
     foreach ( var groupTaskData in formData.GroupTasks ) {
-      var groupTask = new GroupTask() {
+      var groupTask = new GroupTask()
+      {
         GroupTaskName = groupTaskData.GroupTaskName,
         ProjectId = projectId,
         Index = groupTaskData.Index
@@ -61,6 +70,7 @@ public class ProjectDetailsController : ControllerBase
         continue;
       groupTaskData.GroupTaskId = result.Content.GroupTaskId;
     }
+
     foreach ( var taskData in formData.Tasks ) {
       var group = formData.GroupTasks.FirstOrDefault( gr => gr.Index == taskData.Index );
       if ( group == null ) {
@@ -82,6 +92,7 @@ public class ProjectDetailsController : ControllerBase
         continue;
       taskData.TaskId = result.Content.TaskId;
     }
+
     foreach ( var stepworkData in formData.Stepworks ) {
       var task = formData.Tasks.FirstOrDefault( task => task.Index == stepworkData.TaskIndex && task.GroupIndex == stepworkData.GroupTaskIndex );
       if ( task == null ) {
@@ -97,8 +108,29 @@ public class ProjectDetailsController : ControllerBase
       var result = await _stepworkService.CreateStepwork( stepwork );
       if ( !result.Success )
         continue;
-      stepworkData.StepworkId = result.Content.StepWorkId;
+      stepworkData.StepworkId = result.Content.StepworkId;
     }
+
+    foreach ( var stepworkData in formData.Stepworks ) {
+      foreach ( var predecessorData in stepworkData.Predecessors ) {
+        var stepwork = formData.Stepworks.FirstOrDefault( 
+          sw => sw.Index == predecessorData.RelatedStepworkIndex 
+          && sw.TaskIndex == predecessorData.RelatedTaskIndex
+          && sw.GroupTaskIndex == predecessorData.RelatedGroupTaskIndex);
+        if ( stepwork == null ) {
+          continue;
+        }
+        var predecessor = new Predecessor()
+        {
+          StepworkId = stepworkData.StepworkId,
+          RelatedStepworkId = stepwork.StepworkId,
+          Type = predecessorData.Type,
+          Lag = predecessorData.Lag
+        };
+        await _predecessorService.CreatePredecessor( predecessor );
+      }
+    }
+
     return NoContent();
   }
 }
