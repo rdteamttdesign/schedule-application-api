@@ -83,7 +83,7 @@ public class ProjectDetailsController : ControllerBase
       taskData.TaskId = result.Content.TaskId;
     }
     foreach ( var stepworkData in formData.Stepworks ) {
-      var task = formData.Tasks.FirstOrDefault( task => task.Index == stepworkData.Index && task.GroupIndex == stepworkData.GroupTaskIndex );
+      var task = formData.Tasks.FirstOrDefault( task => task.Index == stepworkData.TaskIndex && task.GroupIndex == stepworkData.GroupTaskIndex );
       if ( task == null ) {
         continue;
       }
