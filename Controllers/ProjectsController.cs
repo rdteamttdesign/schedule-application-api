@@ -37,17 +37,36 @@ public class ProjectsController : ControllerBase
     return Ok( resource );
   }
 
+  [HttpGet( "name-list" )]
+  [Authorize]
+  public async Task<IActionResult> GetProjectNameList()
+  {
+    var userId = long.Parse( HttpContext.User.Claims.FirstOrDefault( x => x.Type.ToLower() == "sid" )?.Value! );
+    var projects = await _projectService.GetActiveProjects( userId );
+    var nameList = projects.Select( p => p.ProjectName ).ToList();
+
+    return Ok( nameList );
+  }
+
   [HttpGet()]
   [Authorize]
-  public async Task<IActionResult> GetProjects( [FromBody] QueryProjectFormData formData)
+  public async Task<IActionResult> GetProjects( [FromQuery] QueryProjectFormData formData)
   {
     var userId = long.Parse( HttpContext.User.Claims.FirstOrDefault( x => x.Type.ToLower() == "sid" )?.Value! );
     var projects = await _projectService.GetActiveProjects( userId );
     if ( !projects.Any() ) {
-      return BadRequest( ProjectNotification.NonExisted );
+      return Ok( new
+      {
+        Data = new object [] { },
+        CurrentPage = 0,
+        PageSize = 0,
+        PageCount = 0,
+        HasNext = false,
+        HasPrevious = false
+      } );
     }
 
-    var pagedListprojects = PagedList<Project>.ToPagedList( projects, formData.PageNumber, formData.PageSize );
+    var pagedListprojects = PagedList<Project>.ToPagedList( projects.OrderByDescending( project => project.ModifiedDate ), formData.PageNumber, formData.PageSize );
     
     var resources = _mapper.Map<IEnumerable<ProjectResource>>( pagedListprojects );
     return Ok( new
@@ -75,6 +94,7 @@ public class ProjectsController : ControllerBase
       ProjectName = formData.ProjectName,
       UserId = userId,
       CreatedDate = DateTime.Now,
+      ModifiedDate = DateTime.Now,
       IsActivated = true,
       NumberOfMonths = formData.NumberOfMonths
     };
