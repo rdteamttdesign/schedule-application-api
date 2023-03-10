@@ -186,9 +186,6 @@ namespace SchedulingTool.Api.Persistence.Context
             {
                 entity.ToTable("project");
 
-                entity.HasIndex(e => e.ProjectName, "project_name_UNIQUE")
-                    .IsUnique();
-
                 entity.HasIndex(e => e.ProjectId, "sheet_id_UNIQUE")
                     .IsUnique();
 
@@ -290,10 +287,10 @@ namespace SchedulingTool.Api.Persistence.Context
 
                 entity.HasIndex(e => e.TaskId, "fk_step_work_task_idx");
 
-                entity.HasIndex(e => e.StepWorkId, "step_work_id_UNIQUE")
+                entity.HasIndex(e => e.StepworkId, "step_work_id_UNIQUE")
                     .IsUnique();
 
-                entity.Property(e => e.StepWorkId).HasColumnName("step_work_id");
+                entity.Property(e => e.StepworkId).HasColumnName("stepwork_id");
 
                 entity.Property(e => e.ColorId).HasColumnName("color_id");
 
