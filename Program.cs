@@ -141,6 +141,9 @@ builder.Services.AddScoped<IPredecessorTypeService, PredecessorTypeService>();
 builder.Services.AddScoped<IViewRepository, ViewRepository>();
 builder.Services.AddScoped<IViewService, ViewService>();
 
+builder.Services.AddScoped<IViewTaskRepository, ViewTaskRepository>();
+builder.Services.AddScoped<IViewTaskService, ViewTaskService>();
+
 builder.Services.AddAutoMapper( AppDomain.CurrentDomain.GetAssemblies() );
 
 var app = builder.Build();

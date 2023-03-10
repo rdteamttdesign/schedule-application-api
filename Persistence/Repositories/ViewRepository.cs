@@ -19,6 +19,6 @@ public class ViewRepository : GenericRepository<View>, IViewRepository
 
   public async Task DeleteView( long viewId )
   {
-    await _context.Database.ExecuteSqlRawAsync( "", viewId );
+    await _context.Database.ExecuteSqlRawAsync( "CALL usp_View_DeleteViewById( {0} )", viewId );
   }
 }
