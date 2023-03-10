@@ -51,9 +51,6 @@ namespace SchedulingTool.Api.Persistence.Context
 
                 entity.HasIndex(e => e.Type, "fk_color_def_type_idx");
 
-                entity.HasIndex(e => e.Name, "name_UNIQUE")
-                    .IsUnique();
-
                 entity.Property(e => e.ColorId).HasColumnName("color_id");
 
                 entity.Property(e => e.Code)
@@ -114,6 +111,8 @@ namespace SchedulingTool.Api.Persistence.Context
                 entity.Property(e => e.GroupTaskName)
                     .HasMaxLength(125)
                     .HasColumnName("group_task_name");
+
+                entity.Property(e => e.Index).HasColumnName("index");
 
                 entity.Property(e => e.ProjectId).HasColumnName("project_id");
 
@@ -299,6 +298,8 @@ namespace SchedulingTool.Api.Persistence.Context
                 entity.Property(e => e.ColorId).HasColumnName("color_id");
 
                 entity.Property(e => e.Duration).HasColumnName("duration");
+
+                entity.Property(e => e.Index).HasColumnName("index");
 
                 entity.Property(e => e.TaskId).HasColumnName("task_id");
 

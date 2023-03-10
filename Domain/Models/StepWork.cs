@@ -12,6 +12,7 @@ namespace SchedulingTool.Api.Domain.Models
         }
 
         public long StepWorkId { get; set; }
+        public int Index { get; set; }
         public float Duration { get; set; }
         public long TaskId { get; set; }
         public long ColorId { get; set; }
