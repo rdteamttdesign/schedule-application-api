@@ -23,6 +23,11 @@ public class ProjectService : IProjectService
     return await _projectRepository.GetActiveProjects( userId );
   }
 
+  public async Task BatchDeleteProjectDetails( long projectId )
+  {
+    await _projectRepository.BatchDeleteProjectDetails( projectId );
+  }
+
   public async Task<Project?> GetProject( long userId, long projectId )
   {
     var project = await _projectRepository.GetById( projectId );

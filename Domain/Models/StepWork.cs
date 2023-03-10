@@ -11,7 +11,7 @@ namespace SchedulingTool.Api.Domain.Models
             PredecessorStepworks = new HashSet<Predecessor>();
         }
 
-        public long StepWorkId { get; set; }
+        public long StepworkId { get; set; }
         public int Index { get; set; }
         public float Duration { get; set; }
         public long TaskId { get; set; }
