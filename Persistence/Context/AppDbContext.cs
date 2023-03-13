@@ -294,9 +294,9 @@ namespace SchedulingTool.Api.Persistence.Context
 
                 entity.Property(e => e.ColorId).HasColumnName("color_id");
 
-                entity.Property(e => e.Duration).HasColumnName("duration");
-
                 entity.Property(e => e.Index).HasColumnName("index");
+
+                entity.Property(e => e.Portion).HasColumnName("portion");
 
                 entity.Property(e => e.TaskId).HasColumnName("task_id");
 

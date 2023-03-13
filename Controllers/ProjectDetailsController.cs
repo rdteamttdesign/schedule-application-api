@@ -129,7 +129,7 @@ public class ProjectDetailsController : ControllerBase
       var stepwork = new Stepwork()
       {
         Index = stepworkData.Index,
-        Duration = stepworkData.Duration,
+        Portion = stepworkData.Portion,
         TaskId = task.TaskId,
         ColorId = stepworkData.ColorId
       };
