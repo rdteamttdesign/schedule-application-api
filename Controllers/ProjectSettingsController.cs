@@ -59,6 +59,10 @@ public class ProjectSettingsController : ControllerBase
       if ( backgroundsGroupBy.ContainsKey( backgroundColor.ColorId ) ) {
         backgroundColor.Months = backgroundsGroupBy [ backgroundColor.ColorId ].Select( bg => bg.Month ).ToList();
       }
+      else {
+        backgroundColor.Months = new List<int>();
+      }
+        
     }
 
     return Ok( resource );
