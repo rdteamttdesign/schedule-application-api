@@ -194,4 +194,18 @@ public class ProjectDetailsController : ControllerBase
   //  var fileBytes = ImportFileUtils.WriteToFile( groupTaskResources );
   //  return File( fileBytes, System.Net.Mime.MediaTypeNames.Application.Octet, $"{Guid.NewGuid().ToString()}.xlsx" );
   //}
+
+  [HttpGet( "{projectId}/download" )]
+  //[Authorize]
+  public async Task<IActionResult> DownloadFile()
+  {
+    if ( !ModelState.IsValid ) {
+      return BadRequest( ModelState.GetErrorMessages() );
+    }
+    var formCollection = await Request.ReadFormAsync();
+    var file = formCollection.Files.First();
+    var sheetNameList = formCollection [ "SheetName" ];
+    var result = ImportFileUtils.ReadFromFile( file.OpenReadStream(), sheetNameList );
+    return Ok( result );
+  }
 }
