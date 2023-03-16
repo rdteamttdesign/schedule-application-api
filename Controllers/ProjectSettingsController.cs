@@ -16,22 +16,51 @@ public class ProjectSettingsController : ControllerBase
 {
   private readonly IMapper _mapper;
   private readonly IProjectSettingService _projectSettingService;
+  private readonly IColorDefService _colorDefService;
+  private readonly IBackgroundService _backgroundService;
+  private readonly IProjectService _projectService;
 
-  public ProjectSettingsController( IMapper mapper, IProjectSettingService projectSettingService )
+  public ProjectSettingsController(
+    IMapper mapper,
+    IProjectSettingService projectSettingService,
+    IColorDefService colorDefService,
+    IBackgroundService backgroundService,
+    IProjectService projectService )
   {
     _mapper = mapper;
     _projectSettingService = projectSettingService;
+    _colorDefService = colorDefService;
+    _backgroundService = backgroundService;
+    _projectService = projectService;
   }
 
   [HttpGet( "projects/{projectId}/settings" )]
   [Authorize]
   public async Task<IActionResult> GetProjectSetting( long projectId )
   {
-    var setting = await _projectSettingService.GetProjectSetting( projectId );
-    if ( setting == null ) {
+    var userId = long.Parse( HttpContext.User.Claims.FirstOrDefault( x => x.Type.ToLower() == "sid" )?.Value! );
+    var project = await _projectService.GetProject( userId, projectId );
+    if ( project == null ) {
       return BadRequest( ProjectSettingNotification.NonExisted );
     }
+    var setting = await _projectSettingService.GetProjectSetting( projectId );
     var resource = _mapper.Map<ProjectSettingResource>( setting );
+    resource.NumberOfMonths = project.NumberOfMonths;
+
+    var stepworkColors = await _colorDefService.GetStepworkColorDefsByProjectId( projectId );
+    resource.StepworkColors = _mapper.Map<IEnumerable<ColorDefResource>>( stepworkColors ).ToList();
+
+    var backgroundColors = await _colorDefService.GetBackgroundColorDefsByProjectId( projectId );
+    resource.BackgroundColors = _mapper.Map<IEnumerable<BackgroundColorResource>>( backgroundColors ).ToList();
+
+    var backgrounds = await _backgroundService.GetBackgroundsByProjectId( projectId );
+    var backgroundsGroupBy = backgrounds.Where( bg => bg.ColorId != null ).GroupBy( bg => bg.ColorId )?.ToDictionary( g => g.Key, g => g );
+    foreach ( var backgroundColor in resource.BackgroundColors ) {
+      if ( backgroundsGroupBy.ContainsKey( backgroundColor.ColorId ) ) {
+        backgroundColor.Months = backgroundsGroupBy [ backgroundColor.ColorId ].Select( bg => bg.Month ).ToList();
+      }
+    }
+
     return Ok( resource );
   }
 
