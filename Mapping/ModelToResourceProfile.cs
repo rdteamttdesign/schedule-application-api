@@ -19,6 +19,7 @@ public class ModelToResourceProfile : Profile
 
     CreateMap<Project, ProjectResource>();
     CreateMap<ColorDef, ColorDefResource>();
+    CreateMap<ColorDef, BackgroundColorResource>();
     CreateMap<ProjectSetting, ProjectSettingResource>();
     CreateMap<ProjectBackground, BackgroundResource>();
     CreateMap<View, ViewResource>();
