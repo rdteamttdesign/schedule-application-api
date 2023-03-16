@@ -1,12 +1,14 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.CodeAnalysis;
 using SchedulingTool.Api.Domain.Models;
 using SchedulingTool.Api.Domain.Services;
 using SchedulingTool.Api.Extension;
 using SchedulingTool.Api.Notification;
 using SchedulingTool.Api.Resources;
 using SchedulingTool.Api.Resources.FormBody;
+using System.Net.Http.Headers;
 using ModelTask = SchedulingTool.Api.Domain.Models.Task;
 
 namespace SchedulingTool.Api.Controllers;
@@ -47,7 +49,12 @@ public class ProjectDetailsController : ControllerBase
     if ( project == null ) {
       return BadRequest( ProjectNotification.NonExisted );
     }
+    var groupTaskResources = await GetGroupTasksByProjectId( projectId );
+    return Ok( groupTaskResources );
+  }
 
+  private async Task<List<GroupTaskDetailResource>> GetGroupTasksByProjectId( long projectId )
+  {
     var groupTasks = await _groupTaskService.GetGroupTasksByProjectId( projectId );
     var groupTaskResources = _mapper.Map<List<GroupTaskDetailResource>>( groupTasks );
 
@@ -63,8 +70,7 @@ public class ProjectDetailsController : ControllerBase
         }
       }
     }
-
-    return Ok( groupTaskResources );
+    return groupTaskResources;
   }
 
   [HttpPost( "{projectId}/details" )]
@@ -158,7 +164,48 @@ public class ProjectDetailsController : ControllerBase
         await _predecessorService.CreatePredecessor( predecessor );
       }
     }
-
     return NoContent();
+  }
+
+  [HttpPost( "import" ), DisableRequestSizeLimit]
+  [Authorize]
+  public async Task<IActionResult> Import()
+  {
+    if ( !ModelState.IsValid ) {
+      return BadRequest( ModelState.GetErrorMessages() );
+    }
+    var formCollection = await Request.ReadFormAsync();
+    var file = formCollection.Files.First();
+    var sheetNameList = formCollection["SheetName"];
+    var result = ImportFileUtils.ReadFromFile( file.OpenReadStream(), sheetNameList );
+    return Ok( result );
+  }
+
+  //[HttpGet( "{projectId}/export" )]
+  //[Authorize]
+  //public async Task<IActionResult> Export( long projectId )
+  //{
+  //  var userId = long.Parse( HttpContext.User.Claims.FirstOrDefault( x => x.Type.ToLower() == "sid" )?.Value! );
+  //  var project = await _projectService.GetProject( userId, projectId );
+  //  if ( project == null ) {
+  //    return BadRequest( ProjectNotification.NonExisted );
+  //  }
+  //  var groupTaskResources = await GetGroupTasksByProjectId( projectId );
+  //  var fileBytes = ImportFileUtils.WriteToFile( groupTaskResources );
+  //  return File( fileBytes, System.Net.Mime.MediaTypeNames.Application.Octet, $"{Guid.NewGuid().ToString()}.xlsx" );
+  //}
+
+  [HttpGet( "{projectId}/download" )]
+  //[Authorize]
+  public async Task<IActionResult> DownloadFile()
+  {
+    if ( !ModelState.IsValid ) {
+      return BadRequest( ModelState.GetErrorMessages() );
+    }
+    var formCollection = await Request.ReadFormAsync();
+    var file = formCollection.Files.First();
+    var sheetNameList = formCollection [ "SheetName" ];
+    var result = ImportFileUtils.ReadFromFile( file.OpenReadStream(), sheetNameList );
+    return Ok( result );
   }
 }
