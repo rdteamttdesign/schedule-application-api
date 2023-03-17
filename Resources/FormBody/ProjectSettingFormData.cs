@@ -44,5 +44,5 @@ public class BackgroundColorFormData
   public string Code { get; set; } = null!;
   public long Type { get; set; }
   public long ProjectId { get; set; }
-  public ICollection<int> Months { get; set; } = null!;
+  public string? Months { get; set; } = null!;
 }

@@ -57,10 +57,7 @@ public class ProjectSettingsController : ControllerBase
     var backgroundsGroupBy = backgrounds.Where( bg => bg.ColorId != null ).GroupBy( bg => bg.ColorId )?.ToDictionary( g => g.Key, g => g );
     foreach ( var backgroundColor in resource.BackgroundColors ) {
       if ( backgroundsGroupBy.ContainsKey( backgroundColor.ColorId ) ) {
-        backgroundColor.Months = backgroundsGroupBy [ backgroundColor.ColorId ].Select( bg => bg.Month ).ToList();
-      }
-      else {
-        backgroundColor.Months = new List<int>();
+        backgroundColor.Months = backgroundsGroupBy [ backgroundColor.ColorId ].Select( bg => bg.Month ).ToFormatString();
       }
     }
     return Ok( resource );
@@ -166,11 +163,14 @@ public class ProjectSettingsController : ControllerBase
 
     var backgrounds = await _backgroundService.GetBackgroundsByProjectId( projectId );
     foreach ( var bg in backgrounds ) {
-      var bgData = formData.BackgroundColors.FirstOrDefault( color => color.Months.Any( x => x == bg.Month ) );
+      var bgData = formData.BackgroundColors.FirstOrDefault( color => color.Months.ToNumberArray().Any( x => x == bg.Month ) );
       if ( bgData == null ) {
-        continue;
+        bg.ColorId = null;
       }
-      bg.ColorId = bgData.ColorId;
+      else {
+        bg.ColorId = bgData.ColorId;
+      }
+        
       await _backgroundService.UpdateProjectBackground( bg );
     }
 
