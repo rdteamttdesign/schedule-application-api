@@ -10,4 +10,6 @@ public interface IBackgroundService
   Task<IEnumerable<ProjectBackground>> GetBackgroundsByProjectId( long projectId );
   Task BatchDelete( long projectId, int fromMonth );
   Task<ServiceResponse<ProjectBackground>> UpdateProjectBackground( ProjectBackground projectBackground );
+
+  Task AddMonth( long projectId, int numberOfMonth );
 }

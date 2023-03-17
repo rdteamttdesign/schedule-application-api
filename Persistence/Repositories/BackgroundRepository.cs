@@ -31,4 +31,9 @@ public class BackgroundRepository : GenericRepository<ProjectBackground>, IBackg
   {
     await _context.Database.ExecuteSqlRawAsync( "CALL usp_Background_DeleteFromMonth({0} , {1})", projectId, fromMonth );
   }
+
+  public async Task AddMonth( long projectId, int numberOfMonth )
+  {
+    await _context.Database.ExecuteSqlRawAsync( "CALL usp_Background_AddMonth({0} , {1})", projectId, numberOfMonth );
+  }
 }
