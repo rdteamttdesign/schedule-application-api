@@ -111,7 +111,7 @@ public class ProjectSettingsController : ControllerBase
         {
           Name = stepworkColorData.Name,
           Code = stepworkColorData.Code,
-          Type = stepworkColorData.Type,
+          Type = 2,
           ProjectId = projectId
         };
         await _colorDefService.CreateColorDef( newColor );
@@ -142,7 +142,7 @@ public class ProjectSettingsController : ControllerBase
         {
           Name = backgroundColorData.Name,
           Code = backgroundColorData.Code,
-          Type = backgroundColorData.Type,
+          Type = 1,
           ProjectId = projectId
         };
         var bgResult = await _colorDefService.CreateColorDef( newColor );
