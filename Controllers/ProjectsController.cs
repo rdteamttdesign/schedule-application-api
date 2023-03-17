@@ -139,7 +139,7 @@ public class ProjectsController : ControllerBase
       return BadRequest( ProjectNotification.NonExisted );
 
     existingProject.ProjectName = formData.ProjectName;
-    existingProject.NumberOfMonths = formData.NumberOfMonths;
+    //existingProject.NumberOfMonths = formData.NumberOfMonths;
 
     var result = await _projectService.UpdateProject( existingProject );
     if ( !result.Success )
