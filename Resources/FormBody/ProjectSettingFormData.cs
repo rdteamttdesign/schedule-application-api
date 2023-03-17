@@ -33,7 +33,6 @@ public class ColorDefFormData
   public string Name { get; set; } = null!;
   public string Code { get; set; } = null!;
   public long Type { get; set; }
-  public long ProjectId { get; set; }
   public bool IsDefault { get; set; }
 }
 
@@ -43,6 +42,5 @@ public class BackgroundColorFormData
   public string Name { get; set; } = null!;
   public string Code { get; set; } = null!;
   public long Type { get; set; }
-  public long ProjectId { get; set; }
   public string? Months { get; set; } = null!;
 }
