@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.CodeAnalysis;
+using Microsoft.Office.Core;
 using SchedulingTool.Api.Domain.Models;
 using SchedulingTool.Api.Domain.Services;
 using SchedulingTool.Api.Extension;
@@ -176,7 +177,7 @@ public class ProjectDetailsController : ControllerBase
     }
     var formCollection = await Request.ReadFormAsync();
     var file = formCollection.Files.First();
-    var sheetNameList = formCollection["SheetName"];
+    var sheetNameList = formCollection [ "SheetName" ];
     var result = ImportFileUtils.ReadFromFile( file.OpenReadStream(), sheetNameList );
     return Ok( result );
   }
@@ -199,13 +200,11 @@ public class ProjectDetailsController : ControllerBase
   //[Authorize]
   public async Task<IActionResult> DownloadFile()
   {
-    if ( !ModelState.IsValid ) {
-      return BadRequest( ModelState.GetErrorMessages() );
+    var path = ExcelSchedulingSample.ExcelSchedulingSample.ExportToExcel();
+    if ( path == null ) {
+      return BadRequest();
     }
-    var formCollection = await Request.ReadFormAsync();
-    var file = formCollection.Files.First();
-    var sheetNameList = formCollection [ "SheetName" ];
-    var result = ImportFileUtils.ReadFromFile( file.OpenReadStream(), sheetNameList );
-    return Ok( result );
+    var fileBytes = System.IO.File.ReadAllBytes( path );
+    return File( fileBytes, System.Net.Mime.MediaTypeNames.Application.Octet, $"{Guid.NewGuid().ToString()}.xlsx" );
   }
 }
