@@ -57,7 +57,9 @@ public class ProjectSettingsController : ControllerBase
     var backgroundsGroupBy = backgrounds.Where( bg => bg.ColorId != null ).GroupBy( bg => bg.ColorId )?.ToDictionary( g => g.Key, g => g );
     foreach ( var backgroundColor in resource.BackgroundColors ) {
       if ( backgroundsGroupBy.ContainsKey( backgroundColor.ColorId ) ) {
-        backgroundColor.Months = backgroundsGroupBy [ backgroundColor.ColorId ].Select( bg => bg.Month ).ToFormatString();
+        var months = backgroundsGroupBy [ backgroundColor.ColorId ].Select( bg => bg.Month );
+        backgroundColor.Months = months.ToArray();
+        backgroundColor.DisplayMonths = months.ToFormatString();
       }
     }
     return Ok( resource );
