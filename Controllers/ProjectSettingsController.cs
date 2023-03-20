@@ -165,7 +165,7 @@ public class ProjectSettingsController : ControllerBase
 
     var backgrounds = await _backgroundService.GetBackgroundsByProjectId( projectId );
     foreach ( var bg in backgrounds ) {
-      var bgData = formData.BackgroundColors.FirstOrDefault( color => color.Months.ToNumberArray().Any( x => x == bg.Month ) );
+      var bgData = formData.BackgroundColors.FirstOrDefault( color => color.DisplayMonths.ToNumberArray().Any( x => x == bg.Month ) );
       if ( bgData == null ) {
         bg.ColorId = null;
       }
