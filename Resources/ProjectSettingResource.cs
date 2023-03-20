@@ -19,5 +19,6 @@ public class BackgroundColorResource
   public string Code { get; set; } = null!;
   public long Type { get; set; }
   public long ProjectId { get; set; }
-  public string? Months { get; set; }
+  public string? DisplayMonths { get; set; }
+  public ICollection<int> Months { get; set; } = null!;
 }
