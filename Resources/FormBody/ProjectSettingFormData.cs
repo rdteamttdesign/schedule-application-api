@@ -25,6 +25,9 @@ public class ProjectSettingFormData
 
   [Required]
   public int NumberOfMonths { get; set; }
+
+  [Required]
+  public float ColumnWidth { get; set; }
 }
 
 public class ColorDefFormData

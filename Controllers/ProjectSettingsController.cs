@@ -99,6 +99,7 @@ public class ProjectSettingsController : ControllerBase
     setting.SeparateGroupTask = formData.SeparateGroupTask;
     setting.AssemblyDurationRatio = formData.AssemblyDurationRatio;
     setting.RemovalDurationRatio = formData.RemovalDurationRatio;
+    setting.ColumnWidth = formData.ColumnWidth;
 
     var result = await _projectSettingService.UpdateProjectSetting( setting );
     if ( !result.Success )
