@@ -44,16 +44,24 @@ public static class ImportFileUtils
         }
         var numberOfStepworks = GetInt( worksheet.Cell( i, 8 ).Value );
         if ( numberOfStepworks == 0 ) {
-          continue;
-        }
-        for ( int j = 0; j < numberOfStepworks; j++ ) {
           var stepwork = new StepworkDetailResource()
           {
-            Index = j + 1,
-            Portion = GetFloat( worksheet.Cell( i, j + 9 ).Value ),
+            Index = 1,
+            Portion = 1,
             //ColorId = 
           };
           task.Stepworks.Add( stepwork );
+        }
+        else {
+          for ( int j = 0; j < numberOfStepworks; j++ ) {
+            var stepwork = new StepworkDetailResource()
+            {
+              Index = j + 1,
+              Portion = GetFloat( worksheet.Cell( i, j + 9 ).Value ),
+              //ColorId = 
+            };
+            task.Stepworks.Add( stepwork );
+          }
         }
       }
     }
