@@ -261,6 +261,10 @@ namespace SchedulingTool.Api.Persistence.Context
                     .HasColumnName("assembly_duration_ratio")
                     .HasDefaultValueSql("'0.4'");
 
+                entity.Property(e => e.ColumnWidth)
+                    .HasColumnName("column_width")
+                    .HasDefaultValueSql("'70'");
+
                 entity.Property(e => e.ProjectId).HasColumnName("project_id");
 
                 entity.Property(e => e.RemovalDurationRatio)

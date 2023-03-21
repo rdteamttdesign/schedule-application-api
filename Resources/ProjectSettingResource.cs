@@ -10,6 +10,7 @@ public class ProjectSettingResource
   public ICollection<ColorDefResource> StepworkColors { get; set; } = null!;
   public ICollection<BackgroundColorResource> BackgroundColors { get; set; } = null!;
   public int NumberOfMonths { get; set; }
+  public int ColumnWidth { get; set; }
 }
 
 public class BackgroundColorResource
