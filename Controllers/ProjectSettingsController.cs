@@ -57,7 +57,9 @@ public class ProjectSettingsController : ControllerBase
     var backgroundsGroupBy = backgrounds.Where( bg => bg.ColorId != null ).GroupBy( bg => bg.ColorId )?.ToDictionary( g => g.Key, g => g );
     foreach ( var backgroundColor in resource.BackgroundColors ) {
       if ( backgroundsGroupBy.ContainsKey( backgroundColor.ColorId ) ) {
-        backgroundColor.Months = backgroundsGroupBy [ backgroundColor.ColorId ].Select( bg => bg.Month ).ToFormatString();
+        var months = backgroundsGroupBy [ backgroundColor.ColorId ].Select( bg => bg.Month );
+        backgroundColor.Months = months.ToArray();
+        backgroundColor.DisplayMonths = months.ToFormatString();
       }
     }
     return Ok( resource );
@@ -97,6 +99,7 @@ public class ProjectSettingsController : ControllerBase
     setting.SeparateGroupTask = formData.SeparateGroupTask;
     setting.AssemblyDurationRatio = formData.AssemblyDurationRatio;
     setting.RemovalDurationRatio = formData.RemovalDurationRatio;
+    setting.ColumnWidth = formData.ColumnWidth;
 
     var result = await _projectSettingService.UpdateProjectSetting( setting );
     if ( !result.Success )
@@ -163,7 +166,7 @@ public class ProjectSettingsController : ControllerBase
 
     var backgrounds = await _backgroundService.GetBackgroundsByProjectId( projectId );
     foreach ( var bg in backgrounds ) {
-      var bgData = formData.BackgroundColors.FirstOrDefault( color => color.Months.ToNumberArray().Any( x => x == bg.Month ) );
+      var bgData = formData.BackgroundColors.FirstOrDefault( color => color.DisplayMonths.ToNumberArray().Any( x => x == bg.Month ) );
       if ( bgData == null ) {
         bg.ColorId = null;
       }

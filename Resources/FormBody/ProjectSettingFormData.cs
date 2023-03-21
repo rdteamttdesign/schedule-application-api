@@ -25,6 +25,9 @@ public class ProjectSettingFormData
 
   [Required]
   public int NumberOfMonths { get; set; }
+
+  [Required]
+  public int ColumnWidth { get; set; }
 }
 
 public class ColorDefFormData
@@ -42,5 +45,5 @@ public class BackgroundColorFormData
   public string Name { get; set; } = null!;
   public string Code { get; set; } = null!;
   public long Type { get; set; }
-  public string? Months { get; set; } = null!;
+  public string? DisplayMonths { get; set; } = null!;
 }

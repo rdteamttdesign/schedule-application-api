@@ -196,9 +196,10 @@ public class ProjectDetailsController : ControllerBase
 
   [HttpGet( "{projectId}/download" )]
   //[Authorize]
-  public async Task<IActionResult> DownloadFile()
+  public async Task<IActionResult> DownloadFile(long projectId )
   {
-    if ( ExportExcel.ExportExcel.GetFile( out var result ) ) {
+    var groupTaskResources = await GetGroupTasksByProjectId( projectId );
+    if ( ExportExcel.ExportExcel.GetFile( groupTaskResources, out var result ) ) {
       var fileBytes = System.IO.File.ReadAllBytes( result );
       return File( fileBytes, System.Net.Mime.MediaTypeNames.Application.Octet, $"{Guid.NewGuid().ToString()}.xlsx" );
     }

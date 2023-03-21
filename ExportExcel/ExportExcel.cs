@@ -1,11 +1,12 @@
 ﻿using Microsoft.Office.Interop.Excel;
 using OfficeOpenXml;
+using SchedulingTool.Api.Resources;
 
 namespace SchedulingTool.Api.ExportExcel;
 
 public static class ExportExcel
 {
-  public static bool GetFile( out string result )
+  public static bool GetFile( IEnumerable<GroupTaskDetailResource> grouptasks, out string result )
   {
     ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
     var excel = new ExcelPackage();
@@ -39,7 +40,23 @@ public static class ExportExcel
         rowCount: numberTask,
         columnCount: numberContent );
 
+      sheet.PaintChart(
+        startRow: 10, startColumn: 11, numberOfTasks: 20,
+        new List<BackgroundColorResource>()
+        {
+          new BackgroundColorResource()
+          {
+            Code = "rgb(100,3,225)",
+            Months = new [] {1, 3,5, 15, 6}
+          },
+          new BackgroundColorResource()
+          {
+            Code = "rgb(2,53,102)",
+            Months = new [] {2,8,10}
+          }
+        } );
 
+      sheet.PopulateData( grouptasks, startRow: 10 );
 
       excel.Save();
       if ( File.Exists( path ) )

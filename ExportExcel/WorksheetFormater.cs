@@ -1,6 +1,8 @@
 ﻿using OfficeOpenXml.Style;
 using OfficeOpenXml;
 using SchedulingTool.Api.Resources;
+using System.Drawing;
+using System.Text.RegularExpressions;
 
 namespace SchedulingTool.Api.ExportExcel;
 
@@ -118,15 +120,15 @@ public static class WorksheetFormater
     // Create Range and Set Default
     ExcelRange range = ws.Cells [ startRow, startColumn, rowCount + 3, columnCount ];
 
-    ws.Column( 1 ).Width = GetTrueColWidth( 1.86 );
-    ws.Column( 2 ).Width = GetTrueColWidth( 3.57 );
-    ws.Column( 3 ).Width = GetTrueColWidth( 26.86 );
-    ws.Column( 4 ).Width = GetTrueColWidth( 19.29 );
-    ws.Column( 5 ).Width = GetTrueColWidth( 10.29 );
-    ws.Column( 6 ).Width = GetTrueColWidth( 7.71 );
-    ws.Column( 7 ).Width = GetTrueColWidth( 12 );
-    ws.Column( 8 ).Width = GetTrueColWidth( 9.8 );
-    ws.Column( 9 ).Width = GetTrueColWidth( 9.8 );
+    ws.Column( 1 ).Width = GetTrueColumnWidth( 1.86 );
+    ws.Column( 2 ).Width = GetTrueColumnWidth( 3.57 );
+    ws.Column( 3 ).Width = GetTrueColumnWidth( 26.86 );
+    ws.Column( 4 ).Width = GetTrueColumnWidth( 19.29 );
+    ws.Column( 5 ).Width = GetTrueColumnWidth( 10.29 );
+    ws.Column( 6 ).Width = GetTrueColumnWidth( 7.71 );
+    ws.Column( 7 ).Width = GetTrueColumnWidth( 12 );
+    ws.Column( 8 ).Width = GetTrueColumnWidth( 9.8 );
+    ws.Column( 9 ).Width = GetTrueColumnWidth( 9.8 );
     ws.Column( 10 ).Width = 1 / 0.58;
     ws.Row( 1 ).Height = 13.5;
     ws.Row( 2 ).Height = 30;
@@ -134,7 +136,7 @@ public static class WorksheetFormater
     ws.Row( 4 ).Height = 13.5;
     ws.Row( 5 ).Height = 13.5;
     ws.Row( 6 ).Height = 6.5;
-    
+
     ws.Row( startRow ).Height = 25;
     ws.Row( startRow + 1 ).Height = 17;
     ws.Row( startRow + 2 ).Height = 7;
@@ -206,15 +208,19 @@ public static class WorksheetFormater
     #endregion
   }
 
-
-  public static void PaintChart( this ExcelWorksheet ws, int startRow, int startColumn, IEnumerable<BackgroundColorResource> bgColors)
+  public static void PaintChart( this ExcelWorksheet ws, int startRow, int startColumn, int numberOfTasks, IEnumerable<BackgroundColorResource> bgColors )
   {
+    var unitCellCount = 6;
     foreach ( var bgColor in bgColors ) {
-
+      foreach ( var month in bgColor.Months ) {
+        var color = GetColor( bgColor.Code );
+        ws.Cells [ startRow, startColumn + ( month - 1 ) * unitCellCount, startRow + numberOfTasks, startColumn + unitCellCount * month - 1 ].Style.Fill.PatternType = ExcelFillStyle.Solid;
+        ws.Cells [ startRow, startColumn + ( month - 1 ) * unitCellCount, startRow + numberOfTasks, startColumn + unitCellCount * month - 1 ].Style.Fill.BackgroundColor.SetColor( color );
+      }
     }
   }
 
-  public static double GetTrueColWidth( double width )
+  public static double GetTrueColumnWidth( double width )
   {
     //DEDUCE WHAT THE COLUMN WIDTH WOULD REALLY GET SET TO
     double z = 1d;
@@ -242,5 +248,18 @@ public static class WorksheetFormater
       return width + adj;
     }
     return 0d;
+  }
+
+  public static Color GetColor( string code )
+  {
+    var matches = Regex.Matches( code, "[0-9]+" );
+    if ( matches.Count == 3 ) {
+      if ( int.TryParse( matches [ 0 ].Value, out var red )
+        && int.TryParse( matches [ 1 ].Value, out var green )
+        && int.TryParse( matches [ 2 ].Value, out var blue ) ) {
+        return Color.FromArgb( red, green, blue );
+      }
+    }
+    return Color.White;
   }
 }
