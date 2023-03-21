@@ -2,14 +2,12 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.CodeAnalysis;
-using Microsoft.Office.Core;
 using SchedulingTool.Api.Domain.Models;
 using SchedulingTool.Api.Domain.Services;
 using SchedulingTool.Api.Extension;
 using SchedulingTool.Api.Notification;
 using SchedulingTool.Api.Resources;
 using SchedulingTool.Api.Resources.FormBody;
-using System.Net.Http.Headers;
 using ModelTask = SchedulingTool.Api.Domain.Models.Task;
 
 namespace SchedulingTool.Api.Controllers;
@@ -200,11 +198,12 @@ public class ProjectDetailsController : ControllerBase
   //[Authorize]
   public async Task<IActionResult> DownloadFile()
   {
-    var path = ExcelSchedulingSample.ExcelSchedulingSample.ExportToExcel();
-    if ( path == null ) {
-      return BadRequest();
+    if ( ExportExcel.ExportExcel.GetFile( out var result ) ) {
+      var fileBytes = System.IO.File.ReadAllBytes( result );
+      return File( fileBytes, System.Net.Mime.MediaTypeNames.Application.Octet, $"{Guid.NewGuid().ToString()}.xlsx" );
     }
-    var fileBytes = System.IO.File.ReadAllBytes( path );
-    return File( fileBytes, System.Net.Mime.MediaTypeNames.Application.Octet, $"{Guid.NewGuid().ToString()}.xlsx" );
+    else {
+      return BadRequest( result );
+    }
   }
 }

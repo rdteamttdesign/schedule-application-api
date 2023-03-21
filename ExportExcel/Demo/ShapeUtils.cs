@@ -12,7 +12,7 @@ namespace ExcelSchedulingSample.Utils
       workSheet.Drawings.Remove( shapeName ) ;
     }
 
-    public static void DeleteAllShape( this ExcelWorksheet workSheet )
+    public static void DeleteAllShapes( this ExcelWorksheet workSheet )
     {
       workSheet.Drawings.Clear() ;
     }
