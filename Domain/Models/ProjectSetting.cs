@@ -10,7 +10,7 @@ namespace SchedulingTool.Api.Domain.Models
         public bool SeparateGroupTask { get; set; }
         public float AssemblyDurationRatio { get; set; }
         public float RemovalDurationRatio { get; set; }
-        public float ColumnWidth { get; set; }
+        public int ColumnWidth { get; set; }
 
         public virtual Project Project { get; set; } = null!;
     }
