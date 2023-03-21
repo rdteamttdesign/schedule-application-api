@@ -5,7 +5,7 @@ namespace SchedulingTool.Api.ExportExcel;
 
 public static class ExportExcel
 {
-  public static bool GetFile(out string result)
+  public static bool GetFile( out string result )
   {
     ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
     var excel = new ExcelPackage();
@@ -21,14 +21,25 @@ public static class ExportExcel
       // Clear shapes
       sheet.Drawings.Clear();
 
-      var startRow = 7;
       var numberContent = 8;
       var numberTask = 54;
       var numberMonth = 35;
 
       sheet.CreateTitle( numberContent, numberMonth );
-      sheet.FormatTaskTable( startRow, 2, numberContent, 2 + numberContent + 1 );
-      sheet.FormatChartTable( startRow, 2 + numberContent + 1, 7, 2 + 8 + 1 );
+
+      sheet.FormatChartTable(
+        startRow: 7,
+        startColumn: 2 + numberContent + 1,
+        rowCount: numberTask,
+        columnCount: numberMonth );
+
+      sheet.FormatTaskTable(
+        startRow: 7,
+        startColumn: 2,
+        rowCount: numberTask,
+        columnCount: numberContent );
+
+
 
       excel.Save();
       if ( File.Exists( path ) )
@@ -41,7 +52,7 @@ public static class ExportExcel
       result = path;
       return true;
     }
-    catch ( Exception ex) {
+    catch ( Exception ex ) {
       excel.Dispose();
       xlApp.Quit();
       result = $"{ex.Message}: {ex.StackTrace}";

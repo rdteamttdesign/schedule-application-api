@@ -1,5 +1,6 @@
 ﻿using OfficeOpenXml.Style;
 using OfficeOpenXml;
+using SchedulingTool.Api.Resources;
 
 namespace SchedulingTool.Api.ExportExcel;
 
@@ -203,6 +204,14 @@ public static class WorksheetFormater
       }
     }
     #endregion
+  }
+
+
+  public static void PaintChart( this ExcelWorksheet ws, int startRow, int startColumn, IEnumerable<BackgroundColorResource> bgColors)
+  {
+    foreach ( var bgColor in bgColors ) {
+
+    }
   }
 
   public static double GetTrueColWidth( double width )
