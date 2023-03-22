@@ -3,7 +3,7 @@
 public class PredecessorDetailFormData
 {
   //public DataChange Change { get; set; }
-  //public long StepworkId { get; set; }
+  public long? StepworkId { get; set; }
   public int RelatedGroupTaskIndex { get; set; }
   public int RelatedTaskIndex { get; set; }
   public int RelatedStepworkIndex { get; set; }
