@@ -26,6 +26,7 @@ public class ProjectDetailsController : ControllerBase
   private readonly ITaskService _taskService;
   private readonly IStepworkService _stepworkService;
   private readonly IPredecessorService _predecessorService;
+  private readonly IColorDefService _colorService;
 
   public ProjectDetailsController(
     IMapper mapper,
@@ -33,7 +34,8 @@ public class ProjectDetailsController : ControllerBase
     IGroupTaskService groupTaskService,
     ITaskService taskService,
     IStepworkService stepworkService,
-    IPredecessorService predecessorService )
+    IPredecessorService predecessorService,
+    IColorDefService colorService )
   {
     _mapper = mapper;
     _projectService = projectService;
@@ -41,6 +43,7 @@ public class ProjectDetailsController : ControllerBase
     _taskService = taskService;
     _stepworkService = stepworkService;
     _predecessorService = predecessorService;
+    _colorService = colorService;
   }
 
   [HttpGet( "{projectId}/details" )]
@@ -52,14 +55,21 @@ public class ProjectDetailsController : ControllerBase
     if ( project == null ) {
       return BadRequest( ProjectNotification.NonExisted );
     }
-    var groupTaskResources = await GetGroupTasksByProjectId( projectId );
-    return Ok( groupTaskResources );
+    try {
+      var groupTaskResources = await GetGroupTasksByProjectId( projectId );
+      return Ok( groupTaskResources );
+    }
+    catch ( Exception ex) {
+      return BadRequest( $"Something went wrong: {ex.Message}" );
+    }
   }
 
   private async Task<List<GroupTaskDetailResource>> GetGroupTasksByProjectId( long projectId )
   {
     var groupTasks = await _groupTaskService.GetGroupTasksByProjectId( projectId );
     var groupTaskResources = _mapper.Map<List<GroupTaskDetailResource>>( groupTasks );
+
+    var stepworkColors = ( await _colorService.GetStepworkColorDefsByProjectId( projectId ) ).ToDictionary( x => x.ColorId, x => x.Code );
 
     foreach ( var groupTaskResource in groupTaskResources ) {
       var tasks = await _taskService.GetTasksByGroupTaskId( groupTaskResource.GroupTaskId );
@@ -70,6 +80,9 @@ public class ProjectDetailsController : ControllerBase
         foreach ( var stepworkResource in taskResource.Stepworks ) {
           var predecessor = await _predecessorService.GetPredecessorsByStepworkId( stepworkResource.StepworkId );
           stepworkResource.Predecessors = _mapper.Map<List<PredecessorDetailResource>>( predecessor );
+          if ( stepworkColors.ContainsKey( stepworkResource.ColorId ) ) {
+            stepworkResource.ColorCode = stepworkColors [ stepworkResource.ColorId ];
+          }
         }
       }
     }
