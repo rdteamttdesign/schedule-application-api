@@ -17,6 +17,7 @@ public static class ImportFileUtils
       var usedRowCount = worksheet.RowsUsed().Count();
       var groupName = string.Empty;
       GroupTaskDetailResource? groupTask = null;
+      var taskIndex = 1;
       for ( int i = 2; i < usedRowCount + 1; i++ ) {
         groupName = GetText( worksheet.Cell( i, 1 ).Value );
         if ( !string.IsNullOrEmpty( groupName ) ) {
@@ -27,10 +28,11 @@ public static class ImportFileUtils
             Tasks = new List<TaskDetailResource>()
           };
           groupTasks.Add( groupTask );
+          taskIndex = 1;
         }
         var task = new TaskDetailResource()
         {
-          Index = i - 1,
+          Index = taskIndex,
           TaskName = GetText( worksheet.Cell( i, 2 ).Value ),
           Description = GetText( worksheet.Cell( i, 3 ).Value ),
           Duration = GetFloat( worksheet.Cell( i, 4 ).Value ),
@@ -41,6 +43,7 @@ public static class ImportFileUtils
         };
         if ( groupTask != null ) {
           groupTask.Tasks.Add( task );
+          taskIndex++;
         }
         var numberOfStepworks = GetInt( worksheet.Cell( i, 8 ).Value );
         if ( numberOfStepworks == 0 ) {
@@ -48,6 +51,7 @@ public static class ImportFileUtils
           {
             Index = 1,
             Portion = 1,
+            Predecessors = new List<PredecessorDetailResource>()
             //ColorId = 
           };
           task.Stepworks.Add( stepwork );
@@ -58,6 +62,7 @@ public static class ImportFileUtils
             {
               Index = j + 1,
               Portion = GetFloat( worksheet.Cell( i, j + 9 ).Value ),
+              Predecessors = new List<PredecessorDetailResource>()
               //ColorId = 
             };
             task.Stepworks.Add( stepwork );

@@ -1,6 +1,4 @@
-﻿using SchedulingTool.Api.Domain.Models;
-
-namespace SchedulingTool.Api.Resources;
+﻿namespace SchedulingTool.Api.Resources;
 
 public class StepworkDetailResource
 {
@@ -9,6 +7,7 @@ public class StepworkDetailResource
   public float Portion { get; set; }
   public long TaskId { get; set; }
   public long ColorId { get; set; }
+  public string ColorCode { get; set; } = null!;
 
   public ICollection<PredecessorDetailResource> Predecessors { get; set; } = null!;
 }
