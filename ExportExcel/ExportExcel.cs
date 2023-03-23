@@ -1,4 +1,5 @@
-﻿using Microsoft.Office.Interop.Excel;
+﻿using ExcelSchedulingSample.Utils;
+using Microsoft.Office.Interop.Excel;
 using OfficeOpenXml;
 using SchedulingTool.Api.Resources;
 
@@ -65,6 +66,26 @@ public static class ExportExcel
       fileStream.Close();
       File.WriteAllBytes( path, excel.GetAsByteArray() );
       excel.Dispose();
+
+      var xlWorkBook = xlApp.Workbooks.Open( path );
+      var xlWorkSheet = ( Worksheet ) xlWorkBook.Worksheets.get_Item( 1 );
+      var xlWorkSheet2 = ( Worksheet ) xlWorkBook.Worksheets.get_Item( 2 );
+
+      var data = grouptasks
+        .SelectMany( g => g.Tasks )
+        .SelectMany( t => t.Stepworks )
+        .Select( s => new ChartStepwork()
+        {
+          Color = WorksheetFormater.GetColor( s.ColorId ),
+           Duration = s.Portion,
+            Lag = 1,
+             
+        } );
+      xlWorkSheet.DrawChart( data );
+
+      xlWorkBook.Save();
+      xlWorkBook.Close();
+      xlApp.Quit();
 
       result = path;
       return true;
