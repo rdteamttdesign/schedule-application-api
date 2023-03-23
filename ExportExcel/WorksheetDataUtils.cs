@@ -1,6 +1,7 @@
 ﻿using Microsoft.Office.Core;
 using Microsoft.Office.Interop.Excel;
 using OfficeOpenXml;
+using SchedulingTool.Api.Domain.Models;
 using SchedulingTool.Api.Resources;
 using System.Drawing;
 using Range = Microsoft.Office.Interop.Excel.Range;
@@ -113,23 +114,26 @@ public static class WorksheetContentUtils
     offsetValue += CalculateOffsetStepWork( relatedStep, listStepWork );
 
     return stepWorksCheck.Lag < 0
-      ? offsetValue - ( float ) Math.Abs( stepWorksCheck.Lag * k )
+      ? offsetValue - ( float ) Math.Abs( stepWorksCheck.Lag * k ) 
       : offsetValue + ( float ) Math.Abs( stepWorksCheck.Lag * k );
   }
 }
 
 public class ChartStepwork
 {
-  public int StepWorkId { get; set; }
+  public long StepWorkId { get; set; }
   public float Duration { get; set; }
-  public int? RelatedProcessorStepWork { get; set; }
+  public long? RelatedProcessorStepWork { get; set; }
   public float Lag { get; set; }
   public int RowIndex { get; set; }
   public Shape? Shape { get; set; }
   public Color Color { get; set; }
+  public PredecessorType PredecessorType { get; set; }
 }
 
-public class ChartPredecessor
+public enum PredecessorType
 {
-
+  FinishToStart = 1,
+  StartToStart = 2,
+  FinishToFinish = 3
 }

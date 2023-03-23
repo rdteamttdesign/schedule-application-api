@@ -1,5 +1,4 @@
-﻿using ExcelSchedulingSample.Utils;
-using Microsoft.Office.Interop.Excel;
+﻿using Microsoft.Office.Interop.Excel;
 using OfficeOpenXml;
 using SchedulingTool.Api.Resources;
 
@@ -76,10 +75,11 @@ public static class ExportExcel
         .SelectMany( t => t.Stepworks )
         .Select( s => new ChartStepwork()
         {
-          Color = WorksheetFormater.GetColor( s.ColorId ),
-           Duration = s.Portion,
-            Lag = 1,
-             
+          StepWorkId = s.StepworkId,
+          Color = WorksheetFormater.GetColor( s.ColorCode ),
+          Duration = s.Portion,
+          Lag = s.Predecessors.First().Lag,
+          RelatedProcessorStepWork = s.Predecessors.First().StepworkId
         } );
       xlWorkSheet.DrawChart( data );
 
