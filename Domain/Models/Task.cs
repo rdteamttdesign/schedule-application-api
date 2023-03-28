@@ -8,7 +8,6 @@ namespace SchedulingTool.Api.Domain.Models
         public Task()
         {
             Stepworks = new HashSet<Stepwork>();
-            ViewTasks = new HashSet<ViewTask>();
         }
 
         public long TaskId { get; set; }
@@ -20,9 +19,10 @@ namespace SchedulingTool.Api.Domain.Models
         public long GroupTaskId { get; set; }
         public string? Description { get; set; }
         public string? Note { get; set; }
+        public string LocalId { get; set; } = null!;
+        public string GroupTaskLocalId { get; set; } = null!;
 
         public virtual GroupTask GroupTask { get; set; } = null!;
         public virtual ICollection<Stepwork> Stepworks { get; set; }
-        public virtual ICollection<ViewTask> ViewTasks { get; set; }
     }
 }
