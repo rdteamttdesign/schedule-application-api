@@ -258,6 +258,10 @@ namespace SchedulingTool.Api.Persistence.Context
 
                 entity.Property(e => e.ProjectSettingId).HasColumnName("project_setting_id");
 
+                entity.Property(e => e.AmplifiedFactor)
+                    .HasColumnName("amplified_factor")
+                    .HasDefaultValueSql("'1.7'");
+
                 entity.Property(e => e.AssemblyDurationRatio)
                     .HasColumnName("assembly_duration_ratio")
                     .HasDefaultValueSql("'0.4'");

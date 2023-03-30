@@ -100,6 +100,7 @@ public class ProjectSettingsController : ControllerBase
     setting.AssemblyDurationRatio = formData.AssemblyDurationRatio;
     setting.RemovalDurationRatio = formData.RemovalDurationRatio;
     setting.ColumnWidth = formData.ColumnWidth;
+    setting.AmplifiedFactor = formData.AmplifiedFactor;
 
     var result = await _projectSettingService.UpdateProjectSetting( setting );
     if ( !result.Success )

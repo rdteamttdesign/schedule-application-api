@@ -11,6 +11,7 @@ namespace SchedulingTool.Api.Domain.Models
         public float AssemblyDurationRatio { get; set; }
         public float RemovalDurationRatio { get; set; }
         public int ColumnWidth { get; set; }
+        public float AmplifiedFactor { get; set; }
 
         public virtual Project Project { get; set; } = null!;
     }
