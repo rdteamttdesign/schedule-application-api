@@ -28,6 +28,9 @@ public class ProjectSettingFormData
 
   [Required]
   public int ColumnWidth { get; set; }
+
+  [Required]
+  public float AmplifiedFactor { get; set; }
 }
 
 public class ColorDefFormData
