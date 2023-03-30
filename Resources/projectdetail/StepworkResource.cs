@@ -2,7 +2,7 @@
 
 public class StepworkResource
 {
-  public int Start { get; set; }
+  public float Start { get; set; }
   public float Duration { get; set; }
   public float PercentStepWork { get; set; }
   public string Name { get; set; } = null!;

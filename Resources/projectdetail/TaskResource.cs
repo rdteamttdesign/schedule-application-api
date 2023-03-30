@@ -2,7 +2,7 @@
 
 public class TaskResource
 {
-  public int Start { get; set; }
+  public float Start { get; set; }
   public float Duration { get; set; }
   public string Name { get; set; } = null!;
   public string Id { get; set; } = null!;

@@ -70,7 +70,7 @@ public class ViewsController : ControllerBase
       var viewTask = new ViewTask()
       {
         ViewId = result.Content.ViewId,
-        TaskId = item.TaskId,
+        //TaskId = item.TaskId,
         Group = item.Group
       };
       var viewTaskResult = await _viewTaskService.CreateViewTask( viewTask );
@@ -101,7 +101,7 @@ public class ViewsController : ControllerBase
         var viewTask = new ViewTask()
         {
           ViewId = view.ViewId,
-          TaskId = item.TaskId,
+          //TaskId = item.TaskId,
           Group = item.Group
         };
         await _viewTaskService.CreateViewTask( viewTask );
