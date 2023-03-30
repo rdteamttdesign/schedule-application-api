@@ -105,7 +105,6 @@ public class ProjectDetailsController : ControllerBase
       foreach ( var task in tasks ) {
 
         var stepworks = await _stepworkService.GetStepworksByTaskId( task.TaskId );
-        //var stepworkResources = _mapper.Map<List<StepworkResource>>( stepworks );
         var taskResource = _mapper.Map<TaskResource>( task );
 
         if ( stepworks.Count() == 1 ) {
@@ -122,7 +121,6 @@ public class ProjectDetailsController : ControllerBase
             var predecessorResources = _mapper.Map<List<PredecessorResource>>( predecessors );
             var stepworkResource = _mapper.Map<StepworkResource>( stepwork );
             stepworkResource.GroupId = groupTask.LocalId;
-            //stepworkResource.Id = 
             stepworkResource.Predecessors = predecessorResources;
             stepworkResources.Add( stepworkResource );
           }
@@ -218,98 +216,8 @@ public class ProjectDetailsController : ControllerBase
       } );
     }
 
-    //var stepworks = new Dictionary<string, Stepwork>();
-    //foreach ( var groupTaskData in formData ) {
-    //  var grouptaskResult = await CreateGrouptask( projectId, groupTaskData );
-    //  if ( !grouptaskResult.Success )
-    //    continue;
-    //  foreach ( var taskData in groupTaskData.Tasks ) {
-    //    var taskResult = await CreateTask( grouptaskResult.Content.GroupTaskId, taskData );
-    //    if ( !taskResult.Success )
-    //      continue;
-    //    foreach ( var stepworkData in taskData.Stepworks ) {
-    //      var stepworkResult = await CreateStepwork( taskResult.Content.TaskId, stepworkData );
-    //      if ( !stepworkResult.Success )
-    //        continue;
-    //      foreach ( var predecessorData in stepworkData.Predecessors ) {
-    //        predecessorData.StepworkId = stepworkResult.Content.StepworkId;
-    //      }
-    //      stepworks.Add( $"{grouptaskResult.Content.Index},{taskResult.Content.Index},{stepworkResult.Content.Index}", stepworkResult.Content );
-    //    }
-    //  }
-    //}
-
-    //foreach ( var groupTaskData in formData ) {
-    //  foreach ( var taskData in groupTaskData.Tasks ) {
-    //    foreach ( var stepworkData in taskData.Stepworks ) {
-    //      foreach ( var predecessorData in stepworkData.Predecessors ) {
-    //        var key = $"{predecessorData.RelatedGroupTaskIndex},{predecessorData.RelatedTaskIndex},{predecessorData.RelatedStepworkIndex}";
-    //        if ( stepworks.ContainsKey( key ) ) {
-    //          continue;
-    //        }
-    //        var relatedStepwork = stepworks [ key ];
-    //        await CreatePredecessor( relatedStepwork.StepworkId, predecessorData );
-    //      }
-    //    }
-    //  }
-    //}
-
     return NoContent();
   }
-
-  private async Task<ServiceResponse<GroupTask>> CreateGrouptask( long projectId, GroupTaskDetailFormData groupTaskData )
-  {
-    var groupTask = new GroupTask()
-    {
-      GroupTaskName = groupTaskData.GroupTaskName,
-      ProjectId = projectId,
-      Index = groupTaskData.Index
-    };
-    return await _groupTaskService.CreateGroupTask( groupTask );
-  }
-
-  //private async Task<ServiceResponse<ModelTask>> CreateTask( string groupId, TaskDetailFormData taskData )
-  //{
-  //  var task = new ModelTask()
-  //  {
-  //    TaskName = taskData.TaskName,
-  //    Index = taskData.Index,
-  //    NumberOfTeam = taskData.NumberOfTeam,
-  //    Duration = taskData.Duration,
-  //    AmplifiedDuration = taskData.AmplifiedDuration,
-  //    GroupTaskId = groupId,
-  //    Description = taskData.Description,
-  //    Note = taskData.Note
-  //  };
-  //  return await _taskService.CreateTask( task );
-  //}
-
-  //private async Task<ServiceResponse<Stepwork>> CreateStepwork( string taskId, StepworkDetailFormData stepworkData )
-  //{
-  //  var stepwork = new Stepwork()
-  //  {
-  //    Index = stepworkData.Index,
-  //    Portion = stepworkData.Portion,
-  //    TaskId = taskId,
-  //    ColorId = stepworkData.ColorId
-  //  };
-  //  return await _stepworkService.CreateStepwork( stepwork );
-  //}
-
-  //private async Task CreatePredecessor( long relatedStepworkId, PredecessorDetailFormData predecessorData )
-  //{
-  //  if ( predecessorData.StepworkId == null ) {
-  //    return;
-  //  }
-  //  var predecessor = new Predecessor()
-  //  {
-  //    StepworkId = predecessorData.StepworkId.Value,
-  //    RelatedStepworkId = relatedStepworkId,
-  //    Type = predecessorData.Type,
-  //    Lag = predecessorData.Lag
-  //  };
-  //  await _predecessorService.CreatePredecessor( predecessor );
-  //}
 
   [HttpPost( "import" ), DisableRequestSizeLimit]
   [Authorize]
