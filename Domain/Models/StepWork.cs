@@ -15,6 +15,7 @@ namespace SchedulingTool.Api.Domain.Models
         public float Start { get; set; }
         public float Duration { get; set; }
         public string Name { get; set; } = null!;
+        public ulong Type { get; set; }
 
         public virtual ColorDef Color { get; set; } = null!;
         public virtual Task Task { get; set; } = null!;
