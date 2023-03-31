@@ -325,6 +325,10 @@ namespace SchedulingTool.Api.Persistence.Context
                     .HasMaxLength(45)
                     .HasColumnName("task_local_id");
 
+                entity.Property(e => e.Type)
+                    .HasColumnType("bit(1)")
+                    .HasColumnName("type");
+
                 entity.HasOne(d => d.Color)
                     .WithMany(p => p.Stepworks)
                     .HasForeignKey(d => d.ColorId)
