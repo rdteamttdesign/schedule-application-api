@@ -7,6 +7,7 @@ using SchedulingTool.Api.Extension;
 using SchedulingTool.Api.Notification;
 using SchedulingTool.Api.Resources.FormBody;
 using SchedulingTool.Api.Resources;
+using NuGet.Packaging;
 
 namespace SchedulingTool.Api.Controllers;
 
@@ -49,6 +50,26 @@ public class ProjectSettingsController : ControllerBase
 
     var stepworkColors = await _colorDefService.GetStepworkColorDefsByProjectId( projectId );
     resource.StepworkColors = _mapper.Map<IEnumerable<ColorDefResource>>( stepworkColors ).ToList();
+    resource.StepworkColors.Add(
+      new ColorDefResource()
+      {
+        Code = setting!.InstallColor,
+        ColorId = -1,
+        IsDefault = true,
+        Name = "設置",
+        ProjectId = projectId,
+        Type = 2
+      } );
+    resource.StepworkColors.Add(
+      new ColorDefResource()
+      {
+        Code = setting!.RemovalColor,
+        ColorId = -2,
+        IsDefault = true,
+        Name = "撤去",
+        ProjectId = projectId,
+        Type = 2
+      } );
 
     var backgroundColors = await _colorDefService.GetBackgroundColorDefsByProjectId( projectId );
     resource.BackgroundColors = _mapper.Map<IEnumerable<BackgroundColorResource>>( backgroundColors ).ToList();
@@ -100,6 +121,16 @@ public class ProjectSettingsController : ControllerBase
     setting.AssemblyDurationRatio = formData.AssemblyDurationRatio;
     setting.RemovalDurationRatio = formData.RemovalDurationRatio;
     setting.ColumnWidth = formData.ColumnWidth;
+    setting.AmplifiedFactor = formData.AmplifiedFactor;
+
+    var installColor = formData.StepworkColors.FirstOrDefault( c => c.ColorId == -1 )?.Code;
+    if ( installColor != null ) {
+      setting.InstallColor = installColor;
+    }
+    var removalColor = formData.StepworkColors.FirstOrDefault( c => c.ColorId == -2 )?.Code;
+    if ( removalColor != null ) {
+      setting.RemovalColor = removalColor;
+    }
 
     var result = await _projectSettingService.UpdateProjectSetting( setting );
     if ( !result.Success )
@@ -120,6 +151,9 @@ public class ProjectSettingsController : ControllerBase
         await _colorDefService.CreateColorDef( newColor );
       }
       else {
+        if ( stepworkColorData.ColorId == -1 || stepworkColorData.ColorId == -2 ) {
+          continue;
+        }
         var existingColor = stepworkColors.FirstOrDefault( color => color.ColorId == stepworkColorData.ColorId );
         if ( existingColor == null ) {
           continue;
@@ -173,7 +207,7 @@ public class ProjectSettingsController : ControllerBase
       else {
         bg.ColorId = bgData.ColorId;
       }
-        
+
       await _backgroundService.UpdateProjectBackground( bg );
     }
 

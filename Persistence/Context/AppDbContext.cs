@@ -112,7 +112,16 @@ namespace SchedulingTool.Api.Persistence.Context
                     .HasMaxLength(125)
                     .HasColumnName("group_task_name");
 
+                entity.Property(e => e.HideChidren)
+                    .HasColumnType("bit(1)")
+                    .HasColumnName("hide_chidren")
+                    .HasDefaultValueSql("b'0'");
+
                 entity.Property(e => e.Index).HasColumnName("index");
+
+                entity.Property(e => e.LocalId)
+                    .HasMaxLength(45)
+                    .HasColumnName("local_id");
 
                 entity.Property(e => e.ProjectId).HasColumnName("project_id");
 
@@ -143,19 +152,11 @@ namespace SchedulingTool.Api.Persistence.Context
 
                 entity.Property(e => e.Lag).HasColumnName("lag");
 
+                entity.Property(e => e.RelatedStepworkLocalId)
+                    .HasMaxLength(45)
+                    .HasColumnName("related_stepwork_local_id");
+
                 entity.Property(e => e.Type).HasColumnName("type");
-
-                entity.HasOne(d => d.RelatedStepwork)
-                    .WithMany(p => p.PredecessorRelatedStepworks)
-                    .HasForeignKey(d => d.RelatedStepworkId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("fk_predecessor_related_step_work");
-
-                entity.HasOne(d => d.Stepwork)
-                    .WithMany(p => p.PredecessorStepworks)
-                    .HasForeignKey(d => d.StepworkId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("fk_predecessor_step_work");
 
                 entity.HasOne(d => d.TypeNavigation)
                     .WithMany(p => p.Predecessors)
@@ -257,6 +258,10 @@ namespace SchedulingTool.Api.Persistence.Context
 
                 entity.Property(e => e.ProjectSettingId).HasColumnName("project_setting_id");
 
+                entity.Property(e => e.AmplifiedFactor)
+                    .HasColumnName("amplified_factor")
+                    .HasDefaultValueSql("'1.7'");
+
                 entity.Property(e => e.AssemblyDurationRatio)
                     .HasColumnName("assembly_duration_ratio")
                     .HasDefaultValueSql("'0.4'");
@@ -265,7 +270,15 @@ namespace SchedulingTool.Api.Persistence.Context
                     .HasColumnName("column_width")
                     .HasDefaultValueSql("'70'");
 
+                entity.Property(e => e.InstallColor)
+                    .HasMaxLength(45)
+                    .HasColumnName("install_color");
+
                 entity.Property(e => e.ProjectId).HasColumnName("project_id");
+
+                entity.Property(e => e.RemovalColor)
+                    .HasMaxLength(45)
+                    .HasColumnName("removal_color");
 
                 entity.Property(e => e.RemovalDurationRatio)
                     .HasColumnName("removal_duration_ratio")
@@ -289,7 +302,7 @@ namespace SchedulingTool.Api.Persistence.Context
 
                 entity.HasIndex(e => e.ColorId, "fk_step_work_color_idx");
 
-                entity.HasIndex(e => e.TaskId, "fk_step_work_task_idx");
+                entity.HasIndex(e => e.TaskId, "fk_stepwork_task_idx");
 
                 entity.HasIndex(e => e.StepworkId, "step_work_id_UNIQUE")
                     .IsUnique();
@@ -298,11 +311,31 @@ namespace SchedulingTool.Api.Persistence.Context
 
                 entity.Property(e => e.ColorId).HasColumnName("color_id");
 
+                entity.Property(e => e.Duration).HasColumnName("duration");
+
                 entity.Property(e => e.Index).HasColumnName("index");
+
+                entity.Property(e => e.LocalId)
+                    .HasMaxLength(45)
+                    .HasColumnName("local_id");
+
+                entity.Property(e => e.Name)
+                    .HasMaxLength(45)
+                    .HasColumnName("name");
 
                 entity.Property(e => e.Portion).HasColumnName("portion");
 
+                entity.Property(e => e.Start).HasColumnName("start");
+
                 entity.Property(e => e.TaskId).HasColumnName("task_id");
+
+                entity.Property(e => e.TaskLocalId)
+                    .HasMaxLength(45)
+                    .HasColumnName("task_local_id");
+
+                entity.Property(e => e.Type)
+                    .HasColumnType("bit(1)")
+                    .HasColumnName("type");
 
                 entity.HasOne(d => d.Color)
                     .WithMany(p => p.Stepworks)
@@ -314,7 +347,7 @@ namespace SchedulingTool.Api.Persistence.Context
                     .WithMany(p => p.Stepworks)
                     .HasForeignKey(d => d.TaskId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("fk_step_work_task");
+                    .HasConstraintName("fk_stepwork_task");
             });
 
             modelBuilder.Entity<Task>(entity =>
@@ -338,7 +371,15 @@ namespace SchedulingTool.Api.Persistence.Context
 
                 entity.Property(e => e.GroupTaskId).HasColumnName("group_task_id");
 
+                entity.Property(e => e.GroupTaskLocalId)
+                    .HasMaxLength(45)
+                    .HasColumnName("group_task_local_id");
+
                 entity.Property(e => e.Index).HasColumnName("index");
+
+                entity.Property(e => e.LocalId)
+                    .HasMaxLength(45)
+                    .HasColumnName("local_id");
 
                 entity.Property(e => e.Note)
                     .HasMaxLength(125)
@@ -435,15 +476,11 @@ namespace SchedulingTool.Api.Persistence.Context
 
                 entity.Property(e => e.ViewId).HasColumnName("view_id");
 
-                entity.Property(e => e.TaskId).HasColumnName("task_id");
+                entity.Property(e => e.TaskId)
+                    .HasMaxLength(50)
+                    .HasColumnName("task_id");
 
                 entity.Property(e => e.Group).HasColumnName("group");
-
-                entity.HasOne(d => d.Task)
-                    .WithMany(p => p.ViewTasks)
-                    .HasForeignKey(d => d.TaskId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("fk_view_task_task");
 
                 entity.HasOne(d => d.View)
                     .WithMany(p => p.ViewTasks)

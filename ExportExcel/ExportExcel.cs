@@ -6,13 +6,37 @@ namespace SchedulingTool.Api.ExportExcel;
 
 public static class ExportExcel
 {
-  public static bool GetFile( IEnumerable<GroupTaskDetailResource> grouptasks, out string result )
+  public static bool GetFile( IEnumerable<GroupTaskDetailResource> grouptasks, IEnumerable<ProjectBackgroundResource> backgrounds, out string result )
   {
     ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
     var excel = new ExcelPackage();
     var xlApp = new Application();
     string path = Path.Combine( AppDomain.CurrentDomain.BaseDirectory, $"{Guid.NewGuid().ToString()}.xlsx" );
     try {
+      //var tasks = grouptasks
+      //  .SelectMany( g => g.Tasks );
+      //.SelectMany( t => t.Stepworks );
+
+      var i = 10;
+      var data = new List<ChartStepwork>();
+      foreach ( var grouptask in grouptasks ) {
+        i++;
+        foreach ( var task in grouptask.Tasks ) {
+          foreach ( var sw in task.Stepworks ) {
+            data.Add( new ChartStepwork()
+            {
+              StepWorkId = sw.StepworkId,
+              Color = WorksheetFormater.GetColor( "rgb(71, 71, 107)" ),
+              Duration = sw.Portion * task.Duration,
+              Lag = sw.Predecessors.Count() != 0 ? sw.Predecessors.First().Lag : 0,
+              RelatedProcessorStepWork = sw.Predecessors.Count() != 0 ? sw.Predecessors.First().RelatedStepworkId : -1,
+              PredecessorType = sw.Predecessors.Count() != 0 ? ( PredecessorType ) sw.Predecessors.First().Type : PredecessorType.FinishToStart,
+              RowIndex = i
+            } );
+          }
+          i++;
+        }
+      }
 
       var sheet = excel.Workbook.Worksheets.Add( "Sheet1" );
 
@@ -22,41 +46,29 @@ public static class ExportExcel
       // Clear shapes
       sheet.Drawings.Clear();
 
-      var numberContent = 8;
-      var numberTask = 54;
-      var numberMonth = 35;
+      var numberOfContents = 8;
+      var numberOfTasks = i - 10;
+      var numberOfMonths = backgrounds.Count();
 
-      sheet.CreateTitle( numberContent, numberMonth );
+      sheet.CreateTitle( numberOfContents, numberOfMonths );
 
       sheet.FormatChartTable(
         startRow: 7,
-        startColumn: 2 + numberContent + 1,
-        rowCount: numberTask,
-        columnCount: numberMonth );
+        startColumn: 2 + numberOfContents + 1,
+        rowCount: numberOfTasks,
+        columnCount: numberOfMonths );
 
       sheet.FormatTaskTable(
         startRow: 7,
         startColumn: 2,
-        rowCount: numberTask,
-        columnCount: numberContent );
+        rowCount: numberOfTasks,
+        columnCount: numberOfContents );
 
-      sheet.PaintChart(
-        startRow: 10, startColumn: 11, numberOfTasks: 20,
-        new List<BackgroundColorResource>()
-        {
-          new BackgroundColorResource()
-          {
-            Code = "rgb(100,3,225)",
-            Months = new [] {1, 3,5, 15, 6}
-          },
-          new BackgroundColorResource()
-          {
-            Code = "rgb(2,53,102)",
-            Months = new [] {2,8,10}
-          }
-        } );
+      sheet.PaintChart( startRow: 10, startColumn: 11, numberOfTasks: numberOfTasks, backgrounds );
 
       sheet.PopulateData( grouptasks, startRow: 10 );
+
+      sheet.Cells.Style.Font.Name = "MS Gothic";
 
       excel.Save();
       if ( File.Exists( path ) )
@@ -68,19 +80,9 @@ public static class ExportExcel
 
       var xlWorkBook = xlApp.Workbooks.Open( path );
       var xlWorkSheet = ( Worksheet ) xlWorkBook.Worksheets.get_Item( 1 );
-      var xlWorkSheet2 = ( Worksheet ) xlWorkBook.Worksheets.get_Item( 2 );
+      var xlmmm = xlWorkSheet.Name;
+      //var xlWorkSheet2 = ( Worksheet ) xlWorkBook.Worksheets.get_Item( 2 );
 
-      var data = grouptasks
-        .SelectMany( g => g.Tasks )
-        .SelectMany( t => t.Stepworks )
-        .Select( s => new ChartStepwork()
-        {
-          StepWorkId = s.StepworkId,
-          Color = WorksheetFormater.GetColor( s.ColorCode ),
-          Duration = s.Portion,
-          Lag = s.Predecessors.First().Lag,
-          RelatedProcessorStepWork = s.Predecessors.First().StepworkId
-        } );
       xlWorkSheet.DrawChart( data );
 
       xlWorkBook.Save();

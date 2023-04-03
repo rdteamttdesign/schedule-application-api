@@ -3,6 +3,7 @@ using OfficeOpenXml;
 using SchedulingTool.Api.Resources;
 using System.Drawing;
 using System.Text.RegularExpressions;
+using DocumentFormat.OpenXml.Bibliography;
 
 namespace SchedulingTool.Api.ExportExcel;
 
@@ -13,10 +14,10 @@ public static class WorksheetFormater
     ws.Cells [ 2, 2, 2, columnCount + 1 + numberOfMonths * 6 + 2 ].Merge = true;
     ws.Cells [ 2, 2, 2, columnCount + 1 + numberOfMonths * 6 + 1 ].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
     ws.Cells [ 2, 2, 2, columnCount + 1 + numberOfMonths * 6 + 1 ].Style.VerticalAlignment = ExcelVerticalAlignment.Bottom;
-    ws.Cells [ 2, 2 ].Value = "【21号橋 上部工工事工程表(その1)】";
+    ws.Cells [ 2, 2 ].Value = "21号橋 上部工工事工程表(その1)";
     ws.Cells [ 2, 2 ].Style.Font.Size = 27;
 
-    ws.Cells [ 5, 2 ].Value = "【○○○工法】";
+    //ws.Cells [ 5, 2 ].Value = "【○○○工法】";
     ws.Cells [ 5, 2, 5, 2 ].Style.Font.Size = 14;
     ws.Cells [ 5, 2 ].Style.HorizontalAlignment = ExcelHorizontalAlignment.Left;
     ws.Cells [ 5, 2 ].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
@@ -91,7 +92,7 @@ public static class WorksheetFormater
 
         // Set Style
         if ( ( j - 1 ) % 2 == 0 & i > 2 ) {
-          range [ startRow + i, startColumn + j ].Style.Border.Right.Style = ExcelBorderStyle.Thin;
+          range [ startRow + i, startColumn + j ].Style.Border.Right.Style = ExcelBorderStyle.Hair;
           range [ startRow + i, startColumn + j ].Style.Border.Left.Style = ExcelBorderStyle.Hair;
           range [ startRow + i, startColumn + j ].Style.Border.Top.Style = ExcelBorderStyle.Thin;
           range [ startRow + i, startColumn + j ].Style.Border.Bottom.Style = ExcelBorderStyle.Thin;
@@ -110,13 +111,17 @@ public static class WorksheetFormater
           range [ startRow + i, startColumn + j ].Style.Border.Left.Style = ExcelBorderStyle.Thin;
         }
       }
+
+      for ( int j = 0; j < ( columnCount * 6 ); j = j + 6 ) {
+        range [ startRow + i, startColumn + j ].Style.Border.Left.Style = ExcelBorderStyle.Thin;
+      }
     }
   }
 
   public static void FormatTaskTable( this ExcelWorksheet ws, int startRow, int startColumn, int rowCount, int columnCount )
   {
     #region Set BackGroundContent
-    ws.TabColor = System.Drawing.Color.Black;
+    ws.TabColor = Color.Black;
     // Create Range and Set Default
     ExcelRange range = ws.Cells [ startRow, startColumn, rowCount + 3, columnCount ];
 
@@ -126,7 +131,7 @@ public static class WorksheetFormater
     ws.Column( 4 ).Width = GetTrueColumnWidth( 19.29 );
     ws.Column( 5 ).Width = GetTrueColumnWidth( 10.29 );
     ws.Column( 6 ).Width = GetTrueColumnWidth( 7.71 );
-    ws.Column( 7 ).Width = GetTrueColumnWidth( 12 );
+    ws.Column( 7 ).Width = GetTrueColumnWidth( 10 );
     ws.Column( 8 ).Width = GetTrueColumnWidth( 9.8 );
     ws.Column( 9 ).Width = GetTrueColumnWidth( 9.8 );
     ws.Column( 10 ).Width = 1 / 0.58;
@@ -137,9 +142,9 @@ public static class WorksheetFormater
     ws.Row( 5 ).Height = 13.5;
     ws.Row( 6 ).Height = 6.5;
 
-    ws.Row( startRow ).Height = 25;
-    ws.Row( startRow + 1 ).Height = 17;
-    ws.Row( startRow + 2 ).Height = 7;
+    ws.Row( startRow ).Height = 27;
+    ws.Row( startRow + 1 ).Height = 19;
+    ws.Row( startRow + 2 ).Height = 8;
 
     //Set Tile
     ws.Cells [ startRow, 2, startRow, 2 ].Value = "No";
@@ -152,11 +157,11 @@ public static class WorksheetFormater
 
     ws.Cells [ startRow, 6, startRow, 6 ].Value = "台数班数";
 
-    ws.Cells [ startRow, 7, startRow, 7 ].Value = "所要日数 (B) (Ax1.7/班数)";
+    ws.Cells [ startRow, 7, startRow, 7 ].Value = "所要日数 (B) (Ax1.7/\n班数)";
 
-    ws.Cells [ startRow, 8, startRow, 8 ].Value = "設置日数 (C)    (Bx0.6)";
+    ws.Cells [ startRow, 8, startRow, 8 ].Value = "設置日数 (C)\n(Bx0.6)";
 
-    ws.Cells [ startRow, 9, startRow, 9 ].Value = "撤去日数 (D)    (Bx0.4)";
+    ws.Cells [ startRow, 9, startRow, 9 ].Value = "撤去日数 (D)\n(Bx0.4)";
 
     for ( int i = 0; i < ( rowCount + 3 ); i++ ) {
       // Set Row 3 Down
@@ -208,17 +213,23 @@ public static class WorksheetFormater
     #endregion
   }
 
-  public static void PaintChart( this ExcelWorksheet ws, int startRow, int startColumn, int numberOfTasks, IEnumerable<BackgroundColorResource> bgColors )
+  public static void PaintChart(
+    this ExcelWorksheet ws,
+    int startRow,
+    int startColumn,
+    int numberOfTasks,
+    IEnumerable<ProjectBackgroundResource> bgColors )
   {
     var unitCellCount = 6;
-    foreach ( var bgColor in bgColors ) {
-      foreach ( var month in bgColor.Months ) {
-        var color = GetColor( bgColor.Code );
-        ws.Cells [ startRow, startColumn + ( month - 1 ) * unitCellCount, startRow + numberOfTasks, startColumn + unitCellCount * month - 1 ].Style.Fill.PatternType = ExcelFillStyle.Solid;
-        ws.Cells [ startRow, startColumn + ( month - 1 ) * unitCellCount, startRow + numberOfTasks, startColumn + unitCellCount * month - 1 ].Style.Fill.BackgroundColor.SetColor( color );
+    foreach ( var bg in bgColors ) {
+      if ( bg.ColorId == null ) {
+        continue;
       }
+      var color = GetColor( bg.ColorCode );
+      ws.Cells [ startRow, startColumn + ( bg.Month - 1 ) * unitCellCount, startRow + numberOfTasks - 1, startColumn + unitCellCount * bg.Month - 1 ].Style.Fill.PatternType = ExcelFillStyle.Solid;
+      ws.Cells [ startRow, startColumn + ( bg.Month - 1 ) * unitCellCount, startRow + numberOfTasks - 1, startColumn + unitCellCount * bg.Month - 1 ].Style.Fill.BackgroundColor.SetColor( color );
     }
-  }
+  } 
 
   public static double GetTrueColumnWidth( double width )
   {

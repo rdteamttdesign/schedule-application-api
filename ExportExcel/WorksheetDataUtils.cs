@@ -27,11 +27,14 @@ public static class WorksheetContentUtils
 
         ws.Cells [ startRow, 4 ].Value = task.Description;
 
-        ws.Cells [ startRow, 5 ].Value = $"{task.Duration}日";
+        ws.Cells [ startRow, 5 ].Value = task.Duration;
+        ws.Cells [ startRow, 5 ].Style.Numberformat.Format = "#,###.0 日";
 
-        ws.Cells [ startRow, 6 ].Value = $"{task.NumberOfTeam}班";
+        ws.Cells [ startRow, 6 ].Value = task.NumberOfTeam;
+        ws.Cells [ startRow, 6 ].Style.Numberformat.Format = "#,### 班";
 
-        ws.Cells [ startRow, 7 ].Value = $"{task.AmplifiedDuration}日";
+        ws.Cells [ startRow, 7 ].Value = task.AmplifiedDuration;
+        ws.Cells [ startRow, 7 ].Style.Numberformat.Format = "#,###.0 日";
 
         if ( task.Stepworks.Count == 2 ) {
           ws.Cells [ startRow, 8 ].Value = $"{Math.Round( task.Stepworks.ElementAt( 0 ).Portion * task.AmplifiedDuration, 1 )}日";
@@ -53,7 +56,7 @@ public static class WorksheetContentUtils
       // CreateShape
       var offset = CalculateOffsetStepWork( stepwork, chartStepwork );
       // Get position cell top, left
-      Range rangeColumnRowStart = xlWorkSheet.Range [ xlWorkSheet.Cells [ stepwork.RowIndex, startColumn ] ];
+      Range rangeColumnRowStart = xlWorkSheet.Range [ xlWorkSheet.Cells [ stepwork.RowIndex, startColumn ], xlWorkSheet.Cells [ stepwork.RowIndex, startColumn ] ];
 
       var width = stepwork.Duration * k;
       var rect = xlWorkSheet.Shapes.AddShape(
@@ -75,12 +78,27 @@ public static class WorksheetContentUtils
 
         if ( related?.Shape == null )
           continue;
-        connection.ConnectorFormat.BeginConnect( related.Shape, 4 );
-        connection.ConnectorFormat.EndConnect( stepWork.Shape, 2 );
+
+        switch ( stepWork.PredecessorType ) {
+          case PredecessorType.FinishToStart:
+            connection.ConnectorFormat.BeginConnect( related.Shape, 4 );
+            connection.ConnectorFormat.EndConnect( stepWork.Shape, 2 );
+            break;
+          case PredecessorType.StartToStart:
+            connection.ConnectorFormat.BeginConnect( related.Shape, 2 );
+            connection.ConnectorFormat.EndConnect( stepWork.Shape, 2 );
+            break;
+          case PredecessorType.FinishToFinish:
+            connection.ConnectorFormat.BeginConnect( related.Shape, 4 );
+            connection.ConnectorFormat.EndConnect( stepWork.Shape, 4 );
+            break;
+          default:
+            break;
+        }
+        
         connection.Line.Weight = 1f;
         connection.Line.BeginArrowheadLength = MsoArrowheadLength.msoArrowheadLengthMedium;
         connection.Line.BeginArrowheadWidth = MsoArrowheadWidth.msoArrowheadNarrow;
-
         // connection.Line.EndArrowheadStyle = MsoArrowheadStyle.msoArrowheadTriangle ;
       }
       else {
@@ -90,8 +108,24 @@ public static class WorksheetContentUtils
 
         if ( related?.Shape == null )
           continue;
-        connection.ConnectorFormat.BeginConnect( related.Shape, 4 );
-        connection.ConnectorFormat.EndConnect( stepWork.Shape, 2 );
+        switch ( stepWork.PredecessorType ) {
+          case PredecessorType.FinishToStart:
+            connection.ConnectorFormat.BeginConnect( related.Shape, 4 );
+            connection.ConnectorFormat.EndConnect( stepWork.Shape, 2 );
+            break;
+          case PredecessorType.StartToStart:
+            connection.ConnectorFormat.BeginConnect( related.Shape, 2 );
+            connection.ConnectorFormat.EndConnect( stepWork.Shape, 2 );
+            connection.Adjustments [ 1 ] = -3f;
+            break;
+          case PredecessorType.FinishToFinish:
+            connection.ConnectorFormat.BeginConnect( related.Shape, 4 );
+            connection.ConnectorFormat.EndConnect( stepWork.Shape, 4 );
+            connection.Adjustments [ 1 ] = 3f;
+            break;
+          default:
+            break;
+        }
         connection.Line.Weight = 1f;
         // connection.Line.EndArrowheadStyle = MsoArrowheadStyle.msoArrowheadTriangle ;
       }
@@ -107,11 +141,18 @@ public static class WorksheetContentUtils
 
     var relatedStep = listStepWork.FirstOrDefault( s => s.StepWorkId == stepWorksCheck.RelatedProcessorStepWork );
     if ( relatedStep == null ) {
-      //MessageBox.Show( stepWorksCheck.StepWorkId + "-" + stepWorksCheck.RelatedProcessorStepWork );
       return 0;
     }
     offsetValue += ( float ) ( relatedStep.Duration * k );
     offsetValue += CalculateOffsetStepWork( relatedStep, listStepWork );
+
+    if ( stepWorksCheck.PredecessorType == PredecessorType.StartToStart ) {
+      offsetValue -= ( float ) ( relatedStep.Duration * k );
+    }
+
+    if ( stepWorksCheck.PredecessorType == PredecessorType.FinishToFinish ) {
+      offsetValue -= ( float ) ( stepWorksCheck.Duration * k );
+    }
 
     return stepWorksCheck.Lag < 0
       ? offsetValue - ( float ) Math.Abs( stepWorksCheck.Lag * k ) 
@@ -121,13 +162,14 @@ public static class WorksheetContentUtils
 
 public class ChartStepwork
 {
+  public long TaskId { get; set; }
   public long StepWorkId { get; set; }
   public float Duration { get; set; }
   public long? RelatedProcessorStepWork { get; set; }
   public float Lag { get; set; }
   public int RowIndex { get; set; }
   public Shape? Shape { get; set; }
-  public Color Color { get; set; }
+  public Color Color { get; set; } = Color.AliceBlue;
   public PredecessorType PredecessorType { get; set; }
 }
 

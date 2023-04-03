@@ -11,7 +11,7 @@ public class StepworkRepository : GenericRepository<Stepwork>, IStepworkReposito
   {
   }
 
-  public async Task<IEnumerable<Stepwork>>   GetStepworksByTaskId(long taskId )
+  public async Task<IEnumerable<Stepwork>> GetStepworksByTaskId( long taskId )
   {
     return await _context.Stepworks.Where( sw => sw.TaskId == taskId ).ToListAsync();
   }

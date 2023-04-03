@@ -5,21 +5,19 @@ namespace SchedulingTool.Api.Domain.Models
 {
     public partial class Stepwork
     {
-        public Stepwork()
-        {
-            PredecessorRelatedStepworks = new HashSet<Predecessor>();
-            PredecessorStepworks = new HashSet<Predecessor>();
-        }
-
         public long StepworkId { get; set; }
         public int Index { get; set; }
         public float Portion { get; set; }
         public long TaskId { get; set; }
         public long ColorId { get; set; }
+        public string LocalId { get; set; } = null!;
+        public string TaskLocalId { get; set; } = null!;
+        public float Start { get; set; }
+        public float Duration { get; set; }
+        public string Name { get; set; } = null!;
+        public ulong Type { get; set; }
 
         public virtual ColorDef Color { get; set; } = null!;
         public virtual Task Task { get; set; } = null!;
-        public virtual ICollection<Predecessor> PredecessorRelatedStepworks { get; set; }
-        public virtual ICollection<Predecessor> PredecessorStepworks { get; set; }
     }
 }
