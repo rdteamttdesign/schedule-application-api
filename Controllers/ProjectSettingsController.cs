@@ -50,7 +50,7 @@ public class ProjectSettingsController : ControllerBase
 
     var stepworkColors = await _colorDefService.GetStepworkColorDefsByProjectId( projectId );
     resource.StepworkColors = _mapper.Map<IEnumerable<ColorDefResource>>( stepworkColors ).ToList();
-    resource.StepworkColors.Add(
+    resource.StepworkColors.Insert( 0,
       new ColorDefResource()
       {
         Code = setting!.InstallColor,
@@ -60,7 +60,7 @@ public class ProjectSettingsController : ControllerBase
         ProjectId = projectId,
         Type = 2
       } );
-    resource.StepworkColors.Add(
+    resource.StepworkColors.Insert( 1,
       new ColorDefResource()
       {
         Code = setting!.RemovalColor,
