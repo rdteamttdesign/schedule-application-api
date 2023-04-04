@@ -464,21 +464,21 @@ namespace SchedulingTool.Api.Persistence.Context
 
             modelBuilder.Entity<ViewTask>(entity =>
             {
-                entity.HasKey(e => new { e.ViewId, e.TaskId })
+                entity.HasKey(e => new { e.ViewId, e.LocalTaskId })
                     .HasName("PRIMARY")
                     .HasAnnotation("MySql:IndexPrefixLength", new[] { 0, 0 });
 
                 entity.ToTable("view_task");
 
-                entity.HasIndex(e => e.TaskId, "fk_view_task_task_idx");
+                entity.HasIndex(e => e.LocalTaskId, "fk_view_task_task_idx");
 
                 entity.HasIndex(e => e.ViewId, "fk_view_task_view_idx");
 
                 entity.Property(e => e.ViewId).HasColumnName("view_id");
 
-                entity.Property(e => e.TaskId)
-                    .HasMaxLength(50)
-                    .HasColumnName("task_id");
+                entity.Property(e => e.LocalTaskId)
+                    .HasMaxLength(45)
+                    .HasColumnName("local_task_id");
 
                 entity.Property(e => e.Group).HasColumnName("group");
 
