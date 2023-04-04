@@ -7,7 +7,6 @@ using SchedulingTool.Api.Extension;
 using SchedulingTool.Api.Notification;
 using SchedulingTool.Api.Resources;
 using SchedulingTool.Api.Resources.FormBody;
-using SchedulingTool.Api.Services;
 
 namespace SchedulingTool.Api.Controllers;
 
@@ -70,7 +69,7 @@ public class ViewsController : ControllerBase
       var viewTask = new ViewTask()
       {
         ViewId = result.Content.ViewId,
-        //TaskId = item.TaskId,
+        LocalTaskId = item.TaskId,
         Group = item.Group
       };
       var viewTaskResult = await _viewTaskService.CreateViewTask( viewTask );
@@ -101,7 +100,7 @@ public class ViewsController : ControllerBase
         var viewTask = new ViewTask()
         {
           ViewId = view.ViewId,
-          //TaskId = item.TaskId,
+          LocalTaskId = item.TaskId,
           Group = item.Group
         };
         await _viewTaskService.CreateViewTask( viewTask );
