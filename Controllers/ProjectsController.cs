@@ -1,7 +1,4 @@
 ﻿using AutoMapper;
-using DocumentFormat.OpenXml.Office2010.Excel;
-using DocumentFormat.OpenXml.Office2016.Drawing.ChartDrawing;
-using DocumentFormat.OpenXml.Wordprocessing;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SchedulingTool.Api.Domain.Models;
@@ -10,9 +7,10 @@ using SchedulingTool.Api.Extension;
 using SchedulingTool.Api.Notification;
 using SchedulingTool.Api.Resources;
 using SchedulingTool.Api.Resources.FormBody;
+using SchedulingTool.Api.Resources.FormBody.projectdetail;
 using SchedulingTool.Api.Resources.projectdetail;
-using System.Drawing.Printing;
-using System.Xml.Linq;
+using ModelTask = SchedulingTool.Api.Domain.Models.Task;
+using Task = System.Threading.Tasks.Task;
 
 namespace SchedulingTool.Api.Controllers;
 
@@ -22,11 +20,28 @@ public class ProjectsController : ControllerBase
 {
   private readonly IMapper _mapper;
   private readonly IProjectService _projectService;
+  private readonly IGroupTaskService _groupTaskService;
+  private readonly ITaskService _taskService;
+  private readonly IStepworkService _stepworkService;
+  private readonly IPredecessorService _predecessorService;
+  private readonly IColorDefService _colorService;
 
-  public ProjectsController( IMapper mapper, IProjectService projectService )
+  public ProjectsController( 
+    IMapper mapper, 
+    IProjectService projectService,
+    IGroupTaskService groupTaskService,
+    ITaskService taskService,
+    IStepworkService stepworkService,
+    IPredecessorService predecessorService,
+    IColorDefService colorService )
   {
     _mapper = mapper;
     _projectService = projectService;
+    _groupTaskService = groupTaskService;
+    _taskService = taskService;
+    _stepworkService = stepworkService;
+    _predecessorService = predecessorService;
+    _colorService = colorService;
   }
 
   [HttpGet( "{projectId}" )]
@@ -109,9 +124,11 @@ public class ProjectsController : ControllerBase
       return BadRequest( result.Message );
     }
 
+    await SaveProjectTasks( result.Content.ProjectId, SampleProjectDetail() );
+
     var resource = _mapper.Map<ProjectResource>( result.Content );
 
-    return Ok( new { Project = resource, Details = SampleProjectDetail() } );
+    return Ok( resource );
   }
 
   [HttpPut( "deactive-projects" )]
@@ -154,16 +171,16 @@ public class ProjectsController : ControllerBase
     return Ok( resource );
   }
 
-  private ICollection<object> SampleProjectDetail()
+  private ICollection<GroupTaskFormData> SampleProjectDetail()
   {
     var groupTaskId1 = Guid.NewGuid().ToString();
     var taskId11 = Guid.NewGuid().ToString();
     var taskId12 = Guid.NewGuid().ToString();
     var groupTaskId2 = Guid.NewGuid().ToString();
     var taskId21 = Guid.NewGuid().ToString();
-    return new object []
+    return new GroupTaskFormData []
     {
-      new GroupTaskResource()
+      new GroupTaskFormData()
       {
         Start = 0,
         Duration = 30,
@@ -174,7 +191,7 @@ public class ProjectsController : ControllerBase
         DisplayOrder = 1,
         GroupsNumber = 1
       },
-      new TaskResource()
+      new GroupTaskFormData()
       {
         Start = 0,
         Duration = 30,
@@ -185,7 +202,7 @@ public class ProjectsController : ControllerBase
         GroupId = groupTaskId1,
         DisplayOrder = 2,
         Note = "",
-        //ColorId= "",
+        ColorId= 1,
         GroupsNumber = 1,
         Stepworks = new StepworkResource[]
         {
@@ -201,7 +218,7 @@ public class ProjectsController : ControllerBase
             GroupId = groupTaskId1,
             DisplayOrder = 2,
             Predecessors = new PredecessorResource[] { },
-            //ColorId= ""
+            ColorId= 1
           },
           new StepworkResource()
           {
@@ -215,11 +232,11 @@ public class ProjectsController : ControllerBase
             GroupId = groupTaskId1,
             DisplayOrder = 2,
             Predecessors = new PredecessorResource[] { },
-            //ColorId= ""
+            ColorId= 1
           }
         }
       },
-      new TaskResource()
+      new GroupTaskFormData()
       {
         Start= 140,
         Duration= 30,
@@ -233,7 +250,7 @@ public class ProjectsController : ControllerBase
         GroupsNumber = 1,
         ColorId = 1,
       },
-      new GroupTaskResource()
+      new GroupTaskFormData()
       {
         Start = 0,
         Duration = 30,
@@ -244,11 +261,11 @@ public class ProjectsController : ControllerBase
         DisplayOrder = 4,
         GroupsNumber = 1
       },
-      new TaskResource()
+      new GroupTaskFormData()
       {
         Start= 140,
         Duration= 30,
-        Name = "Task 2",
+        Name = "Task 3",
         Id = taskId21,
         Predecessors = new PredecessorResource [] { },
         Type = "task",
@@ -259,5 +276,158 @@ public class ProjectsController : ControllerBase
         ColorId = 1,
       },
     };
+  }
+
+  [HttpGet( "{projectId}/details" )]
+  [Authorize]
+  public async Task<IActionResult> GetProjectDetails( long projectId )
+  {
+    var userId = long.Parse( HttpContext.User.Claims.FirstOrDefault( x => x.Type.ToLower() == "sid" )?.Value! );
+    var project = await _projectService.GetProject( userId, projectId );
+    if ( project == null ) {
+      return BadRequest( ProjectNotification.NonExisted );
+    }
+    try {
+      var groupTaskResources = await GetGroupTasksByProjectId( projectId );
+      return Ok( groupTaskResources );
+    }
+    catch ( Exception ex ) {
+      return BadRequest( $"Something went wrong: {ex.Message}" );
+    }
+  }
+
+  private async Task<List<object>> GetGroupTasksByProjectId( long projectId )
+  {
+    var result = new List<object>();
+    var groupTasks = await _groupTaskService.GetGroupTasksByProjectId( projectId );
+    var groupTaskResources = _mapper.Map<List<GroupTaskResource>>( groupTasks );
+    result.AddRange( groupTaskResources );
+
+    var stepworkColors = ( await _colorService.GetStepworkColorDefsByProjectId( projectId ) ).ToDictionary( x => x.ColorId, x => x.Code );
+
+    foreach ( var groupTask in groupTasks ) {
+      var tasks = await _taskService.GetTasksByGroupTaskId( groupTask.GroupTaskId );
+      foreach ( var task in tasks ) {
+
+        var stepworks = await _stepworkService.GetStepworksByTaskId( task.TaskId );
+        var taskResource = _mapper.Map<TaskResource>( task );
+
+        if ( stepworks.Count() == 1 ) {
+          var predecessors = await _predecessorService.GetPredecessorsByStepworkId( stepworks.First().StepworkId );
+          var predecessorResources = _mapper.Map<List<PredecessorResource>>( predecessors );
+          taskResource.Predecessors = predecessorResources;
+          taskResource.ColorId = stepworks.First().ColorId;
+          taskResource.Start = stepworks.First().Start;
+        }
+        else {
+          var stepworkResources = new List<StepworkResource>();
+          foreach ( var stepwork in stepworks ) {
+            var predecessors = await _predecessorService.GetPredecessorsByStepworkId( stepwork.StepworkId );
+            var predecessorResources = _mapper.Map<List<PredecessorResource>>( predecessors );
+            var stepworkResource = _mapper.Map<StepworkResource>( stepwork );
+            stepworkResource.GroupId = groupTask.LocalId;
+            stepworkResource.Predecessors = predecessorResources;
+            stepworkResources.Add( stepworkResource );
+          }
+          taskResource.Stepworks = stepworkResources;
+        }
+        result.Add( taskResource );
+      }
+    }
+    return result;
+  }
+
+  [HttpPost( "{projectId}/details" )]
+  [Authorize]
+  public async Task<IActionResult> SaveProjectDetails( long projectId, [FromBody] ICollection<GroupTaskFormData> formData )
+  {
+    if ( !ModelState.IsValid ) {
+      return BadRequest( ModelState.GetErrorMessages() );
+    }
+    var userId = long.Parse( HttpContext.User.Claims.FirstOrDefault( x => x.Type.ToLower() == "sid" )?.Value! );
+    var project = await _projectService.GetProject( userId, projectId );
+    if ( project == null ) {
+      return BadRequest( ProjectNotification.NonExisted );
+    }
+    try {
+      await _projectService.BatchDeleteProjectDetails( projectId );
+    }
+    catch ( Exception ex ) {
+      return BadRequest( ex.Message );
+    }
+
+    await SaveProjectTasks( projectId, formData );
+
+    return NoContent();
+  }
+
+  private async Task SaveProjectTasks( long projectId, ICollection<GroupTaskFormData> formData )
+  {
+    var converter = new ModelConverter( projectId, formData );
+
+    var grouptasks = new Dictionary<string, GroupTask>();
+    foreach ( var grouptask in converter.GroupTasks ) {
+      var result = await _groupTaskService.CreateGroupTask( grouptask );
+      if ( result.Success ) {
+        grouptasks.Add( result.Content.LocalId, result.Content );
+      }
+    }
+
+    var tasks = new Dictionary<string, ModelTask>();
+    foreach ( var task in converter.Tasks ) {
+      task.GroupTaskId = grouptasks [ task.GroupTaskLocalId ].GroupTaskId;
+      var result = await _taskService.CreateTask( task );
+      if ( result.Success ) {
+        tasks.Add( result.Content.LocalId, result.Content );
+      }
+    }
+
+    var stepworks = new Dictionary<string, Stepwork>();
+    foreach ( var stepwork in converter.Stepworks ) {
+      stepwork.TaskId = tasks [ stepwork.TaskLocalId ].TaskId;
+      var result = await _stepworkService.CreateStepwork( stepwork );
+      if ( result.Success ) {
+        stepworks.Add( result.Content.LocalId, result.Content );
+      }
+    }
+
+    foreach ( var predecessor in converter.Predecessors ) {
+      await _predecessorService.CreatePredecessor( new Predecessor()
+      {
+        StepworkId = stepworks [ predecessor.StepworkId ].StepworkId,
+        RelatedStepworkId = stepworks [ predecessor.RelatedStepworkId ].StepworkId,
+        RelatedStepworkLocalId = predecessor.RelatedStepworkId,
+        Type = predecessor.Type,
+        Lag = predecessor.Lag
+      } );
+    }
+  }
+
+  [HttpPost( "import" ), DisableRequestSizeLimit]
+  [Authorize]
+  public async Task<IActionResult> Import()
+  {
+    if ( !ModelState.IsValid ) {
+      return BadRequest( ModelState.GetErrorMessages() );
+    }
+    var formCollection = await Request.ReadFormAsync();
+    var file = formCollection.Files.First();
+    var sheetNameList = formCollection [ "SheetName" ];
+    var result = ImportFileUtils.ReadFromFile( file.OpenReadStream(), sheetNameList );
+    return Ok( result );
+  }
+
+  [HttpGet( "{projectId}/download" )]
+  //[Authorize]
+  public async Task<IActionResult> DownloadFile()
+  {
+    if ( !ModelState.IsValid ) {
+      return BadRequest( ModelState.GetErrorMessages() );
+    }
+    var formCollection = await Request.ReadFormAsync();
+    var file = formCollection.Files.First();
+    var sheetNameList = formCollection [ "SheetName" ];
+    var result = ImportFileUtils.ReadFromFile( file.OpenReadStream(), sheetNameList );
+    return Ok( result );
   }
 }
