@@ -2,6 +2,7 @@
 using SchedulingTool.Api.Domain.Models;
 using SchedulingTool.Api.Domain.Repositories;
 using SchedulingTool.Api.Persistence.Context;
+using SchedulingTool.Api.Resources;
 using Task = System.Threading.Tasks.Task;
 
 namespace SchedulingTool.Api.Persistence.Repositories;
@@ -20,5 +21,10 @@ public class ViewRepository : GenericRepository<View>, IViewRepository
   public async Task DeleteView( long viewId )
   {
     await _context.Database.ExecuteSqlRawAsync( "CALL usp_View_DeleteViewById( {0} )", viewId );
+  }
+
+  public async Task<IEnumerable<ViewTaskResource>> GetViewTasks( long viewId )
+  {
+    return await _context.Set<ViewTaskResource>().FromSqlRaw( "CALL usp_View_GetTasks( {0} )", viewId ).ToListAsync();
   }
 }

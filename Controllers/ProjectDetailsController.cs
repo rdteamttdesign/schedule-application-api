@@ -31,6 +31,7 @@ public class ProjectDetailsController : ControllerBase
   private readonly IPredecessorService _predecessorService;
   private readonly IColorDefService _colorService;
   private readonly IBackgroundService _backgroundService;
+  private readonly IViewService _viewService;
 
   public ProjectDetailsController(
     IMapper mapper,
@@ -40,7 +41,8 @@ public class ProjectDetailsController : ControllerBase
     IStepworkService stepworkService,
     IPredecessorService predecessorService,
     IColorDefService colorService,
-    IBackgroundService backgroundService )
+    IBackgroundService backgroundService,
+    IViewService viewService )
   {
     _mapper = mapper;
     _projectService = projectService;
@@ -50,6 +52,7 @@ public class ProjectDetailsController : ControllerBase
     _predecessorService = predecessorService;
     _colorService = colorService;
     _backgroundService = backgroundService;
+    _viewService = viewService;
   }
 
   [HttpGet( "{projectId}/details" )]
@@ -270,15 +273,32 @@ public class ProjectDetailsController : ControllerBase
       background.Name = color.Name;
     }
     return resources;
-  } 
+  }
+
+  private async Task<IEnumerable<ViewResource>> GetViewTasks( long projectId )
+  {
+    var views = await _viewService.GetViewsByProjectId( projectId );
+    var viewResources = _mapper.Map<IEnumerable<ViewResource>>( views );
+    foreach ( var view in viewResources ) {
+      var viewTasks = await _viewService.GetViewTasks( view.ViewId );
+      view.ViewTasks = viewTasks.ToList();
+      foreach ( var viewTask in viewTasks ) {
+        var stepworks = await _stepworkService.GetStepworksByTaskId( viewTask.TaskId );
+        var stepworkResources = _mapper.Map<IEnumerable<StepworkResource>>( stepworks );
+        viewTask.Stepworks = stepworkResources.ToList();
+      }
+    }
+    return viewResources;
+  }
 
   [HttpGet( "{projectId}/download" )]
   //[Authorize]
-  public async Task<IActionResult> DownloadFile(long projectId )
+  public async Task<IActionResult> DownloadFile( long projectId )
   {
     var groupTaskResources = await GetGroupTasksByProjectId( projectId );
     var bgResources = await GetBackgrounds( projectId );
-    if ( ExportExcel.ExportExcel.GetFile( groupTaskResources, bgResources, out var result ) ) {
+    var viewResources = await GetViewTasks( projectId );
+    if ( ExportExcel.ExportExcel.GetFile( groupTaskResources, bgResources, viewResources, out var result ) ) {
       var fileBytes = System.IO.File.ReadAllBytes( result );
       return File( fileBytes, System.Net.Mime.MediaTypeNames.Application.Octet, $"{Guid.NewGuid().ToString()}.xlsx" );
     }

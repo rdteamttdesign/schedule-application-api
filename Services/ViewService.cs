@@ -4,6 +4,7 @@ using SchedulingTool.Api.Domain.Services;
 using SchedulingTool.Api.Domain.Services.Communication;
 using SchedulingTool.Api.Notification;
 using SchedulingTool.Api.Persistence.Repositories;
+using SchedulingTool.Api.Resources;
 using Task = System.Threading.Tasks.Task;
 
 namespace SchedulingTool.Api.Services;
@@ -27,6 +28,11 @@ public class ViewService : IViewService
   public async Task<View?> GetViewById( long viewId )
   {
     return await _viewRepository.GetById( viewId );
+  }
+
+  public async Task<IEnumerable<ViewTaskResource>> GetViewTasks( long viewId )
+  {
+    return await _viewRepository.GetViewTasks( viewId );
   }
 
   public async Task<ServiceResponse<View>> CreateView( View view )
