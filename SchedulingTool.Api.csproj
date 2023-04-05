@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <Compile Remove="Controllers\AuthenticationController.cs" />
+    <Compile Remove="Controllers\ProjectDetailsController.cs" />
     <Compile Remove="Controllers\UsersController.cs" />
     <Compile Remove="Domain\Repositories\IUserRepository.cs" />
     <Compile Remove="Domain\Services\Communication\TokenResponse.cs" />
