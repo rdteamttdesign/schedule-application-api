@@ -6,7 +6,11 @@ namespace SchedulingTool.Api.ExportExcel;
 
 public static class ExportExcel
 {
-  public static bool GetFile( IEnumerable<GroupTaskDetailResource> grouptasks, IEnumerable<ProjectBackgroundResource> backgrounds, out string result )
+  public static bool GetFile( 
+    IEnumerable<GroupTaskDetailResource> grouptasks, 
+    IEnumerable<ProjectBackgroundResource> backgrounds, 
+    IEnumerable<ViewResource> viewResources,
+    out string result )
   {
     ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
     var excel = new ExcelPackage();
@@ -17,6 +21,7 @@ public static class ExportExcel
       //  .SelectMany( g => g.Tasks );
       //.SelectMany( t => t.Stepworks );
 
+      #region
       var i = 10;
       var data = new List<ChartStepwork>();
       foreach ( var grouptask in grouptasks ) {
@@ -27,7 +32,7 @@ public static class ExportExcel
             {
               StepWorkId = sw.StepworkId,
               Color = WorksheetFormater.GetColor( "rgb(71, 71, 107)" ),
-              Duration = sw.Portion * task.Duration,
+              Duration = sw.Portion * task.Duration / 100,
               Lag = sw.Predecessors.Count() != 0 ? sw.Predecessors.First().Lag : 0,
               RelatedProcessorStepWork = sw.Predecessors.Count() != 0 ? sw.Predecessors.First().RelatedStepworkId : -1,
               PredecessorType = sw.Predecessors.Count() != 0 ? ( PredecessorType ) sw.Predecessors.First().Type : PredecessorType.FinishToStart,
@@ -37,6 +42,9 @@ public static class ExportExcel
           i++;
         }
       }
+
+
+      #endregion
 
       var sheet = excel.Workbook.Worksheets.Add( "Sheet1" );
 

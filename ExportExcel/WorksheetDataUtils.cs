@@ -173,6 +173,18 @@ public class ChartStepwork
   public PredecessorType PredecessorType { get; set; }
 }
 
+public class ChartTaskSummary
+{
+  public int RowIndex { get; set; } = 0;
+  public int? TaskId { get; set; }
+  public string TaskName { get; set; } = null!;
+  public string? Description { get; set; }
+  public double? NumberDay2 { get; set; }
+  public double? Duration { get; set; }
+  public double? Offset { get; set; }
+  public string? Note { get; set; }
+}
+
 public enum PredecessorType
 {
   FinishToStart = 1,

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using SchedulingTool.Api.Domain.Models;
+using SchedulingTool.Api.Resources;
 using Task = SchedulingTool.Api.Domain.Models.Task;
 
 namespace SchedulingTool.Api.Persistence.Context
@@ -489,7 +490,42 @@ namespace SchedulingTool.Api.Persistence.Context
                     .HasConstraintName("fk_view_task_view");
             });
 
-            OnModelCreatingPartial(modelBuilder);
+      modelBuilder.Entity<ViewTaskResource>( entity =>
+      {
+        entity.HasNoKey();
+
+        entity.Property( e => e.TaskId )
+                 .HasColumnName( "task_id" );
+
+        entity.Property( e => e.Group )
+                 .HasColumnName( "group" );
+
+        entity.Property( e => e.TaskName )
+                  .HasColumnName( "task_name" );
+
+        entity.Property( e => e.Index )
+                  .HasColumnName( "index" );
+
+        entity.Property( e => e.NumberOfTeam )
+                  .HasColumnName( "number_of_team" );
+
+        entity.Property( e => e.Duration )
+                  .HasColumnName( "duration" );
+
+        entity.Property( e => e.AmplifiedDuration )
+                  .HasColumnName( "amplified_duration" );
+
+        entity.Property( e => e.GroupTaskId )
+                  .HasColumnName( "group_task_id" );
+
+        entity.Property( e => e.Description )
+                  .HasColumnName( "description" );
+
+        entity.Property( e => e.Note )
+                  .HasColumnName( "note" );
+      } );
+
+      OnModelCreatingPartial(modelBuilder);
         }
 
         partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
