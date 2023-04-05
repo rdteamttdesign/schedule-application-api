@@ -202,7 +202,7 @@ public class ProjectsController : ControllerBase
         GroupId = groupTaskId1,
         DisplayOrder = 2,
         Note = "",
-        //ColorId= "",
+        ColorId= 1,
         GroupsNumber = 1,
         Stepworks = new StepworkResource[]
         {
@@ -218,7 +218,7 @@ public class ProjectsController : ControllerBase
             GroupId = groupTaskId1,
             DisplayOrder = 2,
             Predecessors = new PredecessorResource[] { },
-            //ColorId= ""
+            ColorId= 1
           },
           new StepworkResource()
           {
@@ -232,7 +232,7 @@ public class ProjectsController : ControllerBase
             GroupId = groupTaskId1,
             DisplayOrder = 2,
             Predecessors = new PredecessorResource[] { },
-            //ColorId= ""
+            ColorId= 1
           }
         }
       },
@@ -265,7 +265,7 @@ public class ProjectsController : ControllerBase
       {
         Start= 140,
         Duration= 30,
-        Name = "Task 2",
+        Name = "Task 3",
         Id = taskId21,
         Predecessors = new PredecessorResource [] { },
         Type = "task",
