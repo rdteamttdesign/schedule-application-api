@@ -321,7 +321,7 @@ public class ProjectsController : ControllerBase
         if ( stepworks.Count() == 1 ) {
           var predecessors = await _predecessorService.GetPredecessorsByStepworkId( stepworks.First().StepworkId );
           var predecessorResources = _mapper.Map<List<PredecessorResource>>( predecessors );
-          taskResource.Predecessors = predecessorResources;
+          taskResource.Predecessors = predecessorResources.Count == 0 ? null : predecessorResources;
           taskResource.ColorId = stepworks.First().ColorId;
           taskResource.Start = stepworks.First().Start;
         }
@@ -335,10 +335,10 @@ public class ProjectsController : ControllerBase
             var predecessorResources = _mapper.Map<List<PredecessorResource>>( predecessors );
             var stepworkResource = _mapper.Map<StepworkResource>( stepwork );
             stepworkResource.GroupId = groupTask.LocalId;
-            stepworkResource.Predecessors = predecessorResources;
+            stepworkResource.Predecessors = predecessorResources.Count == 0 ? null : predecessorResources;
             stepworkResources.Add( stepworkResource );
           }
-          taskResource.Stepworks = stepworkResources;
+          taskResource.Stepworks = stepworkResources.Count == 0 ? null : stepworkResources;
         }
         result.Add( taskResource );
       }
