@@ -97,7 +97,7 @@ public class ModelConverter
           }
         }
 
-        if ( grouptaskFormData.Predecessors != null ) {
+        if ( grouptaskFormData.Predecessors != null && grouptaskFormData.Stepworks == null ) {
           foreach ( var predecessorFormData in grouptaskFormData.Predecessors ) {
             Predecessors.Add( new ExtendedPredecessor()
             {
