@@ -66,7 +66,7 @@ public class ModelConverter
           }
         }
 
-        if ( grouptaskFormData.Predecessors != null ) {
+        if ( grouptaskFormData.Stepworks?.Count == 0 ) {
           Stepworks.Add( new Stepwork()
           {
             LocalId = grouptaskFormData.Id,
@@ -78,7 +78,9 @@ public class ModelConverter
             Name = grouptaskFormData.Name,
             Start = grouptaskFormData.Start
           } );
+        }
 
+        if ( grouptaskFormData.Predecessors != null ) {
           foreach ( var predecessorFormData in grouptaskFormData.Predecessors ) {
             Predecessors.Add( new ExtendedPredecessor()
             {
