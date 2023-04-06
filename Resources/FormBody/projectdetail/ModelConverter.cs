@@ -48,7 +48,7 @@ public class ModelConverter
               Index = stepworkFormData.DisplayOrder,
               Portion = stepworkFormData.PercentStepWork,
               TaskLocalId = grouptaskFormData.Id,
-              ColorId = stepworkFormData.ColorId,
+              ColorId = stepworkFormData.ColorId ?? 1,
               Duration = stepworkFormData.PercentStepWork * stepworkFormData.Duration / 100,
               Name = stepworkFormData.Name,
               Start = stepworkFormData.Start
