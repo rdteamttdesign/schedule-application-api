@@ -328,6 +328,9 @@ public class ProjectsController : ControllerBase
         else {
           var stepworkResources = new List<StepworkResource>();
           foreach ( var stepwork in stepworks ) {
+            if ( stepwork.Portion == 100 ) {
+              continue;
+            }
             var predecessors = await _predecessorService.GetPredecessorsByStepworkId( stepwork.StepworkId );
             var predecessorResources = _mapper.Map<List<PredecessorResource>>( predecessors );
             var stepworkResource = _mapper.Map<StepworkResource>( stepwork );
