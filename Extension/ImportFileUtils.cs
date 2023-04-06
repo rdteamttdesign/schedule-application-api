@@ -6,7 +6,11 @@ namespace SchedulingTool.Api.Extension;
 
 public static class ImportFileUtils
 {
-  public static List<object> ReadFromFile( Stream fileStream, ICollection<string> sheetNameList )
+  public static List<object> ReadFromFile(
+    Stream fileStream,
+    ICollection<string> sheetNameList,
+    long installColorId,
+    long removalColorId )
   {
     using var workbook = new XLWorkbook( fileStream );
     var groupTasks = new List<object>();
@@ -33,7 +37,7 @@ public static class ImportFileUtils
             Name = groupName,
             HideChildren = false,
             DisplayOrder = index,
-            ColorId = 1,
+            ColorId = installColorId,
             Type = "project",
             Id = groupId
           };
@@ -57,7 +61,7 @@ public static class ImportFileUtils
           GroupId = groupId,
           DisplayOrder = index,
           Note = GetText( worksheet.Cell( i, 6 ).Value ),
-          ColorId = 1,
+          ColorId = installColorId,
           GroupsNumber = GetInt( worksheet.Cell( i, 5 ).Value )
         };
         //if ( groupTask != null ) {
@@ -88,8 +92,8 @@ public static class ImportFileUtils
               Type = "task",
               GroupId = groupId,
               DisplayOrder = index,
-              Predecessors = new List<PredecessorResource>()
-              //ColorId = 
+              Predecessors = new List<PredecessorResource>(),
+              ColorId = installColorId
             };
             task.Stepworks.Add( stepwork );
           }
@@ -99,7 +103,7 @@ public static class ImportFileUtils
       }
     }
     return groupTasks;
-  }
+  } 
 
   public static byte[] WriteToFile( ICollection<GroupTaskDetailResource> groupTasks )
   {

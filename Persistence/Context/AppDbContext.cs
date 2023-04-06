@@ -62,6 +62,10 @@ namespace SchedulingTool.Api.Persistence.Context
                     .HasColumnName("is_default")
                     .HasDefaultValueSql("b'0'");
 
+                entity.Property(e => e.IsInstall)
+                    .HasColumnName("is_install")
+                    .HasDefaultValueSql("'2'");
+
                 entity.Property(e => e.Name)
                     .HasMaxLength(125)
                     .HasColumnName("name");
@@ -270,15 +274,7 @@ namespace SchedulingTool.Api.Persistence.Context
                     .HasColumnName("column_width")
                     .HasDefaultValueSql("'70'");
 
-                entity.Property(e => e.InstallColor)
-                    .HasMaxLength(45)
-                    .HasColumnName("install_color");
-
                 entity.Property(e => e.ProjectId).HasColumnName("project_id");
-
-                entity.Property(e => e.RemovalColor)
-                    .HasMaxLength(45)
-                    .HasColumnName("removal_color");
 
                 entity.Property(e => e.RemovalDurationRatio)
                     .HasColumnName("removal_duration_ratio")

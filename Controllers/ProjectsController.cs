@@ -124,7 +124,11 @@ public class ProjectsController : ControllerBase
       return BadRequest( result.Message );
     }
 
-    await SaveProjectTasks( result.Content.ProjectId, SampleProjectDetail() );
+    var colors = await _colorService.GetStepworkColorDefsByProjectId( newProject.ProjectId );
+    var installColor = colors.FirstOrDefault( c => c.IsInstall == 0 );
+    var removalColor = colors.FirstOrDefault( c => c.IsInstall == 1 );
+
+    await SaveProjectTasks( result.Content.ProjectId, SampleProjectDetail( installColor!.ColorId, removalColor!.ColorId ) );
 
     var resource = _mapper.Map<ProjectResource>( result.Content );
 
@@ -171,7 +175,7 @@ public class ProjectsController : ControllerBase
     return Ok( resource );
   }
 
-  private ICollection<GroupTaskFormData> SampleProjectDetail()
+  private ICollection<GroupTaskFormData> SampleProjectDetail( long installColorId, long removalColorId )
   {
     var groupTaskId1 = Guid.NewGuid().ToString();
     var taskId11 = Guid.NewGuid().ToString();
@@ -189,7 +193,8 @@ public class ProjectsController : ControllerBase
         Type = "project",
         HideChildren = false,
         DisplayOrder = 1,
-        GroupsNumber = 1
+        GroupsNumber = 1,
+        ColorId = installColorId
       },
       new GroupTaskFormData()
       {
@@ -202,7 +207,7 @@ public class ProjectsController : ControllerBase
         GroupId = groupTaskId1,
         DisplayOrder = 2,
         Note = "",
-        ColorId= 1,
+        ColorId= installColorId,
         GroupsNumber = 1,
         Stepworks = new StepworkResource[]
         {
@@ -218,7 +223,7 @@ public class ProjectsController : ControllerBase
             GroupId = groupTaskId1,
             DisplayOrder = 2,
             Predecessors = new PredecessorResource[] { },
-            ColorId= 1
+            ColorId= installColorId
           },
           new StepworkResource()
           {
@@ -232,7 +237,7 @@ public class ProjectsController : ControllerBase
             GroupId = groupTaskId1,
             DisplayOrder = 2,
             Predecessors = new PredecessorResource[] { },
-            ColorId= 1
+            ColorId= removalColorId
           }
         }
       },
@@ -248,7 +253,7 @@ public class ProjectsController : ControllerBase
         DisplayOrder = 3,
         Note = "",
         GroupsNumber = 1,
-        ColorId = 1,
+        ColorId = installColorId,
       },
       new GroupTaskFormData()
       {
@@ -259,7 +264,8 @@ public class ProjectsController : ControllerBase
         Type = "project",
         HideChildren = false,
         DisplayOrder = 4,
-        GroupsNumber = 1
+        GroupsNumber = 1, 
+        ColorId = installColorId
       },
       new GroupTaskFormData()
       {
@@ -273,7 +279,7 @@ public class ProjectsController : ControllerBase
         DisplayOrder = 5,
         Note = "",
         GroupsNumber = 1,
-        ColorId = 1,
+        ColorId = installColorId
       },
     };
   }
@@ -403,31 +409,28 @@ public class ProjectsController : ControllerBase
     }
   }
 
-  [HttpPost( "import" ), DisableRequestSizeLimit]
+  [HttpPost( "{projectId}/import" ), DisableRequestSizeLimit]
   [Authorize]
-  public async Task<IActionResult> Import()
+  public async Task<IActionResult> Import( long projectId )
   {
     if ( !ModelState.IsValid ) {
       return BadRequest( ModelState.GetErrorMessages() );
     }
+    var colors = await _colorService.GetStepworkColorDefsByProjectId( projectId );
+    var installColor = colors.FirstOrDefault( c => c.IsInstall == 0 );
+    var removalColor = colors.FirstOrDefault( c => c.IsInstall == 1 );
+
     var formCollection = await Request.ReadFormAsync();
     var file = formCollection.Files.First();
     var sheetNameList = formCollection [ "SheetName" ];
-    var result = ImportFileUtils.ReadFromFile( file.OpenReadStream(), sheetNameList );
+    var result = ImportFileUtils.ReadFromFile( file.OpenReadStream(), sheetNameList, installColor!.ColorId, removalColor!.ColorId );
     return Ok( result );
   }
 
-  [HttpGet( "{projectId}/download" )]
+  //[HttpGet( "{projectId}/download" )]
   //[Authorize]
-  public async Task<IActionResult> DownloadFile()
-  {
-    if ( !ModelState.IsValid ) {
-      return BadRequest( ModelState.GetErrorMessages() );
-    }
-    var formCollection = await Request.ReadFormAsync();
-    var file = formCollection.Files.First();
-    var sheetNameList = formCollection [ "SheetName" ];
-    var result = ImportFileUtils.ReadFromFile( file.OpenReadStream(), sheetNameList );
-    return Ok( result );
-  }
+  //public async Task<IActionResult> DownloadFile()
+  //{
+  //  return Ok();
+  //}
 }
