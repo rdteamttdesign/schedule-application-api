@@ -4,7 +4,7 @@ namespace SchedulingTool.Api.Resources.FormBody.projectdetail;
 
 public class GroupTaskFormData
 {
-  public int Start { get; set; }
+  public float Start { get; set; }
   public float Duration { get; set; }
   public string Name { set; get; } = null!;
   public string Id { set; get; } = null!;
@@ -22,7 +22,7 @@ public class GroupTaskFormData
 
 public class StepworkFormData
 {
-  public int Start { get; set; }
+  public float Start { get; set; }
   public float Duration { get; set; }
   public float PercentStepWork { get; set; }
   public string Name { get; set; } = null!;
