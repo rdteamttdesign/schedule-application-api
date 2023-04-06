@@ -53,7 +53,9 @@ public class ModelConverter
               Name = stepworkFormData.Name,
               Start = stepworkFormData.Start
             } );
-
+            if ( stepworkFormData.Predecessors == null ) {
+              continue;
+            }
             foreach ( var predecessorFormData in stepworkFormData.Predecessors ) {
               Predecessors.Add( new ExtendedPredecessor()
               {
