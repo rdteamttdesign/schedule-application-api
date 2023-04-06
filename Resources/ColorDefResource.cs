@@ -8,4 +8,5 @@ public class ColorDefResource
   public long Type { get; set; }
   public long ProjectId { get; set; }
   public bool IsDefault { get; set; }
+  public int IsInstall { get; set; }
 }
