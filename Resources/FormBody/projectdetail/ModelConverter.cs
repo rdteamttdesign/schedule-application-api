@@ -48,12 +48,14 @@ public class ModelConverter
               Index = stepworkFormData.DisplayOrder,
               Portion = stepworkFormData.PercentStepWork,
               TaskLocalId = grouptaskFormData.Id,
-              ColorId = stepworkFormData.ColorId ?? 1,
+              ColorId = 1, //stepworkFormData.ColorId ?? 1,
               Duration = stepworkFormData.PercentStepWork * stepworkFormData.Duration / 100,
               Name = stepworkFormData.Name,
               Start = stepworkFormData.Start
             } );
-
+            if ( stepworkFormData.Predecessors == null ) {
+              continue;
+            }
             foreach ( var predecessorFormData in stepworkFormData.Predecessors ) {
               Predecessors.Add( new ExtendedPredecessor()
               {
@@ -66,18 +68,33 @@ public class ModelConverter
           }
         }
 
-        if ( grouptaskFormData.Stepworks?.Count == 0 ) {
+        if ( grouptaskFormData.Stepworks == null ) {
           Stepworks.Add( new Stepwork()
           {
             LocalId = grouptaskFormData.Id,
             Index = grouptaskFormData.DisplayOrder,
             Portion = 100,
             TaskLocalId = grouptaskFormData.Id,
-            ColorId = grouptaskFormData.ColorId ?? 1,
+            ColorId = 1, // grouptaskFormData.ColorId ?? 1,
             Duration = grouptaskFormData.Duration,
             Name = grouptaskFormData.Name,
             Start = grouptaskFormData.Start
           } );
+        }
+        else {
+          if ( grouptaskFormData.Stepworks.Count == 0 ) {
+            Stepworks.Add( new Stepwork()
+            {
+              LocalId = grouptaskFormData.Id,
+              Index = grouptaskFormData.DisplayOrder,
+              Portion = 100,
+              TaskLocalId = grouptaskFormData.Id,
+              ColorId = 1, //grouptaskFormData.ColorId ?? 1,
+              Duration = grouptaskFormData.Duration,
+              Name = grouptaskFormData.Name,
+              Start = grouptaskFormData.Start
+            } );
+          }
         }
 
         if ( grouptaskFormData.Predecessors != null ) {
