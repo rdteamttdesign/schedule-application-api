@@ -407,6 +407,9 @@ public class ProjectsController : ControllerBase
     }
 
     foreach ( var predecessor in converter.Predecessors ) {
+      if ( !stepworks.ContainsKey( predecessor.StepworkId ) || !stepworks.ContainsKey( predecessor.RelatedStepworkId ) ) {
+        continue;
+      }
       await _predecessorService.CreatePredecessor( new Predecessor()
       {
         StepworkId = stepworks [ predecessor.StepworkId ].StepworkId,
