@@ -308,12 +308,12 @@ public class ProjectsController : ControllerBase
     }
   }
 
-  private async Task<List<object>> GetGroupTasksByProjectId( long projectId )
+  private async Task<IEnumerable<object>> GetGroupTasksByProjectId( long projectId )
   {
-    var result = new List<object>();
+    var result = new List<KeyValuePair<int, object>>();
     var groupTasks = await _groupTaskService.GetGroupTasksByProjectId( projectId );
     var groupTaskResources = _mapper.Map<List<GroupTaskResource>>( groupTasks );
-    result.AddRange( groupTaskResources );
+    groupTaskResources.ForEach( g => result.Add( new KeyValuePair<int, object>( g.DisplayOrder, g ) ) );
 
     var stepworkColors = ( await _colorService.GetStepworkColorDefsByProjectId( projectId ) ).ToDictionary( x => x.ColorId, x => x.Code );
 
@@ -346,10 +346,10 @@ public class ProjectsController : ControllerBase
           }
           taskResource.Stepworks = stepworkResources.Count == 0 ? null : stepworkResources;
         }
-        result.Add( taskResource );
+        result.Add( new KeyValuePair<int, object>( taskResource.DisplayOrder, taskResource ) );
       }
     }
-    return result;
+    return result.OrderBy( o => o.Key ).Select( o => o.Value );
   }
 
   [HttpPost( "{projectId}/details" )]
