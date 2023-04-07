@@ -182,6 +182,7 @@ public class ProjectsController : ControllerBase
     var taskId12 = Guid.NewGuid().ToString();
     var groupTaskId2 = Guid.NewGuid().ToString();
     var taskId21 = Guid.NewGuid().ToString();
+    var columnWidth = 70;
     return new GroupTaskFormData []
     {
       new GroupTaskFormData()
@@ -223,7 +224,8 @@ public class ProjectsController : ControllerBase
             GroupId = groupTaskId1,
             DisplayOrder = 2,
             Predecessors = new PredecessorResource[] { },
-            ColorId= installColorId
+            ColorId= installColorId,
+            End = 15 * columnWidth
           },
           new StepworkResource()
           {
@@ -237,7 +239,8 @@ public class ProjectsController : ControllerBase
             GroupId = groupTaskId1,
             DisplayOrder = 2,
             Predecessors = new PredecessorResource[] { },
-            ColorId= removalColorId
+            ColorId= removalColorId,
+            End = 70 + 15 * columnWidth
           }
         }
       },
@@ -254,6 +257,7 @@ public class ProjectsController : ControllerBase
         Note = "",
         GroupsNumber = 1,
         ColorId = installColorId,
+        End = 140 + 30 * columnWidth
       },
       new GroupTaskFormData()
       {
@@ -265,7 +269,8 @@ public class ProjectsController : ControllerBase
         HideChildren = false,
         DisplayOrder = 4,
         GroupsNumber = 1, 
-        ColorId = installColorId
+        ColorId = installColorId,
+        End = 30 * columnWidth
       },
       new GroupTaskFormData()
       {
@@ -279,7 +284,8 @@ public class ProjectsController : ControllerBase
         DisplayOrder = 5,
         Note = "",
         GroupsNumber = 1,
-        ColorId = installColorId
+        ColorId = installColorId,
+        End = 140 + 30 * columnWidth
       },
     };
   }

@@ -13,4 +13,5 @@ public class StepworkResource
   public int DisplayOrder { get; set; }
   public ICollection<PredecessorResource>? Predecessors { get; set; }
   public long? ColorId { get; set; }
+  public float End { get; set; }
 }

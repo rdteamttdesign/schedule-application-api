@@ -18,4 +18,5 @@ public class GroupTaskFormData
   public string? Note { get; set; } = null!;
   public ICollection<StepworkResource>? Stepworks { get; set; }
   public ICollection<PredecessorResource>? Predecessors { get; set; }
+  public float End { get; set; }
 }

@@ -12,9 +12,10 @@ namespace SchedulingTool.Api.Domain.Models
         public long ColorId { get; set; }
         public string LocalId { get; set; } = null!;
         public string TaskLocalId { get; set; } = null!;
-        public float Start { get; set; }
-        public float Duration { get; set; }
         public string Name { get; set; } = null!;
+        public float Start { get; set; }
+        public float End { get; set; }
+        public float Duration { get; set; }
         public ulong Type { get; set; }
 
         public virtual ColorDef Color { get; set; } = null!;

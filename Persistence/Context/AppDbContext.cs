@@ -309,6 +309,8 @@ namespace SchedulingTool.Api.Persistence.Context
 
                 entity.Property(e => e.Duration).HasColumnName("duration");
 
+                entity.Property(e => e.End).HasColumnName("end");
+
                 entity.Property(e => e.Index).HasColumnName("index");
 
                 entity.Property(e => e.LocalId)
