@@ -51,7 +51,8 @@ public class ModelConverter
               ColorId = 1, //stepworkFormData.ColorId ?? 1,
               Duration = stepworkFormData.PercentStepWork * stepworkFormData.Duration / 100,
               Name = stepworkFormData.Name,
-              Start = stepworkFormData.Start
+              Start = stepworkFormData.Start,
+              End = stepworkFormData.End
             } );
             if ( stepworkFormData.Predecessors == null ) {
               continue;
@@ -78,7 +79,8 @@ public class ModelConverter
             ColorId = 1, // grouptaskFormData.ColorId ?? 1,
             Duration = grouptaskFormData.Duration,
             Name = grouptaskFormData.Name,
-            Start = grouptaskFormData.Start
+            Start = grouptaskFormData.Start,
+            End = grouptaskFormData.End
           } );
         }
         else {
@@ -92,7 +94,8 @@ public class ModelConverter
               ColorId = 1, //grouptaskFormData.ColorId ?? 1,
               Duration = grouptaskFormData.Duration,
               Name = grouptaskFormData.Name,
-              Start = grouptaskFormData.Start
+              Start = grouptaskFormData.Start,
+              End = grouptaskFormData.End
             } );
           }
         }
