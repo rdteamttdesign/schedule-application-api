@@ -444,7 +444,21 @@ public class ProjectsController : ControllerBase
       return Ok( "No sheet name found." );
     }
 
-    var result = ImportFileUtils.ReadFromFile( file.OpenReadStream(), sheetNameList, installColor!.ColorId, removalColor!.ColorId );
+    var maxDisplayOrder = 1;
+    var groupTasks = await _groupTaskService.GetGroupTasksByProjectId( projectId );
+    foreach ( var groupTask in groupTasks ) {
+      if ( groupTask.Index > maxDisplayOrder ) {
+        maxDisplayOrder = groupTask.Index;
+      }
+      var tasks = await _taskService.GetTasksByGroupTaskId( groupTask.GroupTaskId );
+      foreach ( var task in tasks ) {
+        if ( task.Index > maxDisplayOrder ) {
+          maxDisplayOrder = task.Index;
+        }
+      }
+    }
+
+    var result = ImportFileUtils.ReadFromFile( file.OpenReadStream(), sheetNameList, installColor!.ColorId, removalColor!.ColorId, maxDisplayOrder );
     return Ok( result );
   }
 
