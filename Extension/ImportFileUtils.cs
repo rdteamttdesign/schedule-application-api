@@ -10,11 +10,12 @@ public static class ImportFileUtils
     Stream fileStream,
     ICollection<string> sheetNameList,
     long installColorId,
-    long removalColorId )
+    long removalColorId,
+    int maxDisplayOrder)
   {
     using var workbook = new XLWorkbook( fileStream );
     var groupTasks = new List<object>();
-    int index = 1;
+    int index = maxDisplayOrder + 1;
     foreach ( var sheetName in sheetNameList ) {
       if ( !workbook.Worksheets.Contains( sheetName ) ) {
         continue;
@@ -81,11 +82,12 @@ public static class ImportFileUtils
         else {
           task.Stepworks = new List<StepworkResource>();
           for ( int j = 0; j < numberOfStepworks; j++ ) {
+            var percentStepwork = Math.Abs( GetFloat( worksheet.Cell( i, j + 7 ).Value ) * 100 );
             var stepwork = new StepworkResource()
             {
               Start = 0,
-              Duration = Convert.ToSingle( Math.Round( task.Duration * GetFloat( worksheet.Cell( i, j + 7 ).Value ), 2 ) ),
-              PercentStepWork = GetFloat( worksheet.Cell( i, j + 7 ).Value ),
+              Duration = task.Duration,
+              PercentStepWork = percentStepwork,
               Name = Guid.NewGuid().ToString(),
               ParentTaskId = taskId,
               Id = Guid.NewGuid().ToString(),
@@ -93,7 +95,7 @@ public static class ImportFileUtils
               GroupId = groupId,
               DisplayOrder = index,
               Predecessors = new List<PredecessorResource>(),
-              ColorId = installColorId
+              ColorId = percentStepwork > 0 ? installColorId : removalColorId
             };
             task.Stepworks.Add( stepwork );
           }
