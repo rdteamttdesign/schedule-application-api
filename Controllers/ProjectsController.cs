@@ -434,17 +434,25 @@ public class ProjectsController : ControllerBase
 
     var formCollection = await Request.ReadFormAsync();
     var file = formCollection.Files.First();
-    var sheetNameList = formCollection [ "SheetName" ];
 
     if ( file.Length <= 0 ) {
-      return Ok( "No file found." );
+      return BadRequest( "No file found." );
     }
 
-    if ( sheetNameList.Count == 0 ) {
-      return Ok( "No sheet name found." );
+    if ( !formCollection.ContainsKey( "SheetName" ) ) {
+      return BadRequest( "No sheet name found." );
     }
 
-    var result = ImportFileUtils.ReadFromFile( file.OpenReadStream(), sheetNameList, installColor!.ColorId, removalColor!.ColorId );
+    if ( !formCollection.ContainsKey( "displayOrder" ) ) {
+      return BadRequest( "Display Order field missing." );
+    }
+
+    if ( !int.TryParse( formCollection [ "displayOrder" ].ToString(), out var maxDisplayOrder ) ) {
+      return BadRequest( "Display Order is not a number." );
+    }
+
+    var sheetNameList = formCollection [ "SheetName" ];
+    var result = ImportFileUtils.ReadFromFile( file.OpenReadStream(), sheetNameList, installColor!.ColorId, removalColor!.ColorId, maxDisplayOrder );
     return Ok( result );
   }
 
