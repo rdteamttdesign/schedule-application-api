@@ -435,6 +435,15 @@ public class ProjectsController : ControllerBase
     var formCollection = await Request.ReadFormAsync();
     var file = formCollection.Files.First();
     var sheetNameList = formCollection [ "SheetName" ];
+
+    if ( file.Length <= 0 ) {
+      return Ok( "No file found." );
+    }
+
+    if ( sheetNameList.Count == 0 ) {
+      return Ok( "No sheet name found." );
+    }
+
     var result = ImportFileUtils.ReadFromFile( file.OpenReadStream(), sheetNameList, installColor!.ColorId, removalColor!.ColorId );
     return Ok( result );
   }
