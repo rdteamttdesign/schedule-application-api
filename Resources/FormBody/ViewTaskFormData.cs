@@ -5,6 +5,6 @@ namespace SchedulingTool.Api.Resources.FormBody;
 public class ViewTaskFormData
 {
   [Required]
-  public string Id { get; set; } = string.Empty;
+  public string Id { get; set; } = null!;
   public int? Group { get; set; }
 }
