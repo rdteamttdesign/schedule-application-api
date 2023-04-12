@@ -41,16 +41,6 @@ public class ViewsController : ControllerBase
   {
     var views = await _viewService.GetViewsByProjectId( projectId );
     var viewResources = _mapper.Map<IEnumerable<ViewResource>>( views );
-    if ( !viewResources.Any() ) {
-      return BadRequest( ViewNotification.NonExisted );
-    }
-    //foreach ( var viewResource in viewResources ) {
-    //  var viewTasks = await _viewTaskService.GetViewTasksByViewId( viewResource.ViewId );
-    //  if ( viewTasks.Any() ) {
-    //    var viewTaskResources = _mapper.Map<IEnumerable<ViewTaskResource>>( viewTasks );
-    //    viewResource.ViewTasks = viewTaskResources.ToList();
-    //  }
-    //}
     return Ok( viewResources );
   }
 
