@@ -15,4 +15,8 @@ public class StepworkRepository : GenericRepository<Stepwork>, IStepworkReposito
   {
     return await _context.Stepworks.Where( sw => sw.TaskId == taskId ).ToListAsync();
   }
+  public async Task<IEnumerable<Stepwork>> GetStepworksByTaskLocalId( string taskLocalId )
+  {
+    return await _context.Stepworks.Where( sw => sw.TaskLocalId == taskLocalId ).ToListAsync();
+  }
 }
