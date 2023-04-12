@@ -13,6 +13,7 @@ public class ModelConverter
   public ModelConverter( long projectId, ICollection<GroupTaskFormData> grouptaskFormDataList )
   {
     foreach ( GroupTaskFormData grouptaskFormData in grouptaskFormDataList ) {
+      // case type project ~ group task
       if ( grouptaskFormData.Type == "project" ) {
         GroupTasks.Add(
           new GroupTask()
@@ -24,6 +25,7 @@ public class ModelConverter
             HideChidren = grouptaskFormData.HideChildren ?? false
           } );
       }
+      // case type task
       else if ( grouptaskFormData.Type == "task" ) {
         if ( grouptaskFormData.GroupId == null ) {
           continue;
@@ -40,6 +42,7 @@ public class ModelConverter
           Description = grouptaskFormData.Detail,
           Note = grouptaskFormData.Note
         } );
+        // case had stepwork
         if ( grouptaskFormData.Stepworks != null ) {
           foreach ( var stepworkFormData in grouptaskFormData.Stepworks ) {
             Stepworks.Add( new Stepwork()
@@ -57,6 +60,7 @@ public class ModelConverter
             if ( stepworkFormData.Predecessors == null ) {
               continue;
             }
+            // case had prodecessor
             foreach ( var predecessorFormData in stepworkFormData.Predecessors ) {
               Predecessors.Add( new ExtendedPredecessor()
               {
@@ -68,9 +72,9 @@ public class ModelConverter
             }
           }
         }
-
-        if ( grouptaskFormData.Stepworks == null ) {
-          Stepworks.Add( new Stepwork()
+        // case not stepwork
+        if ( grouptaskFormData.Stepworks == null || grouptaskFormData.Stepworks.Count == 0 ) {
+          var _ = new Stepwork()
           {
             LocalId = grouptaskFormData.Id,
             Index = grouptaskFormData.DisplayOrder,
@@ -81,25 +85,10 @@ public class ModelConverter
             Name = grouptaskFormData.Name,
             Start = grouptaskFormData.Start,
             End = grouptaskFormData.End
-          } );
+          };
+          Stepworks.Add( _ );
         }
-        else {
-          if ( grouptaskFormData.Stepworks.Count == 0 ) {
-            Stepworks.Add( new Stepwork()
-            {
-              LocalId = grouptaskFormData.Id,
-              Index = grouptaskFormData.DisplayOrder,
-              Portion = 100,
-              TaskLocalId = grouptaskFormData.Id,
-              ColorId = 1, //grouptaskFormData.ColorId ?? 1,
-              Duration = grouptaskFormData.Duration,
-              Name = grouptaskFormData.Name,
-              Start = grouptaskFormData.Start,
-              End = grouptaskFormData.End
-            } );
-          }
-        }
-
+        // case not stepwork but had predecessor
         if ( grouptaskFormData.Predecessors != null && grouptaskFormData.Stepworks == null ) {
           foreach ( var predecessorFormData in grouptaskFormData.Predecessors ) {
             Predecessors.Add( new ExtendedPredecessor()

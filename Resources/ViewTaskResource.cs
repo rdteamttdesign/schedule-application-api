@@ -2,6 +2,6 @@
 
 public class ViewTaskResource
 {
-  public long TaskId { get; set; }
+  public long Id { get; set; }
   public int Group { get; set; }
 }
