@@ -2,6 +2,6 @@
 
 public class ViewTaskResource
 {
-  public string Id { get; set; } = string.Empty;
+  public string Id { get; set; } = null!;
   public int Group { get; set; }
 }
