@@ -46,7 +46,7 @@ public class ViewsController : ControllerBase
     var viewResources = _mapper.Map<IEnumerable<ViewResource>>( views );
     foreach ( var viewResource in viewResources ) {
       var viewTasks = await _viewTaskService.GetViewTasksByViewId( viewResource.ViewId );
-      viewResource.ViewTasks = _mapper.Map<IEnumerable<ViewTaskResource>>( viewTasks ).ToList();
+      viewResource.ViewTasks = _mapper.Map<IEnumerable<ViewTaskResource>>( viewTasks ).OrderBy( t => t.DisplayOrder ).ToList();
     }
     return Ok( viewResources );
   }

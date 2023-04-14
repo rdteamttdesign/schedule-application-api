@@ -478,6 +478,8 @@ namespace SchedulingTool.Api.Persistence.Context
                     .HasMaxLength(45)
                     .HasColumnName("local_task_id");
 
+                entity.Property(e => e.DisplayOrder).HasColumnName("display_order");
+
                 entity.Property(e => e.Group).HasColumnName("group");
 
                 entity.HasOne(d => d.View)
@@ -518,7 +520,7 @@ namespace SchedulingTool.Api.Persistence.Context
         entity.Property( e => e.Note ).HasColumnName( "note" );
       } );
 
-      OnModelCreatingPartial(modelBuilder);
+            OnModelCreatingPartial(modelBuilder);
         }
 
         partial void OnModelCreatingPartial(ModelBuilder modelBuilder);

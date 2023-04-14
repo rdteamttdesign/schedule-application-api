@@ -1,10 +1,15 @@
-﻿namespace SchedulingTool.Api.Domain.Models
+﻿using System;
+using System.Collections.Generic;
+
+namespace SchedulingTool.Api.Domain.Models
 {
-  public partial class ViewTask
+    public partial class ViewTask
     {
         public long ViewId { get; set; }
-        public string LocalTaskId { get; set; } = string.Empty;
-        public int? Group { get; set; }
+        public string LocalTaskId { get; set; } = null!;
+        public int Group { get; set; }
+        public int DisplayOrder { get; set; }
+
         public virtual View View { get; set; } = null!;
     }
 }
