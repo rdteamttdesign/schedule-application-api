@@ -135,7 +135,7 @@ public class ViewsController : ControllerBase
       viewTask.Stepworks = stepworks.ToList();
     }
 
-    var viewDetail = await _viewService.GetViewDetailById( projectId, viewTasks );
+    var viewDetail = await _viewService.GetViewDetailById( projectId, viewTasks.OrderBy( t => t.DisplayOrder ) );
     return Ok( viewDetail );
   }
 }

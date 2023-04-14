@@ -24,5 +24,6 @@ public class ViewTaskDetail
   public string GroupTaskName { get; set; } = null!;
   public string? Description { get; set; }
   public string? Note { get; set; }
+  public int DisplayOrder { get; set; }
   public ICollection<Stepwork> Stepworks { get; set; } = null!;
 }
