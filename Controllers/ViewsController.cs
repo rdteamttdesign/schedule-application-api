@@ -20,19 +20,22 @@ public class ViewsController : ControllerBase
   private readonly IViewTaskService _viewTaskService;
   private readonly ITaskService _taskService;
   private readonly IGroupTaskService _groupTaskService;
+  private readonly IStepworkService _stepworkService;
 
   public ViewsController(
     IMapper mapper,
     IViewService viewService,
     IViewTaskService viewTaskService,
     ITaskService taskService,
-    IGroupTaskService groupTaskService )
+    IGroupTaskService groupTaskService,
+    IStepworkService stepworkService)
   {
     _mapper = mapper;
     _viewService = viewService;
     _viewTaskService = viewTaskService;
     _taskService = taskService;
     _groupTaskService = groupTaskService;
+    _stepworkService = stepworkService;
   }
 
   [HttpGet( "projects/{projectId}/views" )]
@@ -121,23 +124,33 @@ public class ViewsController : ControllerBase
       return BadRequest( ViewNotification.NonExisted );
     }
     // get tasks in view
-    var viewTask = await _viewTaskService.GetViewTasksByViewId( viewId );
-    var viewTaskLocalId = viewTask.Select( s => s.LocalTaskId );
-    // get tasks in project
-    var groupTasks = await _groupTaskService.GetGroupTasksByProjectId( view.ProjectId );
-    var modelTasks = new List<ModelTask>();
-    foreach ( var groupTask in groupTasks ) {
-      var tasks = await _taskService.GetTasksByGroupTaskId( groupTask.GroupTaskId );
-      if ( tasks != null && tasks.Count() > 0 )
-        foreach ( var task in tasks ) {
-          var _ = viewTask.FirstOrDefault( s => s.LocalTaskId == task.LocalId );
-          if ( _ != null ) {
-            task.Group = _.Group;
-            modelTasks.Add( task );
-          }
-        }
+    var viewTasks = await _viewService.GetViewTasks( viewId );
+
+    if ( !viewTasks.Any() ) {
+      return BadRequest( "View has no task." );
     }
-    var viewDetail = await _viewService.GetViewDetailById( view, groupTasks, modelTasks );
-    return Ok( viewDetail );
+
+    foreach ( var viewTask in viewTasks ) {
+      var stepworks = await _stepworkService.GetStepworksByTaskId( viewTask.TaskId );
+      viewTask.Stepworks = stepworks.ToList();
+    }
+
+    //var viewTaskLocalId = viewTask.Select( s => s.LocalTaskId );
+    //// get tasks in project
+    //var groupTasks = await _groupTaskService.GetGroupTasksByProjectId( view.ProjectId );
+    //var modelTasks = new List<ModelTask>();
+    //foreach ( var groupTask in groupTasks ) {
+    //  var tasks = await _taskService.GetTasksByGroupTaskId( groupTask.GroupTaskId );
+    //  if ( tasks != null && tasks.Count() > 0 )
+    //    foreach ( var task in tasks ) {
+    //      var _ = viewTask.FirstOrDefault( s => s.LocalTaskId == task.LocalId );
+    //      if ( _ != null ) {
+    //        task.Group = _.Group;
+    //        modelTasks.Add( task );
+    //      }
+    //    }
+    //}
+    //var viewDetail = await _viewService.GetViewDetailById( view, groupTasks, modelTasks );
+    return Ok(viewTasks);
   }
 }

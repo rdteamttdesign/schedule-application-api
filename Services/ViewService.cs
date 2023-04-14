@@ -88,6 +88,64 @@ public class ViewService : IViewService
     return result.OrderBy( o => o.Key ).Select( o => o.Value );
   }
 
+  public IEnumerable<object> GetViewDetailById( IEnumerable<ViewTaskDetail> tasks )
+  {
+    CalculateDuration( tasks );
+    var result = new List<KeyValuePair<int, object>>();
+    var tasksByGroup = tasks.GroupBy( t => t.GroupTaskName );
+
+    int i = 1;
+    foreach ( var group in tasksByGroup ) {
+      var groupId = Guid.NewGuid().ToString();
+      var grouptaskResource = new GroupTaskResource()
+      {
+        Name = group.Key,
+        Id = groupId,
+        Type = "project",
+        DisplayOrder = i
+      };
+      result.Add( new KeyValuePair<int, object>( i, grouptaskResource ) );
+      foreach ( var task in group ) {
+        var taskResource = new TaskResource()
+        {
+          Duration = task.Duration,
+          Start = task.MinStart,
+          Name = task.TaskName,
+          Id = task.TaskLocalId,
+          Type = "task",
+          Detail = string.Empty,
+          GroupId = groupId,
+          DisplayOrder = i,
+          Note = string.Empty,
+          ColorId = 1
+        };
+        i++;
+        result.Add( new KeyValuePair<int, object>( i, taskResource ) );
+      }
+      i++;
+    }
+    return result.OrderBy( o => o.Key ).Select( o => o.Value );
+  }
+
+  private void CalculateDuration( IEnumerable<ViewTaskDetail> tasks )
+  {
+    var tasksByGroup = tasks.GroupBy( t => t.Group );
+    foreach ( var group in tasksByGroup ) {
+      if ( group.Count() > 1 || group.Key > 0 ) {
+        var stepworks = group.SelectMany(task =>  task.Stepworks );
+        var minStart = stepworks.Min( s => s.Start );
+        var maxEnd = stepworks.Max( s => s.End );
+        var duration = maxEnd - minStart;
+
+        foreach ( var task in group ) {
+          task.MinStart = minStart;
+          task.MaxEnd = maxEnd;
+          task.Duration = duration;
+        }
+      }
+    }
+  }
+
   public async Task<ServiceResponse<View>> CreateView( View view )
   {
     try {
@@ -117,4 +175,8 @@ public class ViewService : IViewService
     await _viewRepository.DeleteView( viewId, isDeleteView );
   }
 
+  public async Task<IEnumerable<ViewTaskDetail>> GetViewTasks( long viewId )
+  {
+    return await _viewRepository.GetViewTasks( viewId );
+  }
 }

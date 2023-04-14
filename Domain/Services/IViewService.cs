@@ -12,4 +12,5 @@ public interface IViewService
   Task<View?> GetViewById( long viewId );
   Task<IEnumerable<object>> GetViewDetailById( View view, IEnumerable<GroupTask> groupTasks, List<ModelTask> tasks );
   System.Threading.Tasks.Task DeleteView( long viewId, bool isDeleteView );
+  Task<IEnumerable<ViewTaskDetail>> GetViewTasks( long viewId );
 }

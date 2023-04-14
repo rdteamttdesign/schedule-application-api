@@ -487,7 +487,38 @@ namespace SchedulingTool.Api.Persistence.Context
                     .HasConstraintName("fk_view_task_view");
             });
 
-            OnModelCreatingPartial(modelBuilder);
+      modelBuilder.Entity<ViewTaskDetail>( entity =>
+      {
+        entity.HasNoKey();
+
+        entity.Property( e => e.TaskId ).HasColumnName( "task_id" );
+
+        entity.Property( e => e.TaskLocalId ).HasColumnName( "local_id" );
+
+        entity.Property( e => e.Group ).HasColumnName( "group" );
+
+        entity.Property( e => e.TaskName ).HasColumnName( "task_name" );
+
+        entity.Property( e => e.Index ).HasColumnName( "index" );
+
+        entity.Property( e => e.NumberOfTeam ).HasColumnName( "number_of_team" );
+
+        entity.Property( e => e.Duration ).HasColumnName( "duration" );
+
+        entity.Property( e => e.AmplifiedDuration ).HasColumnName( "amplified_duration" );
+
+        entity.Property( e => e.GroupTaskId ).HasColumnName( "group_task_id" );
+
+        entity.Property( e => e.GroupTaskLocalId ).HasColumnName( "group_task_local_id" );
+
+        entity.Property( e => e.GroupTaskName ).HasColumnName( "group_task_name" );
+
+        entity.Property( e => e.Description ).HasColumnName( "description" );
+
+        entity.Property( e => e.Note ).HasColumnName( "note" );
+      } );
+
+      OnModelCreatingPartial(modelBuilder);
         }
 
         partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
