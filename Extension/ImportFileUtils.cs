@@ -1,4 +1,5 @@
 ﻿using ClosedXML.Excel;
+using SchedulingTool.Api.Domain.Models;
 using SchedulingTool.Api.Resources;
 using SchedulingTool.Api.Resources.projectdetail;
 
@@ -9,6 +10,7 @@ public static class ImportFileUtils
   public static List<object> ReadFromFile(
     Stream fileStream,
     ICollection<string> sheetNameList,
+    ProjectSetting setting,
     long installColorId,
     long removalColorId,
     int maxDisplayOrder)
@@ -86,8 +88,8 @@ public static class ImportFileUtils
             var stepwork = new StepworkResource()
             {
               Start = 0,
-              Duration = task.Duration,
-              PercentStepWork = percentStepwork,
+              Duration = task.Duration.DaysToColumnWidth( setting.ColumnWidth ),
+              PercentStepWork = percentStepwork*100,
               Name = Guid.NewGuid().ToString(),
               ParentTaskId = taskId,
               Id = Guid.NewGuid().ToString(),

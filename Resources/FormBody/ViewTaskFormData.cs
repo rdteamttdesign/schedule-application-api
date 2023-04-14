@@ -6,5 +6,6 @@ public class ViewTaskFormData
 {
   [Required]
   public string Id { get; set; } = null!;
-  public int? Group { get; set; }
+  public int Group { get; set; }
+  public int DisplayOrder { get; set; }
 }

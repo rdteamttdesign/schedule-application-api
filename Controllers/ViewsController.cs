@@ -20,19 +20,22 @@ public class ViewsController : ControllerBase
   private readonly IViewTaskService _viewTaskService;
   private readonly ITaskService _taskService;
   private readonly IGroupTaskService _groupTaskService;
+  private readonly IStepworkService _stepworkService;
 
   public ViewsController(
     IMapper mapper,
     IViewService viewService,
     IViewTaskService viewTaskService,
     ITaskService taskService,
-    IGroupTaskService groupTaskService )
+    IGroupTaskService groupTaskService,
+    IStepworkService stepworkService )
   {
     _mapper = mapper;
     _viewService = viewService;
     _viewTaskService = viewTaskService;
     _taskService = taskService;
     _groupTaskService = groupTaskService;
+    _stepworkService = stepworkService;
   }
 
   [HttpGet( "projects/{projectId}/views" )]
@@ -43,7 +46,7 @@ public class ViewsController : ControllerBase
     var viewResources = _mapper.Map<IEnumerable<ViewResource>>( views );
     foreach ( var viewResource in viewResources ) {
       var viewTasks = await _viewTaskService.GetViewTasksByViewId( viewResource.ViewId );
-      viewResource.ViewTasks = _mapper.Map<IEnumerable<ViewTaskResource>>( viewTasks ).ToList();
+      viewResource.ViewTasks = _mapper.Map<IEnumerable<ViewTaskResource>>( viewTasks ).OrderBy( t => t.DisplayOrder ).ToList();
     }
     return Ok( viewResources );
   }
@@ -111,9 +114,9 @@ public class ViewsController : ControllerBase
     return NoContent();
   }
 
-  [HttpGet( "views/{viewId}" )]
+  [HttpGet( "projects/{projectId}/views/{viewId}" )]
   [Authorize]
-  public async Task<IActionResult> GetViewDetail( long viewId )
+  public async Task<IActionResult> GetViewDetail( long projectId, long viewId )
   {
     // checking
     var view = await _viewService.GetViewById( viewId );
@@ -121,23 +124,18 @@ public class ViewsController : ControllerBase
       return BadRequest( ViewNotification.NonExisted );
     }
     // get tasks in view
-    var viewTask = await _viewTaskService.GetViewTasksByViewId( viewId );
-    var viewTaskLocalId = viewTask.Select( s => s.LocalTaskId );
-    // get tasks in project
-    var groupTasks = await _groupTaskService.GetGroupTasksByProjectId( view.ProjectId );
-    var modelTasks = new List<ModelTask>();
-    foreach ( var groupTask in groupTasks ) {
-      var tasks = await _taskService.GetTasksByGroupTaskId( groupTask.GroupTaskId );
-      if ( tasks != null && tasks.Count() > 0 )
-        foreach ( var task in tasks ) {
-          var _ = viewTask.FirstOrDefault( s => s.LocalTaskId == task.LocalId );
-          if ( _ != null ) {
-            task.Group = _.Group;
-            modelTasks.Add( task );
-          }
-        }
+    var viewTasks = await _viewService.GetViewTasks( viewId );
+
+    if ( !viewTasks.Any() ) {
+      return BadRequest( "View has no task." );
     }
-    var viewDetail = await _viewService.GetViewDetailById( view, groupTasks, modelTasks );
+
+    foreach ( var viewTask in viewTasks ) {
+      var stepworks = await _stepworkService.GetStepworksByTaskId( viewTask.TaskId );
+      viewTask.Stepworks = stepworks.ToList();
+    }
+
+    var viewDetail = await _viewService.GetViewDetailById( projectId, viewTasks );
     return Ok( viewDetail );
   }
 }

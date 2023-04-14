@@ -36,7 +36,8 @@ public class ViewTaskService : IViewTaskService
         {
           ViewId = viewId,
           LocalTaskId = item.Id,
-          Group = item.Group
+          Group = item.Group,
+          DisplayOrder = item.DisplayOrder
         };
         var viewTaskResult = await _viewTaskRepository.Create( viewTask );
         result.Add( _mapper.Map<ViewTaskResource>( viewTaskResult ) );
