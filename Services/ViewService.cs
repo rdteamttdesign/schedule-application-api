@@ -4,6 +4,7 @@ using SchedulingTool.Api.Domain.Models;
 using SchedulingTool.Api.Domain.Repositories;
 using SchedulingTool.Api.Domain.Services;
 using SchedulingTool.Api.Domain.Services.Communication;
+using SchedulingTool.Api.Extension;
 using SchedulingTool.Api.Notification;
 using SchedulingTool.Api.Resources.projectdetail;
 using ModelTask = SchedulingTool.Api.Domain.Models.Task;
@@ -88,9 +89,10 @@ public class ViewService : IViewService
     return result.OrderBy( o => o.Key ).Select( o => o.Value );
   }
 
-  public IEnumerable<object> GetViewDetailById( IEnumerable<ViewTaskDetail> tasks )
+  public async Task<IEnumerable<object>> GetViewDetailById(long projectId, IEnumerable<ViewTaskDetail> tasks )
   {
     CalculateDuration( tasks );
+    var setting = await _projectSettingRepository.GetByProjectId( projectId );
     var result = new List<KeyValuePair<int, object>>();
     var tasksByGroup = tasks.GroupBy( t => t.GroupTaskName );
 
@@ -108,8 +110,9 @@ public class ViewService : IViewService
       foreach ( var task in group ) {
         var taskResource = new TaskResource()
         {
-          Duration = task.Duration,
-          Start = task.MinStart,
+          Duration = task.Duration.DaysToColumnWidth( setting.ColumnWidth ),
+          Start = task.MinStart.DaysToColumnWidth( setting.ColumnWidth ),
+          End = task.MaxEnd.DaysToColumnWidth( setting.ColumnWidth ),
           Name = task.TaskName,
           Id = task.TaskLocalId,
           Type = "task",
