@@ -250,7 +250,7 @@ public class ProjectsController : ControllerBase
       new GroupTaskFormData()
       {
         Start= 140,
-        Duration= 30,
+        Duration = 30,
         Name = "Task 2",
         Id = taskId12,
         Predecessors = new PredecessorResource [] { },
@@ -327,6 +327,8 @@ public class ProjectsController : ControllerBase
 
         var stepworks = await _stepworkService.GetStepworksByTaskId( task.TaskId );
         var taskResource = _mapper.Map<TaskResource>( task );
+        float duration = task.Duration * setting!.AmplifiedFactor;
+        taskResource.Duration = Convert.ToSingle( Math.Round( duration, 2 ) );
 
         if ( stepworks.Count() == 1 ) {
           var predecessors = await _predecessorService.GetPredecessorsByStepworkId( stepworks.First().StepworkId );
@@ -334,7 +336,6 @@ public class ProjectsController : ControllerBase
           taskResource.Predecessors = predecessorResources.Count == 0 ? null : predecessorResources;
           taskResource.ColorId = stepworks.First().ColorId;
           taskResource.Start = stepworks.First().Start.DaysToColumnWidth(setting!.ColumnWidth);
-          taskResource.Duration = task.Duration.DaysToColumnWidth( setting!.ColumnWidth );
           taskResource.End = stepworks.First().End.DaysToColumnWidth( setting!.ColumnWidth );
         }
         else {
@@ -348,7 +349,7 @@ public class ProjectsController : ControllerBase
             var stepworkResource = _mapper.Map<StepworkResource>( stepwork );
             stepworkResource.PercentStepWork *= 100;
             stepworkResource.Start = stepwork.Start.DaysToColumnWidth( setting!.ColumnWidth );
-            stepworkResource.Duration = task.Duration.DaysToColumnWidth( setting!.ColumnWidth );
+            stepworkResource.Duration = Convert.ToSingle( Math.Round( duration, 2 ) );
             stepworkResource.End = stepwork.End.DaysToColumnWidth( setting!.ColumnWidth );
             stepworkResource.GroupId = groupTask.LocalId;
             stepworkResource.Predecessors = predecessorResources.Count == 0 ? null : predecessorResources;

@@ -41,7 +41,7 @@ public class ModelConverter
           TaskName = grouptaskFormData.Name,
           Index = grouptaskFormData.DisplayOrder,
           NumberOfTeam = grouptaskFormData.GroupsNumber,
-          Duration = grouptaskFormData.Duration.ColumnWidthToDays(setting.ColumnWidth) / setting.AmplifiedFactor,
+          Duration = grouptaskFormData.Duration / setting.AmplifiedFactor,
           GroupTaskLocalId = grouptaskFormData.GroupId,
           Description = grouptaskFormData.Detail,
           Note = grouptaskFormData.Note
@@ -85,7 +85,7 @@ public class ModelConverter
             Portion = 100,
             TaskLocalId = grouptaskFormData.Id,
             ColorId = 1, // grouptaskFormData.ColorId ?? 1,
-            Duration = grouptaskFormData.Duration.ColumnWidthToDays( setting.ColumnWidth ) / setting.AmplifiedFactor,
+            Duration = grouptaskFormData.Duration / setting.AmplifiedFactor,
             Name = grouptaskFormData.Name,
             Start = grouptaskFormData.Start.ColumnWidthToDays( setting.ColumnWidth ),
             End = grouptaskFormData.End.ColumnWidthToDays( setting.ColumnWidth )
