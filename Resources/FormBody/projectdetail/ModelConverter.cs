@@ -1,4 +1,6 @@
 ﻿using SchedulingTool.Api.Domain.Models;
+using SchedulingTool.Api.Extension;
+using System.Dynamic;
 using Task = SchedulingTool.Api.Domain.Models.Task;
 
 namespace SchedulingTool.Api.Resources.FormBody.projectdetail;
@@ -10,7 +12,10 @@ public class ModelConverter
   public List<Stepwork> Stepworks { get; private set; } = new List<Stepwork>();
   public List<ExtendedPredecessor> Predecessors { get; private set; } = new List<ExtendedPredecessor>();
 
-  public ModelConverter( long projectId, ICollection<GroupTaskFormData> grouptaskFormDataList )
+  public ModelConverter( 
+    long projectId, 
+    ProjectSetting setting,
+    ICollection<GroupTaskFormData> grouptaskFormDataList )
   {
     foreach ( GroupTaskFormData grouptaskFormData in grouptaskFormDataList ) {
       // case type project ~ group task
@@ -36,8 +41,7 @@ public class ModelConverter
           TaskName = grouptaskFormData.Name,
           Index = grouptaskFormData.DisplayOrder,
           NumberOfTeam = grouptaskFormData.GroupsNumber,
-          Duration = grouptaskFormData.Duration,
-          AmplifiedDuration = grouptaskFormData.Duration,
+          Duration = grouptaskFormData.Duration.ColumnWidthToDays(setting.ColumnWidth) / setting.AmplifiedFactor,
           GroupTaskLocalId = grouptaskFormData.GroupId,
           Description = grouptaskFormData.Detail,
           Note = grouptaskFormData.Note
@@ -49,13 +53,13 @@ public class ModelConverter
             {
               LocalId = stepworkFormData.Id,
               Index = stepworkFormData.DisplayOrder,
-              Portion = stepworkFormData.PercentStepWork,
+              Portion = stepworkFormData.PercentStepWork / 100,
               TaskLocalId = grouptaskFormData.Id,
               ColorId = 1, //stepworkFormData.ColorId ?? 1,
               Duration = stepworkFormData.PercentStepWork * stepworkFormData.Duration / 100,
               Name = stepworkFormData.Name,
-              Start = stepworkFormData.Start,
-              End = stepworkFormData.End
+              Start = stepworkFormData.Start.ColumnWidthToDays( setting.ColumnWidth ),
+              End = stepworkFormData.End.ColumnWidthToDays( setting.ColumnWidth )
             } );
             if ( stepworkFormData.Predecessors == null ) {
               continue;
@@ -81,10 +85,10 @@ public class ModelConverter
             Portion = 100,
             TaskLocalId = grouptaskFormData.Id,
             ColorId = 1, // grouptaskFormData.ColorId ?? 1,
-            Duration = grouptaskFormData.Duration,
+            Duration = grouptaskFormData.Duration.ColumnWidthToDays( setting.ColumnWidth ) / setting.AmplifiedFactor,
             Name = grouptaskFormData.Name,
-            Start = grouptaskFormData.Start,
-            End = grouptaskFormData.End
+            Start = grouptaskFormData.Start.ColumnWidthToDays( setting.ColumnWidth ),
+            End = grouptaskFormData.End.ColumnWidthToDays( setting.ColumnWidth )
           };
           Stepworks.Add( _ );
         }

@@ -20,6 +20,7 @@ public class ProjectsController : ControllerBase
 {
   private readonly IMapper _mapper;
   private readonly IProjectService _projectService;
+  private readonly IProjectSettingService _projectSetting;
   private readonly IGroupTaskService _groupTaskService;
   private readonly ITaskService _taskService;
   private readonly IStepworkService _stepworkService;
@@ -29,6 +30,7 @@ public class ProjectsController : ControllerBase
   public ProjectsController( 
     IMapper mapper, 
     IProjectService projectService,
+    IProjectSettingService projectSetting,
     IGroupTaskService groupTaskService,
     ITaskService taskService,
     IStepworkService stepworkService,
@@ -42,6 +44,7 @@ public class ProjectsController : ControllerBase
     _stepworkService = stepworkService;
     _predecessorService = predecessorService;
     _colorService = colorService;
+    _projectSetting = projectSetting;
   }
 
   [HttpGet( "{projectId}" )]
@@ -310,6 +313,7 @@ public class ProjectsController : ControllerBase
 
   private async Task<IEnumerable<object>> GetGroupTasksByProjectId( long projectId )
   {
+    var setting = await _projectSetting.GetProjectSetting( projectId );
     var result = new List<KeyValuePair<int, object>>();
     var groupTasks = await _groupTaskService.GetGroupTasksByProjectId( projectId );
     var groupTaskResources = _mapper.Map<List<GroupTaskResource>>( groupTasks );
@@ -329,17 +333,23 @@ public class ProjectsController : ControllerBase
           var predecessorResources = _mapper.Map<List<PredecessorResource>>( predecessors );
           taskResource.Predecessors = predecessorResources.Count == 0 ? null : predecessorResources;
           taskResource.ColorId = stepworks.First().ColorId;
-          taskResource.Start = stepworks.First().Start;
+          taskResource.Start = stepworks.First().Start.DaysToColumnWidth(setting!.ColumnWidth);
+          taskResource.Duration = task.Duration.DaysToColumnWidth( setting!.ColumnWidth );
+          taskResource.End = stepworks.First().End.DaysToColumnWidth( setting!.ColumnWidth );
         }
         else {
           var stepworkResources = new List<StepworkResource>();
           foreach ( var stepwork in stepworks ) {
-            if ( stepwork.Portion == 100 ) {
+            if ( stepwork.Portion == 1 ) {
               continue;
             }
             var predecessors = await _predecessorService.GetPredecessorsByStepworkId( stepwork.StepworkId );
             var predecessorResources = _mapper.Map<List<PredecessorResource>>( predecessors );
             var stepworkResource = _mapper.Map<StepworkResource>( stepwork );
+            stepworkResource.PercentStepWork *= 100;
+            stepworkResource.Start = stepwork.Start.DaysToColumnWidth( setting!.ColumnWidth );
+            stepworkResource.Duration = task.Duration.DaysToColumnWidth( setting!.ColumnWidth );
+            stepworkResource.End = stepwork.End.DaysToColumnWidth( setting!.ColumnWidth );
             stepworkResource.GroupId = groupTask.LocalId;
             stepworkResource.Predecessors = predecessorResources.Count == 0 ? null : predecessorResources;
             stepworkResources.Add( stepworkResource );
@@ -378,7 +388,8 @@ public class ProjectsController : ControllerBase
 
   private async Task SaveProjectTasks( long projectId, ICollection<GroupTaskFormData> formData )
   {
-    var converter = new ModelConverter( projectId, formData );
+    var setting = await _projectSetting.GetProjectSetting( projectId );
+    var converter = new ModelConverter( projectId, setting!, formData );
 
     var grouptasks = new Dictionary<string, GroupTask>();
     foreach ( var grouptask in converter.GroupTasks ) {
@@ -452,7 +463,8 @@ public class ProjectsController : ControllerBase
     }
 
     var sheetNameList = formCollection [ "SheetName" ];
-    var result = ImportFileUtils.ReadFromFile( file.OpenReadStream(), sheetNameList, installColor!.ColorId, removalColor!.ColorId, maxDisplayOrder );
+    var setting = await _projectSetting.GetProjectSetting( projectId );
+    var result = ImportFileUtils.ReadFromFile( file.OpenReadStream(), sheetNameList, setting!, installColor!.ColorId, removalColor!.ColorId, maxDisplayOrder );
     return Ok( result );
   }
 
