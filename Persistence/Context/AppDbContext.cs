@@ -518,6 +518,8 @@ namespace SchedulingTool.Api.Persistence.Context
         entity.Property( e => e.Description ).HasColumnName( "description" );
 
         entity.Property( e => e.Note ).HasColumnName( "note" );
+
+        entity.Property( e => e.DisplayOrder ).HasColumnName( "display_order" );
       } );
 
             OnModelCreatingPartial(modelBuilder);

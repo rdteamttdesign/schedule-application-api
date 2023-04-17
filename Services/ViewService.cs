@@ -110,7 +110,7 @@ public class ViewService : IViewService
       foreach ( var task in group ) {
         var taskResource = new TaskResource()
         {
-          Duration = task.Duration.DaysToColumnWidth( setting.ColumnWidth ),
+          Duration = task.Duration.DaysToColumnWidth( setting!.ColumnWidth ),
           Start = task.MinStart.DaysToColumnWidth( setting.ColumnWidth ),
           End = task.MaxEnd.DaysToColumnWidth( setting.ColumnWidth ),
           Name = task.TaskName,
