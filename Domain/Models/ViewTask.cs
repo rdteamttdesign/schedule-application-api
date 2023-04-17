@@ -8,6 +8,7 @@ namespace SchedulingTool.Api.Domain.Models
         public long ViewId { get; set; }
         public string LocalTaskId { get; set; } = null!;
         public int Group { get; set; }
+        public int DisplayOrder { get; set; }
 
         public virtual View View { get; set; } = null!;
     }

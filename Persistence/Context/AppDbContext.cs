@@ -63,6 +63,10 @@ namespace SchedulingTool.Api.Persistence.Context
                     .HasColumnName("is_default")
                     .HasDefaultValueSql("b'0'");
 
+                entity.Property(e => e.IsInstall)
+                    .HasColumnName("is_install")
+                    .HasDefaultValueSql("'2'");
+
                 entity.Property(e => e.Name)
                     .HasMaxLength(125)
                     .HasColumnName("name");
@@ -271,15 +275,7 @@ namespace SchedulingTool.Api.Persistence.Context
                     .HasColumnName("column_width")
                     .HasDefaultValueSql("'70'");
 
-                entity.Property(e => e.InstallColor)
-                    .HasMaxLength(45)
-                    .HasColumnName("install_color");
-
                 entity.Property(e => e.ProjectId).HasColumnName("project_id");
-
-                entity.Property(e => e.RemovalColor)
-                    .HasMaxLength(45)
-                    .HasColumnName("removal_color");
 
                 entity.Property(e => e.RemovalDurationRatio)
                     .HasColumnName("removal_duration_ratio")
@@ -313,6 +309,8 @@ namespace SchedulingTool.Api.Persistence.Context
                 entity.Property(e => e.ColorId).HasColumnName("color_id");
 
                 entity.Property(e => e.Duration).HasColumnName("duration");
+
+                entity.Property(e => e.End).HasColumnName("end");
 
                 entity.Property(e => e.Index).HasColumnName("index");
 
@@ -481,6 +479,8 @@ namespace SchedulingTool.Api.Persistence.Context
                     .HasMaxLength(45)
                     .HasColumnName("local_task_id");
 
+                entity.Property(e => e.DisplayOrder).HasColumnName("display_order");
+
                 entity.Property(e => e.Group).HasColumnName("group");
 
                 entity.HasOne(d => d.View)
@@ -490,42 +490,40 @@ namespace SchedulingTool.Api.Persistence.Context
                     .HasConstraintName("fk_view_task_view");
             });
 
-      modelBuilder.Entity<ViewTaskResource>( entity =>
+      modelBuilder.Entity<ViewTaskDetail>( entity =>
       {
         entity.HasNoKey();
 
-        entity.Property( e => e.TaskId )
-                 .HasColumnName( "task_id" );
+        entity.Property( e => e.TaskId ).HasColumnName( "task_id" );
 
-        entity.Property( e => e.Group )
-                 .HasColumnName( "group" );
+        entity.Property( e => e.TaskLocalId ).HasColumnName( "local_id" );
 
-        entity.Property( e => e.TaskName )
-                  .HasColumnName( "task_name" );
+        entity.Property( e => e.Group ).HasColumnName( "group" );
 
-        entity.Property( e => e.Index )
-                  .HasColumnName( "index" );
+        entity.Property( e => e.TaskName ).HasColumnName( "task_name" );
 
-        entity.Property( e => e.NumberOfTeam )
-                  .HasColumnName( "number_of_team" );
+        entity.Property( e => e.Index ).HasColumnName( "index" );
 
-        entity.Property( e => e.Duration )
-                  .HasColumnName( "duration" );
+        entity.Property( e => e.NumberOfTeam ).HasColumnName( "number_of_team" );
 
-        entity.Property( e => e.AmplifiedDuration )
-                  .HasColumnName( "amplified_duration" );
+        entity.Property( e => e.Duration ).HasColumnName( "duration" );
 
-        entity.Property( e => e.GroupTaskId )
-                  .HasColumnName( "group_task_id" );
+        entity.Property( e => e.AmplifiedDuration ).HasColumnName( "amplified_duration" );
 
-        entity.Property( e => e.Description )
-                  .HasColumnName( "description" );
+        entity.Property( e => e.GroupTaskId ).HasColumnName( "group_task_id" );
 
-        entity.Property( e => e.Note )
-                  .HasColumnName( "note" );
+        entity.Property( e => e.GroupTaskLocalId ).HasColumnName( "group_task_local_id" );
+
+        entity.Property( e => e.GroupTaskName ).HasColumnName( "group_task_name" );
+
+        entity.Property( e => e.Description ).HasColumnName( "description" );
+
+        entity.Property( e => e.Note ).HasColumnName( "note" );
+
+        entity.Property( e => e.DisplayOrder ).HasColumnName( "display_order" );
       } );
 
-      OnModelCreatingPartial(modelBuilder);
+            OnModelCreatingPartial(modelBuilder);
         }
 
         partial void OnModelCreatingPartial(ModelBuilder modelBuilder);

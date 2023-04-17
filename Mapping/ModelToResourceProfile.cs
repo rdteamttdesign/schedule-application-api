@@ -26,7 +26,8 @@ public class ModelToResourceProfile : Profile
     CreateMap<ProjectBackground, BackgroundResource>();
     CreateMap<ProjectBackground, ProjectBackgroundResource>();
     CreateMap<View, ViewResource>();
-    CreateMap<ViewTask, ViewTaskResource>();
+    CreateMap<ViewTask, ViewTaskResource>()
+      .ForMember( dest => dest.Id, opt => opt.MapFrom( src => src.LocalTaskId ) );
 
     CreateMap<GroupTask, GroupTaskDetailResource>();
     CreateMap<Task, TaskDetailResource>();

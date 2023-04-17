@@ -7,8 +7,8 @@ public class ProjectSettingResource
   public bool SeparateGroupTask { get; set; }
   public float AssemblyDurationRatio { get; set; }
   public float RemovalDurationRatio { get; set; }
-  public IList<ColorDefResource> StepworkColors { get; set; } = null!;
-  public IList<BackgroundColorResource> BackgroundColors { get; set; } = null!;
+  public ICollection<ColorDefResource> StepworkColors { get; set; } = null!;
+  public ICollection<BackgroundColorResource> BackgroundColors { get; set; } = null!;
   public int NumberOfMonths { get; set; }
   public int ColumnWidth { get; set; }
   public float AmplifiedFactor { get; set; }

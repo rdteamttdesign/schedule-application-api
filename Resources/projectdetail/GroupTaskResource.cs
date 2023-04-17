@@ -2,7 +2,7 @@
 
 public class GroupTaskResource
 {
-  public int Start { get; set; }
+  public float Start { get; set; }
   public float Duration { get; set; }
   public string Name { set; get; } = null!;
   public string Id { set; get; } = null!;

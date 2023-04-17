@@ -1,4 +1,5 @@
 ﻿using ClosedXML.Excel;
+using SchedulingTool.Api.Domain.Models;
 using SchedulingTool.Api.Resources;
 using SchedulingTool.Api.Resources.projectdetail;
 
@@ -6,11 +7,17 @@ namespace SchedulingTool.Api.Extension;
 
 public static class ImportFileUtils
 {
-  public static List<object> ReadFromFile( Stream fileStream, ICollection<string> sheetNameList )
+  public static List<object> ReadFromFile(
+    Stream fileStream,
+    ICollection<string> sheetNameList,
+    ProjectSetting setting,
+    long installColorId,
+    long removalColorId,
+    int maxDisplayOrder)
   {
     using var workbook = new XLWorkbook( fileStream );
     var groupTasks = new List<object>();
-    int index = 1;
+    int index = maxDisplayOrder + 1;
     foreach ( var sheetName in sheetNameList ) {
       if ( !workbook.Worksheets.Contains( sheetName ) ) {
         continue;
@@ -33,7 +40,7 @@ public static class ImportFileUtils
             Name = groupName,
             HideChildren = false,
             DisplayOrder = index,
-            ColorId = 1,
+            ColorId = installColorId,
             Type = "project",
             Id = groupId
           };
@@ -57,7 +64,7 @@ public static class ImportFileUtils
           GroupId = groupId,
           DisplayOrder = index,
           Note = GetText( worksheet.Cell( i, 6 ).Value ),
-          ColorId = 1,
+          ColorId = installColorId,
           GroupsNumber = GetInt( worksheet.Cell( i, 5 ).Value )
         };
         //if ( groupTask != null ) {
@@ -77,19 +84,20 @@ public static class ImportFileUtils
         else {
           task.Stepworks = new List<StepworkResource>();
           for ( int j = 0; j < numberOfStepworks; j++ ) {
+            var percentStepwork = Math.Abs( GetFloat( worksheet.Cell( i, j + 7 ).Value ) * 100 );
             var stepwork = new StepworkResource()
             {
               Start = 0,
-              Duration = Convert.ToSingle( Math.Round( task.Duration * GetFloat( worksheet.Cell( i, j + 7 ).Value ), 2 ) ),
-              PercentStepWork = GetFloat( worksheet.Cell( i, j + 7 ).Value ),
+              Duration = task.Duration.DaysToColumnWidth( setting.ColumnWidth ),
+              PercentStepWork = percentStepwork*100,
               Name = Guid.NewGuid().ToString(),
               ParentTaskId = taskId,
               Id = Guid.NewGuid().ToString(),
               Type = "task",
               GroupId = groupId,
               DisplayOrder = index,
-              Predecessors = new List<PredecessorResource>()
-              //ColorId = 
+              Predecessors = new List<PredecessorResource>(),
+              ColorId = percentStepwork > 0 ? installColorId : removalColorId
             };
             task.Stepworks.Add( stepwork );
           }
@@ -99,7 +107,7 @@ public static class ImportFileUtils
       }
     }
     return groupTasks;
-  }
+  } 
 
   public static byte[] WriteToFile( ICollection<GroupTaskDetailResource> groupTasks )
   {
