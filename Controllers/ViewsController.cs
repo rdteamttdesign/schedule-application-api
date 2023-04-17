@@ -115,7 +115,7 @@ public class ViewsController : ControllerBase
   }
 
   [HttpGet( "projects/{projectId}/views/{viewId}" )]
-  [Authorize]
+  //[Authorize]
   public async Task<IActionResult> GetViewDetail( long projectId, long viewId )
   {
     // checking
