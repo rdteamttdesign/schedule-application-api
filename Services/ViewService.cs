@@ -89,7 +89,7 @@ public class ViewService : IViewService
     return result.OrderBy( o => o.Key ).Select( o => o.Value );
   }
 
-  public async Task<IEnumerable<object>> GetViewDetailById(long projectId, IEnumerable<ViewTaskDetail> tasks )
+  public async Task<IEnumerable<object>> GetViewDetailById( long projectId, IEnumerable<ViewTaskDetail> tasks )
   {
     CalculateDuration( tasks );
     var setting = await _projectSettingRepository.GetByProjectId( projectId );
@@ -110,7 +110,7 @@ public class ViewService : IViewService
       foreach ( var task in group ) {
         var taskResource = new TaskResource()
         {
-          Duration = task.Duration.DaysToColumnWidth( setting!.ColumnWidth ),
+          Duration = task.Duration * setting!.AmplifiedFactor,
           Start = task.MinStart.DaysToColumnWidth( setting.ColumnWidth ),
           End = task.MaxEnd.DaysToColumnWidth( setting.ColumnWidth ),
           Name = task.TaskName,
