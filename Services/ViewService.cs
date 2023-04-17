@@ -120,7 +120,8 @@ public class ViewService : IViewService
           GroupId = groupId,
           DisplayOrder = i,
           Note = string.Empty,
-          ColorId = 1
+          ColorId = 1,
+          GroupsNumber = task.NumberOfTeam
         };
         i++;
         result.Add( new KeyValuePair<int, object>( i, taskResource ) );
