@@ -89,10 +89,10 @@ public class ViewService : IViewService
     return result.OrderBy( o => o.Key ).Select( o => o.Value );
   }
 
-  public async Task<IEnumerable<object>> GetViewDetailById(long projectId, IEnumerable<ViewTaskDetail> tasks )
+  public async Task<IEnumerable<object>> GetViewDetailById( long projectId, IEnumerable<ViewTaskDetail> tasks )
   {
-    CalculateDuration( tasks );
     var setting = await _projectSettingRepository.GetByProjectId( projectId );
+    CalculateDuration( setting!, tasks );
     var result = new List<KeyValuePair<int, object>>();
     var tasksByGroup = tasks.GroupBy( t => t.GroupTaskName );
 
@@ -110,7 +110,7 @@ public class ViewService : IViewService
       foreach ( var task in group ) {
         var taskResource = new TaskResource()
         {
-          Duration = task.Duration.DaysToColumnWidth( setting!.ColumnWidth ),
+          Duration = task.Duration * setting!.AmplifiedFactor,
           Start = task.MinStart.DaysToColumnWidth( setting.ColumnWidth ),
           End = task.MaxEnd.DaysToColumnWidth( setting.ColumnWidth ),
           Name = task.TaskName,
@@ -130,7 +130,7 @@ public class ViewService : IViewService
     return result.OrderBy( o => o.Key ).Select( o => o.Value );
   }
 
-  private void CalculateDuration( IEnumerable<ViewTaskDetail> tasks )
+  private void CalculateDuration(ProjectSetting setting, IEnumerable<ViewTaskDetail> tasks )
   {
     var tasksByGroup = tasks.GroupBy( t => t.Group );
     foreach ( var group in tasksByGroup ) {
@@ -138,7 +138,7 @@ public class ViewService : IViewService
         var stepworks = group.SelectMany(task =>  task.Stepworks );
         var minStart = stepworks.Min( s => s.Start );
         var maxEnd = stepworks.Max( s => s.End );
-        var duration = maxEnd - minStart;
+        var duration = ( maxEnd - minStart ).ColumnWidthToDays( setting.ColumnWidth );
 
         foreach ( var task in group ) {
           task.MinStart = minStart;
