@@ -1,5 +1,6 @@
 ﻿using Microsoft.Office.Interop.Excel;
 using OfficeOpenXml;
+using SchedulingTool.Api.Domain.Models;
 using SchedulingTool.Api.Resources;
 
 namespace SchedulingTool.Api.ExportExcel;
@@ -7,9 +8,10 @@ namespace SchedulingTool.Api.ExportExcel;
 public static class ExportExcel
 {
   public static bool GetFile( 
+    ProjectSetting setting,
     IEnumerable<GroupTaskDetailResource> grouptasks, 
     IEnumerable<ProjectBackgroundResource> backgrounds, 
-    IEnumerable<ViewResource> viewResources,
+    //IEnumerable<ViewResource> viewResources,
     out string result )
   {
     ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
@@ -27,6 +29,7 @@ public static class ExportExcel
       foreach ( var grouptask in grouptasks ) {
         i++;
         foreach ( var task in grouptask.Tasks ) {
+          task.AmplifiedDuration = task.Duration * setting.AmplifiedFactor;
           foreach ( var sw in task.Stepworks ) {
             data.Add( new ChartStepwork()
             {
@@ -42,8 +45,6 @@ public static class ExportExcel
           i++;
         }
       }
-
-
       #endregion
 
       var sheet = excel.Workbook.Worksheets.Add( "Sheet1" );

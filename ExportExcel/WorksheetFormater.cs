@@ -3,7 +3,6 @@ using OfficeOpenXml;
 using SchedulingTool.Api.Resources;
 using System.Drawing;
 using System.Text.RegularExpressions;
-using DocumentFormat.OpenXml.Bibliography;
 
 namespace SchedulingTool.Api.ExportExcel;
 
@@ -25,7 +24,7 @@ public static class WorksheetFormater
 
   public static void FormatChartTable( this ExcelWorksheet ws, int startRow, int startColumn, int rowCount, int columnCount )
   {
-    ws.TabColor = System.Drawing.Color.Black;
+    ws.TabColor = Color.Black;
     // Create Range and Set Default
     ExcelRange range = ws.Cells [ startRow, startColumn, rowCount + 3, columnCount * 6 ];
     ws.Row( startRow ).Height = 25;

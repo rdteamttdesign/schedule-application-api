@@ -9,6 +9,7 @@ using SchedulingTool.Api.Resources;
 using SchedulingTool.Api.Resources.FormBody;
 using SchedulingTool.Api.Resources.FormBody.projectdetail;
 using SchedulingTool.Api.Resources.projectdetail;
+using SchedulingTool.Api.Services;
 using ModelTask = SchedulingTool.Api.Domain.Models.Task;
 using Task = System.Threading.Tasks.Task;
 
@@ -26,16 +27,20 @@ public class ProjectsController : ControllerBase
   private readonly IStepworkService _stepworkService;
   private readonly IPredecessorService _predecessorService;
   private readonly IColorDefService _colorService;
+  private readonly IBackgroundService _backgroundService;
+  private readonly IViewService _viewService;
 
-  public ProjectsController( 
-    IMapper mapper, 
+  public ProjectsController(
+    IMapper mapper,
     IProjectService projectService,
     IProjectSettingService projectSetting,
     IGroupTaskService groupTaskService,
     ITaskService taskService,
     IStepworkService stepworkService,
     IPredecessorService predecessorService,
-    IColorDefService colorService )
+    IColorDefService colorService,
+    IBackgroundService backgroundService,
+    IViewService viewService )
   {
     _mapper = mapper;
     _projectService = projectService;
@@ -45,6 +50,8 @@ public class ProjectsController : ControllerBase
     _predecessorService = predecessorService;
     _colorService = colorService;
     _projectSetting = projectSetting;
+    _backgroundService = backgroundService;
+    _viewService = viewService;
   }
 
   [HttpGet( "{projectId}" )]
@@ -468,10 +475,82 @@ public class ProjectsController : ControllerBase
     return Ok( result );
   }
 
-  //[HttpGet( "{projectId}/download" )]
+  [HttpGet( "{projectId}/download" )]
   //[Authorize]
-  //public async Task<IActionResult> DownloadFile()
+  public async Task<IActionResult> DownloadFile( long projectId )
+  {
+    var groupTaskResources = await GetGroupTaskResourcesByProjectId( projectId );
+    var bgResources = await GetBackgrounds( projectId );
+    var setting = await _projectSetting.GetProjectSetting( projectId );
+    //var viewResources = await GetViewTasks( projectId );
+    if ( ExportExcel.ExportExcel.GetFile( setting!, groupTaskResources, bgResources, out var result ) ) {
+      var fileBytes = System.IO.File.ReadAllBytes( result );
+      return File( fileBytes, System.Net.Mime.MediaTypeNames.Application.Octet, $"{Guid.NewGuid()}.xlsx" );
+    }
+    else {
+      return BadRequest( result );
+    }
+  }
+
+  private async Task<List<GroupTaskDetailResource>> GetGroupTaskResourcesByProjectId( long projectId )
+  {
+    var groupTasks = await _groupTaskService.GetGroupTasksByProjectId( projectId );
+    var groupTaskResources = _mapper.Map<List<GroupTaskDetailResource>>( groupTasks );
+
+    var stepworkColors = ( await _colorService.GetStepworkColorDefsByProjectId( projectId ) ).ToDictionary( x => x.ColorId, x => x.Code );
+
+    foreach ( var groupTaskResource in groupTaskResources ) {
+      var tasks = await _taskService.GetTasksByGroupTaskId( groupTaskResource.GroupTaskId );
+      groupTaskResource.Tasks = _mapper.Map<List<TaskDetailResource>>( tasks );
+      foreach ( var taskResource in groupTaskResource.Tasks ) {
+        var stepworks = await _stepworkService.GetStepworksByTaskId( taskResource.TaskId );
+        taskResource.Stepworks = _mapper.Map<List<StepworkDetailResource>>( stepworks );
+        foreach ( var stepworkResource in taskResource.Stepworks ) {
+          var predecessor = await _predecessorService.GetPredecessorsByStepworkId( stepworkResource.StepworkId );
+          stepworkResource.Predecessors = _mapper.Map<List<PredecessorDetailResource>>( predecessor );
+          if ( stepworkColors.ContainsKey( stepworkResource.ColorId ) ) {
+            stepworkResource.ColorCode = stepworkColors [ stepworkResource.ColorId ];
+          }
+        }
+      }
+    }
+    return groupTaskResources;
+  }
+
+  private async Task<IEnumerable<ProjectBackgroundResource>> GetBackgrounds( long projectId )
+  {
+    var colors = await _colorService.GetBackgroundColorDefsByProjectId( projectId );
+    //var resources = _mapper.Map<IEnumerable<BackgroundColorResource>>( backgroundColors ).ToList();
+
+    var backgrounds = await _backgroundService.GetBackgroundsByProjectId( projectId );
+    var resources = _mapper.Map<IEnumerable<ProjectBackgroundResource>>( backgrounds );
+    foreach ( var background in resources ) {
+      if ( background.ColorId == null ) {
+        continue;
+      }
+      var color = colors.FirstOrDefault( c => c.ColorId == background.ColorId );
+      if ( color == null ) {
+        continue;
+      }
+      background.ColorCode = color.Code;
+      background.Name = color.Name;
+    }
+    return resources;
+  }
+
+  //private async Task<IEnumerable<ViewResource>> GetViewTasks( long projectId )
   //{
-  //  return Ok();
+  //  var views = await _viewService.GetViewsByProjectId( projectId );
+  //  var viewResources = _mapper.Map<IEnumerable<ViewResource>>( views );
+  //  foreach ( var view in viewResources ) {
+  //    var viewTasks = await _viewService.GetViewTasks( view.ViewId );
+  //    view.ViewTasks = viewTasks.ToList();
+  //    foreach ( var viewTask in viewTasks ) {
+  //      var stepworks = await _stepworkService.GetStepworksByTaskId( viewTask.TaskId );
+  //      var stepworkResources = _mapper.Map<IEnumerable<StepworkResource>>( stepworks );
+  //      viewTask.Stepworks = stepworkResources.ToList();
+  //    }
+  //  }
+  //  return viewResources;
   //}
 }

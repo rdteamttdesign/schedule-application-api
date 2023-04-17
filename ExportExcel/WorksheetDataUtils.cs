@@ -34,7 +34,7 @@ public static class WorksheetContentUtils
         ws.Cells [ startRow, 6 ].Style.Numberformat.Format = "#,### 班";
 
         ws.Cells [ startRow, 7 ].Value = task.AmplifiedDuration;
-        ws.Cells [ startRow, 7 ].Style.Numberformat.Format = "#,###.0 日";
+        ws.Cells [ startRow, 7 ].Style.Numberformat.Format = "#,###.00 日";
 
         if ( task.Stepworks.Count == 2 ) {
           ws.Cells [ startRow, 8 ].Value = $"{Math.Round( task.Stepworks.ElementAt( 0 ).Portion * task.AmplifiedDuration, 1 )}日";

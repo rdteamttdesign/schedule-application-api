@@ -27,9 +27,4 @@ public class ViewRepository : GenericRepository<View>, IViewRepository
   {
     return await _context.Set<ViewTaskDetail>().FromSqlRaw( "CALL usp_View_GetTasks( {0} )", viewId ).ToListAsync();
   }
-
-  public async Task<IEnumerable<ViewTaskResource>> GetViewTasks( long viewId )
-  {
-    return await _context.Set<ViewTaskResource>().FromSqlRaw( "CALL usp_View_GetTasks( {0} )", viewId ).ToListAsync();
-  }
 }
