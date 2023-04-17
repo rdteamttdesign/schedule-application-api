@@ -33,7 +33,7 @@ public class ViewService : IViewService
   {
     return await _viewRepository.GetViewsByProjectId( projectId );
   }
-  
+
   public async Task<View?> GetViewById( long viewId )
   {
     return await _viewRepository.GetById( viewId );
@@ -130,7 +130,7 @@ public class ViewService : IViewService
     return result.OrderBy( o => o.Key ).Select( o => o.Value );
   }
 
-  private void CalculateDuration(ProjectSetting setting, IEnumerable<ViewTaskDetail> tasks )
+  private void CalculateDuration( ProjectSetting setting, IEnumerable<ViewTaskDetail> tasks )
   {
     var tasksByGroup = tasks.GroupBy( t => t.Group );
     foreach ( var group in tasksByGroup ) {
@@ -178,8 +178,8 @@ public class ViewService : IViewService
     await _viewRepository.DeleteView( viewId, isDeleteView );
   }
 
-  public async Task<IEnumerable<ViewTaskDetail>> GetViewTasks( long viewId )
+  public async Task<IEnumerable<ViewTaskDetail>> GetViewTasks( long projectId, long viewId )
   {
-    return await _viewRepository.GetViewTasks( viewId );
+    return await _viewRepository.GetViewTasks( projectId, viewId );
   }
 }

@@ -124,7 +124,7 @@ public class ViewsController : ControllerBase
       return BadRequest( ViewNotification.NonExisted );
     }
     // get tasks in view
-    var viewTasks = await _viewService.GetViewTasks( viewId );
+    var viewTasks = await _viewService.GetViewTasks( projectId, viewId );
 
     if ( !viewTasks.Any() ) {
       return BadRequest( "View has no task." );
