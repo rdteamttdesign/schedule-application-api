@@ -57,7 +57,7 @@ public class ModelConverter
               TaskLocalId = grouptaskFormData.Id,
               ColorId = 1, //stepworkFormData.ColorId ?? 1,
               Duration = stepworkFormData.PercentStepWork * stepworkFormData.Duration / 100,
-              Name = stepworkFormData.Name,
+              Name = stepworkFormData.Name ?? string.Empty,
               Start = stepworkFormData.Start.ColumnWidthToDays( setting.ColumnWidth ),
               End = stepworkFormData.End.ColumnWidthToDays( setting.ColumnWidth )
             } );
@@ -86,7 +86,7 @@ public class ModelConverter
             TaskLocalId = grouptaskFormData.Id,
             ColorId = 1, // grouptaskFormData.ColorId ?? 1,
             Duration = grouptaskFormData.Duration / setting.AmplifiedFactor,
-            Name = grouptaskFormData.Name,
+            Name = grouptaskFormData.Name ?? string.Empty,
             Start = grouptaskFormData.Start.ColumnWidthToDays( setting.ColumnWidth ),
             End = grouptaskFormData.End.ColumnWidthToDays( setting.ColumnWidth )
           };
