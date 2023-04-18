@@ -226,9 +226,9 @@ public class ProjectsController : ControllerBase
             Type = "task",
             GroupId = groupTaskId1,
             DisplayOrder = 2,
-            Predecessors = new PredecessorResource[] { },
+            Predecessors = Array.Empty<PredecessorResource>(),
             ColorId= installColorId,
-            End = 15 * columnWidth
+            End = 15 * columnWidth / 30
           },
           new StepworkResource()
           {
@@ -241,9 +241,9 @@ public class ProjectsController : ControllerBase
             Type = "task",
             GroupId = groupTaskId1,
             DisplayOrder = 2,
-            Predecessors = new PredecessorResource[] { },
+            Predecessors = Array.Empty<PredecessorResource>(),
             ColorId= removalColorId,
-            End = 70 + 15 * columnWidth
+            End = 70 + 15 * columnWidth / 30
           }
         }
       },
@@ -253,14 +253,14 @@ public class ProjectsController : ControllerBase
         Duration = 30,
         Name = "Task 2",
         Id = taskId12,
-        Predecessors = new PredecessorResource [] { },
+        Predecessors = Array.Empty < PredecessorResource >(),
         Type = "task",
         GroupId = groupTaskId1,
         DisplayOrder = 3,
         Note = "",
         GroupsNumber = 1,
         ColorId = installColorId,
-        End = 140 + 30 * columnWidth
+        End = 140 + 30 * columnWidth / 30
       },
       new GroupTaskFormData()
       {
@@ -271,9 +271,9 @@ public class ProjectsController : ControllerBase
         Type = "project",
         HideChildren = false,
         DisplayOrder = 4,
-        GroupsNumber = 1, 
+        GroupsNumber = 1,
         ColorId = installColorId,
-        End = 30 * columnWidth
+        End = 30 * columnWidth / 30
       },
       new GroupTaskFormData()
       {
@@ -281,14 +281,14 @@ public class ProjectsController : ControllerBase
         Duration= 30,
         Name = "Task 3",
         Id = taskId21,
-        Predecessors = new PredecessorResource [] { },
+        Predecessors = Array.Empty<PredecessorResource>(),
         Type = "task",
         GroupId = groupTaskId2,
         DisplayOrder = 5,
         Note = "",
         GroupsNumber = 1,
         ColorId = installColorId,
-        End = 140 + 30 * columnWidth
+        End = 140 + 30 * columnWidth / 30
       },
     };
   }
