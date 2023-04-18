@@ -12,8 +12,7 @@ public class ModelConverter
   public List<ExtendedPredecessor> Predecessors { get; private set; } = new List<ExtendedPredecessor>();
 
   public ModelConverter( 
-    long projectId, 
-    ProjectSetting setting,
+    long projectId,
     ICollection<GroupTaskFormData> grouptaskFormDataList )
   {
     foreach ( GroupTaskFormData grouptaskFormData in grouptaskFormDataList ) {
@@ -57,8 +56,8 @@ public class ModelConverter
               ColorId = 1, //stepworkFormData.ColorId ?? 1,
               Duration = stepworkFormData.PercentStepWork * stepworkFormData.Duration / 100,
               Name = stepworkFormData.Name ?? string.Empty,
-              Start = stepworkFormData.Start.ColumnWidthToDays( setting.ColumnWidth ),
-              End = stepworkFormData.End.ColumnWidthToDays( setting.ColumnWidth )
+              Start = stepworkFormData.Start,
+              End = stepworkFormData.End
             } );
             if ( stepworkFormData.Predecessors == null ) {
               continue;
@@ -86,8 +85,8 @@ public class ModelConverter
             ColorId = 1, // grouptaskFormData.ColorId ?? 1,
             Duration = grouptaskFormData.Duration,
             Name = grouptaskFormData.Name ?? string.Empty,
-            Start = grouptaskFormData.Start.ColumnWidthToDays( setting.ColumnWidth ),
-            End = grouptaskFormData.End.ColumnWidthToDays( setting.ColumnWidth )
+            Start = grouptaskFormData.Start,
+            End = grouptaskFormData.End
           };
           Stepworks.Add( _ );
         }

@@ -115,7 +115,7 @@ public class ViewsController : ControllerBase
   }
 
   [HttpGet( "projects/{projectId}/views/{viewId}" )]
-  //[Authorize]
+  [Authorize]
   public async Task<IActionResult> GetViewDetail( long projectId, long viewId )
   {
     // checking
@@ -135,7 +135,7 @@ public class ViewsController : ControllerBase
       viewTask.Stepworks = stepworks.ToList();
     }
 
-    var viewDetail = await _viewService.GetViewDetailById( projectId, viewTasks.OrderBy( t => t.DisplayOrder ) );
+    var viewDetail = _viewService.GetViewDetailById( viewTasks.OrderBy( t => t.DisplayOrder ) );
     return Ok( viewDetail );
   }
 }
