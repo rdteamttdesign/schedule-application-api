@@ -11,7 +11,7 @@ public interface IViewService
   Task<ServiceResponse<View>> UpdateView( View view );
   Task<View?> GetViewById( long viewId );
   //Task<IEnumerable<object>> GetViewDetailById( View view, IEnumerable<GroupTask> groupTasks, List<ModelTask> tasks );
-  Task<IEnumerable<object>> GetViewDetailById( long projectId, IEnumerable<ViewTaskDetail> tasks );
+  IEnumerable<object> GetViewDetailById( IEnumerable<ViewTaskDetail> tasks );
   System.Threading.Tasks.Task DeleteView( long viewId, bool isDeleteView );
   Task<IEnumerable<ViewTaskDetail>> GetViewTasks( long projectId, long viewId );
 }

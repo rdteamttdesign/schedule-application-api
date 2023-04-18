@@ -335,8 +335,8 @@ public class ProjectsController : ControllerBase
           var predecessorResources = _mapper.Map<List<PredecessorResource>>( predecessors );
           taskResource.Predecessors = predecessorResources.Count == 0 ? null : predecessorResources;
           taskResource.ColorId = stepworks.First().ColorId;
-          taskResource.Start = stepworks.First().Start.DaysToColumnWidth(setting!.ColumnWidth);
-          taskResource.End = stepworks.First().End.DaysToColumnWidth( setting!.ColumnWidth );
+          taskResource.Start = stepworks.First().Start;
+          taskResource.End = stepworks.First().End;
         }
         else {
           var stepworkResources = new List<StepworkResource>();
@@ -348,9 +348,9 @@ public class ProjectsController : ControllerBase
             var predecessorResources = _mapper.Map<List<PredecessorResource>>( predecessors );
             var stepworkResource = _mapper.Map<StepworkResource>( stepwork );
             stepworkResource.PercentStepWork *= 100;
-            stepworkResource.Start = stepwork.Start.DaysToColumnWidth( setting!.ColumnWidth );
+            stepworkResource.Start = stepwork.Start;
             stepworkResource.Duration = task.Duration;
-            stepworkResource.End = stepwork.End.DaysToColumnWidth( setting!.ColumnWidth );
+            stepworkResource.End = stepwork.End;
             stepworkResource.GroupId = groupTask.LocalId;
             stepworkResource.Predecessors = predecessorResources.Count == 0 ? null : predecessorResources;
             stepworkResources.Add( stepworkResource );
@@ -389,8 +389,7 @@ public class ProjectsController : ControllerBase
 
   private async Task SaveProjectTasks( long projectId, ICollection<GroupTaskFormData> formData )
   {
-    var setting = await _projectSetting.GetProjectSetting( projectId );
-    var converter = new ModelConverter( projectId, setting!, formData );
+    var converter = new ModelConverter( projectId, formData );
 
     var grouptasks = new Dictionary<string, GroupTask>();
     foreach ( var grouptask in converter.GroupTasks ) {
