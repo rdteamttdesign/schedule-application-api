@@ -131,7 +131,8 @@ public class ProjectsController : ControllerBase
     var installColor = colors.FirstOrDefault( c => c.IsInstall == 0 );
     var removalColor = colors.FirstOrDefault( c => c.IsInstall == 1 );
 
-    await SaveProjectTasks( result.Content.ProjectId, SampleProjectDetail( installColor!.ColorId, removalColor!.ColorId ) );
+    var setting = await _projectSetting.GetProjectSetting( result.Content.ProjectId );
+    await SaveProjectTasks( result.Content.ProjectId, SampleProjectDetail( setting, installColor!.ColorId, removalColor!.ColorId ) );
 
     var resource = _mapper.Map<ProjectResource>( result.Content );
 
@@ -178,7 +179,7 @@ public class ProjectsController : ControllerBase
     return Ok( resource );
   }
 
-  private ICollection<GroupTaskFormData> SampleProjectDetail( long installColorId, long removalColorId )
+  private ICollection<GroupTaskFormData> SampleProjectDetail( ProjectSetting setting, long installColorId, long removalColorId )
   {
     var groupTaskId1 = Guid.NewGuid().ToString();
     var taskId11 = Guid.NewGuid().ToString();
@@ -228,7 +229,7 @@ public class ProjectsController : ControllerBase
             DisplayOrder = 2,
             Predecessors = Array.Empty<PredecessorResource>(),
             ColorId= installColorId,
-            End = 15 * columnWidth / 30
+            End = 15 * columnWidth / 30*setting.AmplifiedFactor
           },
           new StepworkResource()
           {
@@ -243,7 +244,7 @@ public class ProjectsController : ControllerBase
             DisplayOrder = 2,
             Predecessors = Array.Empty<PredecessorResource>(),
             ColorId= removalColorId,
-            End = 70 + 15 * columnWidth / 30
+            End = 70 + 15 * columnWidth / 30 * setting.AmplifiedFactor
           }
         }
       },
@@ -260,7 +261,7 @@ public class ProjectsController : ControllerBase
         Note = "",
         GroupsNumber = 1,
         ColorId = installColorId,
-        End = 140 + 30 * columnWidth / 30
+        End = 140 + 30 * columnWidth / 30*setting.AmplifiedFactor
       },
       new GroupTaskFormData()
       {
@@ -273,7 +274,7 @@ public class ProjectsController : ControllerBase
         DisplayOrder = 4,
         GroupsNumber = 1,
         ColorId = installColorId,
-        End = 30 * columnWidth / 30
+        End = 30 * columnWidth / 30 * setting.AmplifiedFactor
       },
       new GroupTaskFormData()
       {
@@ -288,7 +289,7 @@ public class ProjectsController : ControllerBase
         Note = "",
         GroupsNumber = 1,
         ColorId = installColorId,
-        End = 140 + 30 * columnWidth / 30
+        End = 140 + 30 * columnWidth / 30 * setting.AmplifiedFactor
       },
     };
   }

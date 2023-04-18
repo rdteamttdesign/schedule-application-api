@@ -143,8 +143,8 @@ public class ViewService : IViewService
           var minStart = task.Stepworks.Min( s => s.Start );
           var maxEnd = task.Stepworks.Max( s => s.End );
           task.MinStart = minStart;
-          task.MaxEnd = maxEnd;
-          task.Duration = maxEnd - minStart;
+          task.Duration = task.Duration;
+          task.MaxEnd = minStart + task.Duration * setting.AmplifiedFactor;
         }
       }
       else {
@@ -155,7 +155,7 @@ public class ViewService : IViewService
         foreach ( var task in group ) {
           task.MinStart = minStart;
           task.MaxEnd = maxEnd;
-          task.Duration = maxEnd - minStart;
+          task.Duration = ( maxEnd - minStart ) / setting.AmplifiedFactor;
         }
       }
     }
