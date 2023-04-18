@@ -144,19 +144,18 @@ public class ViewService : IViewService
           var maxEnd = task.Stepworks.Max( s => s.End );
           task.MinStart = minStart;
           task.MaxEnd = maxEnd;
-          task.Duration = ( maxEnd - minStart ).ColumnWidthToDays( setting.ColumnWidth );
+          task.Duration = maxEnd - minStart;
         }
       }
       else {
         var stepworks = group.SelectMany( task => task.Stepworks );
         var minStart = stepworks.Min( s => s.Start );
         var maxEnd = stepworks.Max( s => s.End );
-        var duration = maxEnd - minStart;
 
         foreach ( var task in group ) {
           task.MinStart = minStart;
           task.MaxEnd = maxEnd;
-          task.Duration = duration.ColumnWidthToDays( setting.ColumnWidth );
+          task.Duration = maxEnd - minStart;
         }
       }
     }
