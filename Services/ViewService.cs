@@ -154,7 +154,7 @@ public class ViewService : IViewService
         foreach ( var task in group ) {
           task.MinStart = minStart;
           task.MaxEnd = maxEnd;
-          task.Duration = maxEnd - minStart;
+          task.Duration = ( maxEnd - minStart ) / setting.AmplifiedFactor;
         }
       }
     }
