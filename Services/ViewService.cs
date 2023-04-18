@@ -135,11 +135,23 @@ public class ViewService : IViewService
   {
     var tasksByGroup = tasks.GroupBy( t => t.Group );
     foreach ( var group in tasksByGroup ) {
-      if ( group.Count() > 1 || group.Key > 0 ) {
-        var stepworks = group.SelectMany(task =>  task.Stepworks );
+      if ( group.Count() < 1 ) {
+        continue;
+      }
+      if ( group.Key == 0 ) {
+        foreach ( var task in group ) {
+          var minStart = task.Stepworks.Min( s => s.Start );
+          var maxEnd = task.Stepworks.Max( s => s.End );
+          task.MinStart = minStart;
+          task.MaxEnd = maxEnd;
+          task.Duration = maxEnd - minStart;
+        }
+      }
+      else {
+        var stepworks = group.SelectMany( task => task.Stepworks );
         var minStart = stepworks.Min( s => s.Start );
         var maxEnd = stepworks.Max( s => s.End );
-        var duration = ( maxEnd - minStart ).ColumnWidthToDays( setting.ColumnWidth );
+        var duration = maxEnd - minStart;
 
         foreach ( var task in group ) {
           task.MinStart = minStart;
