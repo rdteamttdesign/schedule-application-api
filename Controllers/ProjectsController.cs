@@ -327,8 +327,7 @@ public class ProjectsController : ControllerBase
 
         var stepworks = await _stepworkService.GetStepworksByTaskId( task.TaskId );
         var taskResource = _mapper.Map<TaskResource>( task );
-        float duration = task.Duration * setting!.AmplifiedFactor;
-        taskResource.Duration = Convert.ToSingle( Math.Round( duration, 2 ) );
+        taskResource.Duration = task.Duration;
 
         if ( stepworks.Count() == 1 ) {
           var predecessors = await _predecessorService.GetPredecessorsByStepworkId( stepworks.First().StepworkId );
@@ -349,7 +348,7 @@ public class ProjectsController : ControllerBase
             var stepworkResource = _mapper.Map<StepworkResource>( stepwork );
             stepworkResource.PercentStepWork *= 100;
             stepworkResource.Start = stepwork.Start.DaysToColumnWidth( setting!.ColumnWidth );
-            stepworkResource.Duration = Convert.ToSingle( Math.Round( duration, 2 ) );
+            stepworkResource.Duration = task.Duration;
             stepworkResource.End = stepwork.End.DaysToColumnWidth( setting!.ColumnWidth );
             stepworkResource.GroupId = groupTask.LocalId;
             stepworkResource.Predecessors = predecessorResources.Count == 0 ? null : predecessorResources;

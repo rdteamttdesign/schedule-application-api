@@ -1,6 +1,5 @@
 ﻿using SchedulingTool.Api.Domain.Models;
 using SchedulingTool.Api.Extension;
-using System.Dynamic;
 using Task = SchedulingTool.Api.Domain.Models.Task;
 
 namespace SchedulingTool.Api.Resources.FormBody.projectdetail;
@@ -24,7 +23,7 @@ public class ModelConverter
           new GroupTask()
           {
             LocalId = grouptaskFormData.Id,
-            GroupTaskName = grouptaskFormData.Name,
+            GroupTaskName = grouptaskFormData.Name!,
             ProjectId = projectId,
             Index = grouptaskFormData.DisplayOrder,
             HideChidren = grouptaskFormData.HideChildren ?? false
@@ -38,10 +37,10 @@ public class ModelConverter
         Tasks.Add( new Task()
         {
           LocalId = grouptaskFormData.Id,
-          TaskName = grouptaskFormData.Name,
+          TaskName = grouptaskFormData.Name ?? string.Empty,
           Index = grouptaskFormData.DisplayOrder,
           NumberOfTeam = grouptaskFormData.GroupsNumber,
-          Duration = grouptaskFormData.Duration / setting.AmplifiedFactor,
+          Duration = grouptaskFormData.Duration,
           GroupTaskLocalId = grouptaskFormData.GroupId,
           Description = grouptaskFormData.Detail,
           Note = grouptaskFormData.Note
@@ -85,7 +84,7 @@ public class ModelConverter
             Portion = 100,
             TaskLocalId = grouptaskFormData.Id,
             ColorId = 1, // grouptaskFormData.ColorId ?? 1,
-            Duration = grouptaskFormData.Duration / setting.AmplifiedFactor,
+            Duration = grouptaskFormData.Duration,
             Name = grouptaskFormData.Name ?? string.Empty,
             Start = grouptaskFormData.Start.ColumnWidthToDays( setting.ColumnWidth ),
             End = grouptaskFormData.End.ColumnWidthToDays( setting.ColumnWidth )
