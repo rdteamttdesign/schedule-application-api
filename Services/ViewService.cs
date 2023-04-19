@@ -109,7 +109,7 @@ public class ViewService : IViewService
       foreach ( var task in group ) {
         var taskResource = new TaskResource()
         {
-          Duration = task.Duration * setting!.AmplifiedFactor,
+          Duration = task.MaxEnd - task.MinStart + task.Duration * ( setting!.AmplifiedFactor - 1 ),
           Start = task.MinStart.DaysToColumnWidth( setting.ColumnWidth ),
           End = task.MaxEnd.DaysToColumnWidth( setting.ColumnWidth ),
           Name = task.TaskName,
@@ -143,7 +143,6 @@ public class ViewService : IViewService
           var maxEnd = task.Stepworks.Max( s => s.End );
           task.MinStart = minStart;
           task.MaxEnd = maxEnd;
-          task.Duration = maxEnd - minStart;
         }
       }
       else {
@@ -154,7 +153,6 @@ public class ViewService : IViewService
         foreach ( var task in group ) {
           task.MinStart = minStart;
           task.MaxEnd = maxEnd;
-          task.Duration = maxEnd - minStart;
         }
       }
     }
