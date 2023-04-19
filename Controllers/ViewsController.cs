@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.CodeAnalysis.VisualBasic.Syntax;
 using SchedulingTool.Api.Domain.Models;
 using SchedulingTool.Api.Domain.Services;
 using SchedulingTool.Api.Extension;
@@ -135,7 +136,7 @@ public class ViewsController : ControllerBase
       viewTask.Stepworks = stepworks.ToList();
     }
 
-    var viewDetail = _viewService.GetViewDetailById( viewTasks.OrderBy( t => t.DisplayOrder ) );
+    var viewDetail = await _viewService.GetViewDetailById( projectId, viewTasks.OrderBy( t => t.DisplayOrder ) );
     return Ok( viewDetail );
   }
 }
