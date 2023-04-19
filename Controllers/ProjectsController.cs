@@ -132,7 +132,7 @@ public class ProjectsController : ControllerBase
     var removalColor = colors.FirstOrDefault( c => c.IsInstall == 1 );
 
     var setting = await _projectSetting.GetProjectSetting( result.Content.ProjectId );
-    await SaveProjectTasks( result.Content.ProjectId, SampleProjectDetail( setting, installColor!.ColorId, removalColor!.ColorId ) );
+    await SaveProjectTasks( result.Content.ProjectId, SampleProjectDetail( setting!, installColor!.ColorId, removalColor!.ColorId ) );
 
     var resource = _mapper.Map<ProjectResource>( result.Content );
 
@@ -186,7 +186,7 @@ public class ProjectsController : ControllerBase
     var taskId12 = Guid.NewGuid().ToString();
     var groupTaskId2 = Guid.NewGuid().ToString();
     var taskId21 = Guid.NewGuid().ToString();
-    var columnWidth = 70;
+    var columnWidth = setting.ColumnWidth;
     return new GroupTaskFormData []
     {
       new GroupTaskFormData()
@@ -229,7 +229,7 @@ public class ProjectsController : ControllerBase
             DisplayOrder = 2,
             Predecessors = Array.Empty<PredecessorResource>(),
             ColorId= installColorId,
-            End = 15 * columnWidth / 30*setting.AmplifiedFactor
+            End = 15 * columnWidth / 30 * setting.AmplifiedFactor
           },
           new StepworkResource()
           {
@@ -261,7 +261,7 @@ public class ProjectsController : ControllerBase
         Note = "",
         GroupsNumber = 1,
         ColorId = installColorId,
-        End = 140 + 30 * columnWidth / 30*setting.AmplifiedFactor
+        End = 140 + 30 * columnWidth / 30 * setting.AmplifiedFactor
       },
       new GroupTaskFormData()
       {
@@ -335,8 +335,8 @@ public class ProjectsController : ControllerBase
           var predecessorResources = _mapper.Map<List<PredecessorResource>>( predecessors );
           taskResource.Predecessors = predecessorResources.Count == 0 ? null : predecessorResources;
           taskResource.ColorId = stepworks.First().ColorId;
-          taskResource.Start = stepworks.First().Start;
-          taskResource.End = stepworks.First().End;
+          taskResource.Start = stepworks.First().Start.DaysToColumnWidth( setting!.ColumnWidth );
+          taskResource.End = taskResource.Start + task.Duration.DaysToColumnWidth( setting.ColumnWidth ) * setting.AmplifiedFactor;
         }
         else {
           var stepworkResources = new List<StepworkResource>();
@@ -348,9 +348,9 @@ public class ProjectsController : ControllerBase
             var predecessorResources = _mapper.Map<List<PredecessorResource>>( predecessors );
             var stepworkResource = _mapper.Map<StepworkResource>( stepwork );
             stepworkResource.PercentStepWork *= 100;
-            stepworkResource.Start = stepwork.Start;
+            stepworkResource.Start = stepwork.Start.DaysToColumnWidth( setting!.ColumnWidth );
             stepworkResource.Duration = task.Duration;
-            stepworkResource.End = stepwork.End;
+            stepworkResource.End = stepworkResource.Start + task.Duration.DaysToColumnWidth( setting.ColumnWidth ) * setting.AmplifiedFactor;
             stepworkResource.GroupId = groupTask.LocalId;
             stepworkResource.Predecessors = predecessorResources.Count == 0 ? null : predecessorResources;
             stepworkResources.Add( stepworkResource );
@@ -391,6 +391,8 @@ public class ProjectsController : ControllerBase
   {
     var converter = new ModelConverter( projectId, formData );
 
+    var setting = await _projectSetting.GetProjectSetting( projectId );
+
     var grouptasks = new Dictionary<string, GroupTask>();
     foreach ( var grouptask in converter.GroupTasks ) {
       var result = await _groupTaskService.CreateGroupTask( grouptask );
@@ -411,6 +413,8 @@ public class ProjectsController : ControllerBase
     var stepworks = new Dictionary<string, Stepwork>();
     foreach ( var stepwork in converter.Stepworks ) {
       stepwork.TaskId = tasks [ stepwork.TaskLocalId ].TaskId;
+      stepwork.Start = stepwork.Start.ColumnWidthToDays( setting!.ColumnWidth );
+      stepwork.End = stepwork.Start + stepwork.Duration;
       var result = await _stepworkService.CreateStepwork( stepwork );
       if ( result.Success ) {
         stepworks.Add( result.Content.LocalId, result.Content );

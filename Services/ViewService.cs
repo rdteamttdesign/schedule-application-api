@@ -47,7 +47,6 @@ public class ViewService : IViewService
     groupTaskResources.ForEach( g => result.Add( new KeyValuePair<int, object>( g.DisplayOrder, g ) ) );
     // get project setting
     var projectSetting = await _projectSettingRepository.GetByProjectId( view.ProjectId );
-    //var projectSetting = new ProjectSetting
 
     // get task
     IEnumerable<IGrouping<int?, ModelTask>> groupViewTasks = tasks.GroupBy( s => s.Group );
@@ -89,8 +88,9 @@ public class ViewService : IViewService
     return result.OrderBy( o => o.Key ).Select( o => o.Value );
   }
 
-  public IEnumerable<object> GetViewDetailById( IEnumerable<ViewTaskDetail> tasks )
+  public async Task<IEnumerable<object>> GetViewDetailById( long projectId, IEnumerable<ViewTaskDetail> tasks )
   {
+    var setting = await _projectSettingRepository.GetByProjectId( projectId );
     CalculateDuration( tasks );
     var result = new List<KeyValuePair<int, object>>();
     var tasksByGroup = tasks.GroupBy( t => t.GroupTaskName );
@@ -109,9 +109,9 @@ public class ViewService : IViewService
       foreach ( var task in group ) {
         var taskResource = new TaskResource()
         {
-          Duration = task.Duration,
-          Start = task.MinStart,
-          End = task.MaxEnd,
+          Duration = task.Duration * setting!.AmplifiedFactor,
+          Start = task.MinStart.DaysToColumnWidth( setting.ColumnWidth ),
+          End = task.MaxEnd.DaysToColumnWidth( setting.ColumnWidth ),
           Name = task.TaskName,
           Id = task.TaskLocalId,
           Type = "task",
@@ -143,7 +143,7 @@ public class ViewService : IViewService
           var maxEnd = task.Stepworks.Max( s => s.End );
           task.MinStart = minStart;
           task.MaxEnd = maxEnd;
-          task.Duration = task.Duration;
+          task.Duration = maxEnd - minStart;
         }
       }
       else {
@@ -154,7 +154,7 @@ public class ViewService : IViewService
         foreach ( var task in group ) {
           task.MinStart = minStart;
           task.MaxEnd = maxEnd;
-          task.Duration = task.Duration;
+          task.Duration = maxEnd - minStart;
         }
       }
     }
