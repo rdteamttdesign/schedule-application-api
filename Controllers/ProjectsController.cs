@@ -28,8 +28,8 @@ public class ProjectsController : ControllerBase
   private readonly IPredecessorService _predecessorService;
   private readonly IColorDefService _colorService;
 
-  public ProjectsController( 
-    IMapper mapper, 
+  public ProjectsController(
+    IMapper mapper,
     IProjectService projectService,
     IProjectSettingService projectSetting,
     IGroupTaskService groupTaskService,
@@ -343,11 +343,11 @@ public class ProjectsController : ControllerBase
         else {
           var factor = setting!.AmplifiedFactor - 1;
           var firstStep = stepworks.ElementAt( 0 );
-          firstStep.Start = firstStep.Start.ColumnWidthToDays( setting.ColumnWidth );
+          firstStep.Start = firstStep.Start;
           var gap = firstStep.Duration * factor;
           for ( int i = 1; i < stepworks.Count(); i++ ) {
             var stepwork = stepworks.ElementAt( i );
-            stepwork.Start = stepwork.Start.ColumnWidthToDays( setting.ColumnWidth ) + gap;
+            stepwork.Start = stepwork.Start + gap;
             gap += stepwork.Duration * factor;
           }
 
@@ -361,7 +361,7 @@ public class ProjectsController : ControllerBase
             var stepworkResource = _mapper.Map<StepworkResource>( stepwork );
             stepworkResource.Duration = task.Duration * stepworkResource.PercentStepWork;
             stepworkResource.PercentStepWork *= 100;
-            stepworkResource.Start = stepwork.Start;//.DaysToColumnWidth( setting!.ColumnWidth );
+            stepworkResource.Start = stepwork.Start.DaysToColumnWidth( setting!.ColumnWidth );
             stepworkResource.End = stepworkResource.Start
               + stepworkResource.Duration.DaysToColumnWidth( setting.ColumnWidth ) * ( task.NumberOfTeam == 0 ? 1 : setting.AmplifiedFactor );
             stepworkResource.GroupId = groupTask.LocalId;
@@ -499,12 +499,15 @@ public class ProjectsController : ControllerBase
     if ( !result.Success ) {
       return BadRequest( ProjectNotification.ErrorDuplicating );
     }
+    var resource = _mapper.Map<ProjectResource>( result.Content );
 
-    //var taskList = new List<ModelTask>();
-    //var stepworkList = new List<Stepwork>();
+    #region Duplicate color
+    await _colorService.DuplicateColorDefs( projectId, result.Content.ProjectId );
+    #endregion
+
+    #region Duplicate details
     var predecessorList = new List<Predecessor>();
-
-    var stepworkIdList = new Dictionary<string, long>();
+    var stepworkIdList = new Dictionary<long, long>();
     var groupTasks = await _groupTaskService.GetGroupTasksByProjectId( projectId );
     foreach ( var groupTask in groupTasks ) {
       groupTask.GroupTaskId = 0;
@@ -525,30 +528,34 @@ public class ProjectsController : ControllerBase
         var stepworks = await _stepworkService.GetStepworksByTaskId( task.TaskId );
 
         foreach ( var stepwork in stepworks ) {
+          var oldId = stepwork.StepworkId;
           stepwork.StepworkId = 0;
           stepwork.TaskId = newTaskResult.Content.TaskId;
           var newStepworkResult = await _stepworkService.CreateStepwork( stepwork );
           if ( !newStepworkResult.Success ) {
             continue;
           }
-          stepworkIdList.Add( newStepworkResult.Content.LocalId, newStepworkResult.Content.StepworkId );
+          stepworkIdList.Add( oldId, newStepworkResult.Content.StepworkId );
           var predecessors = await _predecessorService.GetPredecessorsByStepworkId( stepwork.StepworkId );
           predecessorList.AddRange( predecessors );
         }
       }
     }
 
-    //foreach ( var predecessor in predecessorList ) {
-    //  if ( predecessor == null ) {
-    //    continue;
-    //  }
-    //  if ( !( stepworkIdList.ContainsValue( predecessor.StepworkId ) && stepworkIdList.ContainsValue( predecessor.RelatedStepworkId ) ) ) {
-    //    continue;
-    //  }
-    //  await _predecessorService.CreatePredecessor( predecessor );
-    //}
+    foreach ( var predecessor in predecessorList ) {
+      if ( predecessor == null ) {
+        continue;
+      }
+      if ( !( stepworkIdList.ContainsKey( predecessor.StepworkId ) && stepworkIdList.ContainsKey( predecessor.RelatedStepworkId ) ) ) {
+        continue;
+      }
+      predecessor.StepworkId = stepworkIdList [ predecessor.StepworkId ];
+      predecessor.RelatedStepworkId = stepworkIdList [ predecessor.RelatedStepworkId ];
+      await _predecessorService.CreatePredecessor( predecessor );
+    }
+    #endregion
 
-    return Ok();
+    return Ok( resource );
   }
 
   //[HttpGet( "{projectId}/download" )]

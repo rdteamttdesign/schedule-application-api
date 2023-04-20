@@ -48,7 +48,7 @@ public class ModelConverter
         // case had stepwork
         if ( grouptaskFormData.Stepworks != null ) {
 
-          if ( grouptaskFormData.Stepworks.Count > 1 ) {
+          if ( grouptaskFormData.Stepworks.Count > 1 && grouptaskFormData.GroupsNumber != 0 ) {
             var factor = setting!.AmplifiedFactor - 1;
             var firstStep = grouptaskFormData.Stepworks.ElementAt( 0 );
             firstStep.Start = firstStep.Start.ColumnWidthToDays( setting.ColumnWidth );
@@ -57,6 +57,11 @@ public class ModelConverter
               var stepwork = grouptaskFormData.Stepworks.ElementAt( i );
               stepwork.Start = stepwork.Start.ColumnWidthToDays( setting.ColumnWidth ) - gap;
               gap += stepwork.PercentStepWork * grouptaskFormData.Duration / 100 * factor;
+            }
+          }
+          else {
+            foreach ( var stepworkFormData in grouptaskFormData.Stepworks ) {
+              stepworkFormData.Start = stepworkFormData.Start.ColumnWidthToDays( setting.ColumnWidth );
             }
           }
 
