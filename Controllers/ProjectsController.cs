@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using DocumentFormat.OpenXml.VariantTypes;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SchedulingTool.Api.Domain.Models;
@@ -320,7 +321,7 @@ public class ProjectsController : ControllerBase
     var groupTaskResources = _mapper.Map<List<GroupTaskResource>>( groupTasks );
     groupTaskResources.ForEach( g => result.Add( new KeyValuePair<int, object>( g.DisplayOrder, g ) ) );
 
-    var stepworkColors = ( await _colorService.GetStepworkColorDefsByProjectId( projectId ) ).ToDictionary( x => x.ColorId, x => x.Code );
+    //var stepworkColors = ( await _colorService.GetStepworkColorDefsByProjectId( projectId ) ).ToDictionary( x => x.ColorId, x => x.Code );
 
     foreach ( var groupTask in groupTasks ) {
       var tasks = await _taskService.GetTasksByGroupTaskId( groupTask.GroupTaskId );
@@ -336,9 +337,20 @@ public class ProjectsController : ControllerBase
           taskResource.Predecessors = predecessorResources.Count == 0 ? null : predecessorResources;
           taskResource.ColorId = stepworks.First().ColorId;
           taskResource.Start = stepworks.First().Start.DaysToColumnWidth( setting!.ColumnWidth );
-          taskResource.End = taskResource.Start + task.Duration.DaysToColumnWidth( setting.ColumnWidth ) * setting.AmplifiedFactor;
+          taskResource.End = taskResource.Start
+            + task.Duration.DaysToColumnWidth( setting.ColumnWidth ) * ( task.NumberOfTeam == 0 ? 1 : setting.AmplifiedFactor );
         }
         else {
+          var factor = setting!.AmplifiedFactor - 1;
+          var firstStep = stepworks.ElementAt( 0 );
+          firstStep.Start = firstStep.Start.ColumnWidthToDays( setting.ColumnWidth );
+          var gap = firstStep.Duration * factor;
+          for ( int i = 1; i < stepworks.Count(); i++ ) {
+            var stepwork = stepworks.ElementAt( i );
+            stepwork.Start = stepwork.Start.ColumnWidthToDays( setting.ColumnWidth ) + gap;
+            gap += stepwork.Duration * factor;
+          }
+
           var stepworkResources = new List<StepworkResource>();
           foreach ( var stepwork in stepworks ) {
             if ( stepwork.Portion == 1 ) {
@@ -347,10 +359,11 @@ public class ProjectsController : ControllerBase
             var predecessors = await _predecessorService.GetPredecessorsByStepworkId( stepwork.StepworkId );
             var predecessorResources = _mapper.Map<List<PredecessorResource>>( predecessors );
             var stepworkResource = _mapper.Map<StepworkResource>( stepwork );
+            stepworkResource.Duration = task.Duration * stepworkResource.PercentStepWork;
             stepworkResource.PercentStepWork *= 100;
             stepworkResource.Start = stepwork.Start.DaysToColumnWidth( setting!.ColumnWidth );
-            stepworkResource.Duration = task.Duration;
-            stepworkResource.End = stepworkResource.Start + task.Duration.DaysToColumnWidth( setting.ColumnWidth ) * setting.AmplifiedFactor;
+            stepworkResource.End = stepworkResource.Start
+              + stepworkResource.Duration.DaysToColumnWidth( setting.ColumnWidth ) * ( task.NumberOfTeam == 0 ? 1 : setting.AmplifiedFactor );
             stepworkResource.GroupId = groupTask.LocalId;
             stepworkResource.Predecessors = predecessorResources.Count == 0 ? null : predecessorResources;
             stepworkResources.Add( stepworkResource );
@@ -389,9 +402,8 @@ public class ProjectsController : ControllerBase
 
   private async Task SaveProjectTasks( long projectId, ICollection<GroupTaskFormData> formData )
   {
-    var converter = new ModelConverter( projectId, formData );
-
     var setting = await _projectSetting.GetProjectSetting( projectId );
+    var converter = new ModelConverter( projectId, setting!, formData );
 
     var grouptasks = new Dictionary<string, GroupTask>();
     foreach ( var grouptask in converter.GroupTasks ) {
@@ -413,7 +425,6 @@ public class ProjectsController : ControllerBase
     var stepworks = new Dictionary<string, Stepwork>();
     foreach ( var stepwork in converter.Stepworks ) {
       stepwork.TaskId = tasks [ stepwork.TaskLocalId ].TaskId;
-      stepwork.Start = stepwork.Start.ColumnWidthToDays( setting!.ColumnWidth );
       stepwork.End = stepwork.Start + stepwork.Duration;
       var result = await _stepworkService.CreateStepwork( stepwork );
       if ( result.Success ) {
@@ -470,6 +481,74 @@ public class ProjectsController : ControllerBase
     var setting = await _projectSetting.GetProjectSetting( projectId );
     var result = ImportFileUtils.ReadFromFile( file.OpenReadStream(), sheetNameList, setting!, installColor!.ColorId, removalColor!.ColorId, maxDisplayOrder );
     return Ok( result );
+  }
+
+  [HttpPost( "{projectId}/duplicate" )]
+  [Authorize]
+  public async Task<IActionResult> DuplicateProject( long projectId )
+  {
+    var userId = long.Parse( HttpContext.User.Claims.FirstOrDefault( x => x.Type.ToLower() == "sid" )?.Value! );
+    var project = await _projectService.GetProject( userId, projectId );
+    if ( project == null ) {
+      return BadRequest( ProjectNotification.NonExisted );
+    }
+
+    project.ProjectId = 0;
+    project.ProjectName = $"Copy of {project.ProjectName}";
+    var result = await _projectService.CreateProject( project );
+    if ( !result.Success ) {
+      return BadRequest( ProjectNotification.ErrorDuplicating );
+    }
+
+    //var taskList = new List<ModelTask>();
+    //var stepworkList = new List<Stepwork>();
+    var predecessorList = new List<Predecessor>();
+
+    var stepworkIdList = new Dictionary<string, long>();
+    var groupTasks = await _groupTaskService.GetGroupTasksByProjectId( projectId );
+    foreach ( var groupTask in groupTasks ) {
+      groupTask.GroupTaskId = 0;
+      groupTask.ProjectId = result.Content.ProjectId;
+      var newGroupTaskResult = await _groupTaskService.CreateGroupTask( groupTask );
+      if ( !newGroupTaskResult.Success ) {
+        continue;
+      }
+      var tasks = await _taskService.GetTasksByGroupTaskId( groupTask.GroupTaskId );
+
+      foreach ( var task in tasks ) {
+        task.TaskId = 0;
+        task.GroupTaskId = newGroupTaskResult.Content.GroupTaskId;
+        var newTaskResult = await _taskService.CreateTask( task );
+        if ( !newTaskResult.Success ) {
+          continue;
+        }
+        var stepworks = await _stepworkService.GetStepworksByTaskId( task.TaskId );
+
+        foreach ( var stepwork in stepworks ) {
+          stepwork.StepworkId = 0;
+          stepwork.TaskId = newTaskResult.Content.TaskId;
+          var newStepworkResult = await _stepworkService.CreateStepwork( stepwork );
+          if ( !newStepworkResult.Success ) {
+            continue;
+          }
+          stepworkIdList.Add( newStepworkResult.Content.LocalId, newStepworkResult.Content.StepworkId );
+          var predecessors = await _predecessorService.GetPredecessorsByStepworkId( stepwork.StepworkId );
+          predecessorList.AddRange( predecessors );
+        }
+      }
+    }
+
+    //foreach ( var predecessor in predecessorList ) {
+    //  if ( predecessor == null ) {
+    //    continue;
+    //  }
+    //  if ( !( stepworkIdList.ContainsValue( predecessor.StepworkId ) && stepworkIdList.ContainsValue( predecessor.RelatedStepworkId ) ) ) {
+    //    continue;
+    //  }
+    //  await _predecessorService.CreatePredecessor( predecessor );
+    //}
+
+    return Ok();
   }
 
   //[HttpGet( "{projectId}/download" )]

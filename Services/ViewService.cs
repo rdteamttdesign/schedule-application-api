@@ -109,8 +109,8 @@ public class ViewService : IViewService
       foreach ( var task in group ) {
         var taskResource = new TaskResource()
         {
-          Duration = task.MaxEnd - task.MinStart + task.Duration * ( setting!.AmplifiedFactor - 1 ),
-          Start = task.MinStart.DaysToColumnWidth( setting.ColumnWidth ),
+          Duration = task.MaxEnd - task.MinStart + ( task.NumberOfTeam == 0 ? 0 : task.Duration * ( setting!.AmplifiedFactor - 1 ) ),
+          Start = task.MinStart.DaysToColumnWidth( setting!.ColumnWidth ),
           End = task.MaxEnd.DaysToColumnWidth( setting.ColumnWidth ),
           Name = task.TaskName,
           Id = task.TaskLocalId,
