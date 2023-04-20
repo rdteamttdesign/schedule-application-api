@@ -91,7 +91,7 @@ public class ViewService : IViewService
   public async Task<IEnumerable<object>> GetViewDetailById( long projectId, IEnumerable<ViewTaskDetail> tasks )
   {
     var setting = await _projectSettingRepository.GetByProjectId( projectId );
-    CalculateDuration( tasks );
+    CalculateDuration( tasks, setting! );
     var result = new List<KeyValuePair<int, object>>();
     var tasksByGroup = tasks.GroupBy( t => t.GroupTaskName );
 
@@ -109,7 +109,7 @@ public class ViewService : IViewService
       foreach ( var task in group ) {
         var taskResource = new TaskResource()
         {
-          Duration = task.MaxEnd - task.MinStart + ( task.NumberOfTeam == 0 ? 0 : task.Duration * ( setting!.AmplifiedFactor - 1 ) ),
+          Duration = task.Duration,
           Start = task.MinStart.DaysToColumnWidth( setting!.ColumnWidth ),
           End = task.MaxEnd.DaysToColumnWidth( setting.ColumnWidth ),
           Name = task.TaskName,
@@ -130,7 +130,7 @@ public class ViewService : IViewService
     return result.OrderBy( o => o.Key ).Select( o => o.Value );
   }
 
-  private void CalculateDuration( IEnumerable<ViewTaskDetail> tasks )
+  private void CalculateDuration( IEnumerable<ViewTaskDetail> tasks, ProjectSetting setting )
   {
     var tasksByGroup = tasks.GroupBy( t => t.Group );
     foreach ( var group in tasksByGroup ) {
@@ -143,16 +143,22 @@ public class ViewService : IViewService
           var maxEnd = task.Stepworks.Max( s => s.End );
           task.MinStart = minStart;
           task.MaxEnd = maxEnd;
+          task.Duration = task.MaxEnd - task.MinStart + ( task.NumberOfTeam == 0 ? 0 : task.Duration * ( setting!.AmplifiedFactor - 1 ) );
         }
       }
       else {
         var stepworks = group.SelectMany( task => task.Stepworks );
         var minStart = stepworks.Min( s => s.Start );
         var maxEnd = stepworks.Max( s => s.End );
+        var duration = maxEnd - minStart;
+        foreach ( var task in group ) {
+          duration +=  task.NumberOfTeam == 0 ? 0 : task.Duration * ( setting!.AmplifiedFactor - 1 ) ;
+        }
 
         foreach ( var task in group ) {
           task.MinStart = minStart;
           task.MaxEnd = maxEnd;
+          task.Duration = duration;
         }
       }
     }
