@@ -143,17 +143,15 @@ public class ViewService : IViewService
           var maxEnd = task.Stepworks.Max( s => s.End );
           task.MinStart = minStart;
           task.MaxEnd = maxEnd;
-          task.Duration = task.MaxEnd - task.MinStart + ( task.NumberOfTeam == 0 ? 0 : task.Duration * ( setting!.AmplifiedFactor - 1 ) );
+          task.Duration = task.MaxEnd - task.MinStart + ( task.NumberOfTeam == 0 ? 0 : ( task.Duration * ( setting!.AmplifiedFactor - 1 ) ) );
         }
       }
       else {
         var stepworks = group.SelectMany( task => task.Stepworks );
         var minStart = stepworks.Min( s => s.Start );
         var maxEnd = stepworks.Max( s => s.End );
-        var duration = maxEnd - minStart;
-        foreach ( var task in group ) {
-          duration +=  task.NumberOfTeam == 0 ? 0 : task.Duration * ( setting!.AmplifiedFactor - 1 ) ;
-        }
+        var lastTask = group.First( t => t.Stepworks.Any( s => s.End == maxEnd ) );
+        var duration = maxEnd - minStart + ( lastTask.NumberOfTeam == 0 ? 0 : ( lastTask.Duration * ( setting!.AmplifiedFactor - 1 ) ) );
 
         foreach ( var task in group ) {
           task.MinStart = minStart;
