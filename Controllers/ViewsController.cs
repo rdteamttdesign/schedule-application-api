@@ -1,7 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.CodeAnalysis.VisualBasic.Syntax;
 using SchedulingTool.Api.Domain.Models;
 using SchedulingTool.Api.Domain.Services;
 using SchedulingTool.Api.Extension;
