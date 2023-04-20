@@ -361,7 +361,7 @@ public class ProjectsController : ControllerBase
             var stepworkResource = _mapper.Map<StepworkResource>( stepwork );
             stepworkResource.Duration = task.Duration * stepworkResource.PercentStepWork;
             stepworkResource.PercentStepWork *= 100;
-            stepworkResource.Start = stepwork.Start.DaysToColumnWidth( setting!.ColumnWidth );
+            stepworkResource.Start = stepwork.Start;//.DaysToColumnWidth( setting!.ColumnWidth );
             stepworkResource.End = stepworkResource.Start
               + stepworkResource.Duration.DaysToColumnWidth( setting.ColumnWidth ) * ( task.NumberOfTeam == 0 ? 1 : setting.AmplifiedFactor );
             stepworkResource.GroupId = groupTask.LocalId;

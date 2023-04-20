@@ -99,7 +99,7 @@ public class ModelConverter
             ColorId = 1, // grouptaskFormData.ColorId ?? 1,
             Duration = grouptaskFormData.Duration,
             Name = grouptaskFormData.Name ?? string.Empty,
-            Start = grouptaskFormData.Start,
+            Start = grouptaskFormData.Start.ColumnWidthToDays( setting.ColumnWidth ),
             End = grouptaskFormData.End
           };
           Stepworks.Add( _ );
