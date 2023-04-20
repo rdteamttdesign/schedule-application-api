@@ -27,6 +27,7 @@ public class ProjectsController : ControllerBase
   private readonly IStepworkService _stepworkService;
   private readonly IPredecessorService _predecessorService;
   private readonly IColorDefService _colorService;
+  private readonly IBackgroundService _backgroundService;
 
   public ProjectsController(
     IMapper mapper,
@@ -36,7 +37,8 @@ public class ProjectsController : ControllerBase
     ITaskService taskService,
     IStepworkService stepworkService,
     IPredecessorService predecessorService,
-    IColorDefService colorService )
+    IColorDefService colorService,
+    IBackgroundService backgroundService )
   {
     _mapper = mapper;
     _projectService = projectService;
@@ -46,6 +48,7 @@ public class ProjectsController : ControllerBase
     _predecessorService = predecessorService;
     _colorService = colorService;
     _projectSetting = projectSetting;
+    _backgroundService = backgroundService;
   }
 
   [HttpGet( "{projectId}" )]
@@ -503,6 +506,15 @@ public class ProjectsController : ControllerBase
 
     #region Duplicate color
     await _colorService.DuplicateColorDefs( projectId, result.Content.ProjectId );
+    var backgrounds = await _backgroundService.GetBackgroundsByProjectId( projectId );
+    foreach ( var bg in backgrounds ) {
+      var updatingBackground = await _backgroundService.GetProjectBackground( result.Content.ProjectId, bg.Month );
+      if ( updatingBackground == null ) {
+        continue;
+      }
+      updatingBackground.ColorId = bg.ColorId;
+      await _backgroundService.UpdateProjectBackground( bg );
+    }
     #endregion
 
     #region Duplicate details
