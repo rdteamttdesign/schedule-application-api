@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using DocumentFormat.OpenXml.VariantTypes;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SchedulingTool.Api.Domain.Models;
@@ -137,7 +138,8 @@ public class ProjectsController : ControllerBase
     var installColor = colors.FirstOrDefault( c => c.IsInstall == 0 );
     var removalColor = colors.FirstOrDefault( c => c.IsInstall == 1 );
 
-    await SaveProjectTasks( result.Content.ProjectId, SampleProjectDetail( installColor!.ColorId, removalColor!.ColorId ) );
+    var setting = await _projectSetting.GetProjectSetting( result.Content.ProjectId );
+    await SaveProjectTasks( result.Content.ProjectId, SampleProjectDetail( setting!, installColor!.ColorId, removalColor!.ColorId ) );
 
     var resource = _mapper.Map<ProjectResource>( result.Content );
 
@@ -184,14 +186,14 @@ public class ProjectsController : ControllerBase
     return Ok( resource );
   }
 
-  private ICollection<GroupTaskFormData> SampleProjectDetail( long installColorId, long removalColorId )
+  private ICollection<GroupTaskFormData> SampleProjectDetail( ProjectSetting setting, long installColorId, long removalColorId )
   {
     var groupTaskId1 = Guid.NewGuid().ToString();
     var taskId11 = Guid.NewGuid().ToString();
     var taskId12 = Guid.NewGuid().ToString();
     var groupTaskId2 = Guid.NewGuid().ToString();
     var taskId21 = Guid.NewGuid().ToString();
-    var columnWidth = 70;
+    var columnWidth = setting.ColumnWidth;
     return new GroupTaskFormData []
     {
       new GroupTaskFormData()
@@ -232,9 +234,9 @@ public class ProjectsController : ControllerBase
             Type = "task",
             GroupId = groupTaskId1,
             DisplayOrder = 2,
-            Predecessors = new PredecessorResource[] { },
+            Predecessors = Array.Empty<PredecessorResource>(),
             ColorId= installColorId,
-            End = 15 * columnWidth
+            End = 15 * columnWidth / 30 * setting.AmplifiedFactor
           },
           new StepworkResource()
           {
@@ -247,9 +249,9 @@ public class ProjectsController : ControllerBase
             Type = "task",
             GroupId = groupTaskId1,
             DisplayOrder = 2,
-            Predecessors = new PredecessorResource[] { },
+            Predecessors = Array.Empty<PredecessorResource>(),
             ColorId= removalColorId,
-            End = 70 + 15 * columnWidth
+            End = 70 + 15 * columnWidth / 30 * setting.AmplifiedFactor
           }
         }
       },
@@ -259,14 +261,14 @@ public class ProjectsController : ControllerBase
         Duration = 30,
         Name = "Task 2",
         Id = taskId12,
-        Predecessors = new PredecessorResource [] { },
+        Predecessors = Array.Empty < PredecessorResource >(),
         Type = "task",
         GroupId = groupTaskId1,
         DisplayOrder = 3,
         Note = "",
         GroupsNumber = 1,
         ColorId = installColorId,
-        End = 140 + 30 * columnWidth
+        End = 140 + 30 * columnWidth / 30 * setting.AmplifiedFactor
       },
       new GroupTaskFormData()
       {
@@ -277,9 +279,9 @@ public class ProjectsController : ControllerBase
         Type = "project",
         HideChildren = false,
         DisplayOrder = 4,
-        GroupsNumber = 1, 
+        GroupsNumber = 1,
         ColorId = installColorId,
-        End = 30 * columnWidth
+        End = 30 * columnWidth / 30 * setting.AmplifiedFactor
       },
       new GroupTaskFormData()
       {
@@ -287,14 +289,14 @@ public class ProjectsController : ControllerBase
         Duration= 30,
         Name = "Task 3",
         Id = taskId21,
-        Predecessors = new PredecessorResource [] { },
+        Predecessors = Array.Empty<PredecessorResource>(),
         Type = "task",
         GroupId = groupTaskId2,
         DisplayOrder = 5,
         Note = "",
         GroupsNumber = 1,
         ColorId = installColorId,
-        End = 140 + 30 * columnWidth
+        End = 140 + 30 * columnWidth / 30 * setting.AmplifiedFactor
       },
     };
   }
@@ -325,7 +327,7 @@ public class ProjectsController : ControllerBase
     var groupTaskResources = _mapper.Map<List<GroupTaskResource>>( groupTasks );
     groupTaskResources.ForEach( g => result.Add( new KeyValuePair<int, object>( g.DisplayOrder, g ) ) );
 
-    var stepworkColors = ( await _colorService.GetStepworkColorDefsByProjectId( projectId ) ).ToDictionary( x => x.ColorId, x => x.Code );
+    //var stepworkColors = ( await _colorService.GetStepworkColorDefsByProjectId( projectId ) ).ToDictionary( x => x.ColorId, x => x.Code );
 
     foreach ( var groupTask in groupTasks ) {
       var tasks = await _taskService.GetTasksByGroupTaskId( groupTask.GroupTaskId );
@@ -333,18 +335,28 @@ public class ProjectsController : ControllerBase
 
         var stepworks = await _stepworkService.GetStepworksByTaskId( task.TaskId );
         var taskResource = _mapper.Map<TaskResource>( task );
-        float duration = task.Duration * setting!.AmplifiedFactor;
-        taskResource.Duration = Convert.ToSingle( Math.Round( duration, 2 ) );
+        taskResource.Duration = task.Duration;
 
         if ( stepworks.Count() == 1 ) {
           var predecessors = await _predecessorService.GetPredecessorsByStepworkId( stepworks.First().StepworkId );
           var predecessorResources = _mapper.Map<List<PredecessorResource>>( predecessors );
           taskResource.Predecessors = predecessorResources.Count == 0 ? null : predecessorResources;
           taskResource.ColorId = stepworks.First().ColorId;
-          taskResource.Start = stepworks.First().Start.DaysToColumnWidth(setting!.ColumnWidth);
-          taskResource.End = stepworks.First().End.DaysToColumnWidth( setting!.ColumnWidth );
+          taskResource.Start = stepworks.First().Start.DaysToColumnWidth( setting!.ColumnWidth );
+          taskResource.End = taskResource.Start
+            + task.Duration.DaysToColumnWidth( setting.ColumnWidth ) * ( task.NumberOfTeam == 0 ? 1 : setting.AmplifiedFactor );
         }
         else {
+          var factor = setting!.AmplifiedFactor - 1;
+          var firstStep = stepworks.ElementAt( 0 );
+          firstStep.Start = firstStep.Start;
+          var gap = firstStep.Duration * factor;
+          for ( int i = 1; i < stepworks.Count(); i++ ) {
+            var stepwork = stepworks.ElementAt( i );
+            stepwork.Start = stepwork.Start + gap;
+            gap += stepwork.Duration * factor;
+          }
+
           var stepworkResources = new List<StepworkResource>();
           foreach ( var stepwork in stepworks ) {
             if ( stepwork.Portion == 1 ) {
@@ -353,10 +365,11 @@ public class ProjectsController : ControllerBase
             var predecessors = await _predecessorService.GetPredecessorsByStepworkId( stepwork.StepworkId );
             var predecessorResources = _mapper.Map<List<PredecessorResource>>( predecessors );
             var stepworkResource = _mapper.Map<StepworkResource>( stepwork );
+            stepworkResource.Duration = task.Duration * stepworkResource.PercentStepWork;
             stepworkResource.PercentStepWork *= 100;
             stepworkResource.Start = stepwork.Start.DaysToColumnWidth( setting!.ColumnWidth );
-            stepworkResource.Duration = Convert.ToSingle( Math.Round( duration, 2 ) );
-            stepworkResource.End = stepwork.End.DaysToColumnWidth( setting!.ColumnWidth );
+            stepworkResource.End = stepworkResource.Start
+              + stepworkResource.Duration.DaysToColumnWidth( setting.ColumnWidth ) * ( task.NumberOfTeam == 0 ? 1 : setting.AmplifiedFactor );
             stepworkResource.GroupId = groupTask.LocalId;
             stepworkResource.Predecessors = predecessorResources.Count == 0 ? null : predecessorResources;
             stepworkResources.Add( stepworkResource );
@@ -418,6 +431,7 @@ public class ProjectsController : ControllerBase
     var stepworks = new Dictionary<string, Stepwork>();
     foreach ( var stepwork in converter.Stepworks ) {
       stepwork.TaskId = tasks [ stepwork.TaskLocalId ].TaskId;
+      stepwork.End = stepwork.Start + stepwork.Duration;
       var result = await _stepworkService.CreateStepwork( stepwork );
       if ( result.Success ) {
         stepworks.Add( result.Content.LocalId, result.Content );
@@ -473,6 +487,90 @@ public class ProjectsController : ControllerBase
     var setting = await _projectSetting.GetProjectSetting( projectId );
     var result = ImportFileUtils.ReadFromFile( file.OpenReadStream(), sheetNameList, setting!, installColor!.ColorId, removalColor!.ColorId, maxDisplayOrder );
     return Ok( result );
+  }
+
+  [HttpPost( "{projectId}/duplicate" )]
+  [Authorize]
+  public async Task<IActionResult> DuplicateProject( long projectId )
+  {
+    var userId = long.Parse( HttpContext.User.Claims.FirstOrDefault( x => x.Type.ToLower() == "sid" )?.Value! );
+    var project = await _projectService.GetProject( userId, projectId );
+    if ( project == null ) {
+      return BadRequest( ProjectNotification.NonExisted );
+    }
+
+    project.ProjectId = 0;
+    project.ProjectName = $"Copy of {project.ProjectName}";
+    var result = await _projectService.CreateProject( project );
+    if ( !result.Success ) {
+      return BadRequest( ProjectNotification.ErrorDuplicating );
+    }
+    var resource = _mapper.Map<ProjectResource>( result.Content );
+
+    #region Duplicate color
+    await _colorService.DuplicateColorDefs( projectId, result.Content.ProjectId );
+    var backgrounds = await _backgroundService.GetBackgroundsByProjectId( projectId );
+    foreach ( var bg in backgrounds ) {
+      var updatingBackground = await _backgroundService.GetProjectBackground( result.Content.ProjectId, bg.Month );
+      if ( updatingBackground == null ) {
+        continue;
+      }
+      updatingBackground.ColorId = bg.ColorId;
+      await _backgroundService.UpdateProjectBackground( bg );
+    }
+    #endregion
+
+    #region Duplicate details
+    var predecessorList = new List<Predecessor>();
+    var stepworkIdList = new Dictionary<long, long>();
+    var groupTasks = await _groupTaskService.GetGroupTasksByProjectId( projectId );
+    foreach ( var groupTask in groupTasks ) {
+      groupTask.GroupTaskId = 0;
+      groupTask.ProjectId = result.Content.ProjectId;
+      var newGroupTaskResult = await _groupTaskService.CreateGroupTask( groupTask );
+      if ( !newGroupTaskResult.Success ) {
+        continue;
+      }
+      var tasks = await _taskService.GetTasksByGroupTaskId( groupTask.GroupTaskId );
+
+      foreach ( var task in tasks ) {
+        task.TaskId = 0;
+        task.GroupTaskId = newGroupTaskResult.Content.GroupTaskId;
+        var newTaskResult = await _taskService.CreateTask( task );
+        if ( !newTaskResult.Success ) {
+          continue;
+        }
+        var stepworks = await _stepworkService.GetStepworksByTaskId( task.TaskId );
+
+        foreach ( var stepwork in stepworks ) {
+          var oldId = stepwork.StepworkId;
+          stepwork.StepworkId = 0;
+          stepwork.TaskId = newTaskResult.Content.TaskId;
+          var newStepworkResult = await _stepworkService.CreateStepwork( stepwork );
+          if ( !newStepworkResult.Success ) {
+            continue;
+          }
+          stepworkIdList.Add( oldId, newStepworkResult.Content.StepworkId );
+          var predecessors = await _predecessorService.GetPredecessorsByStepworkId( stepwork.StepworkId );
+          predecessorList.AddRange( predecessors );
+        }
+      }
+    }
+
+    foreach ( var predecessor in predecessorList ) {
+      if ( predecessor == null ) {
+        continue;
+      }
+      if ( !( stepworkIdList.ContainsKey( predecessor.StepworkId ) && stepworkIdList.ContainsKey( predecessor.RelatedStepworkId ) ) ) {
+        continue;
+      }
+      predecessor.StepworkId = stepworkIdList [ predecessor.StepworkId ];
+      predecessor.RelatedStepworkId = stepworkIdList [ predecessor.RelatedStepworkId ];
+      await _predecessorService.CreatePredecessor( predecessor );
+    }
+    #endregion
+
+    return Ok( resource );
   }
 
   [HttpGet( "{projectId}/download" )]

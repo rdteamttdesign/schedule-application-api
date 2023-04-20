@@ -33,7 +33,7 @@ public class ViewService : IViewService
   {
     return await _viewRepository.GetViewsByProjectId( projectId );
   }
-  
+
   public async Task<View?> GetViewById( long viewId )
   {
     return await _viewRepository.GetById( viewId );
@@ -47,7 +47,6 @@ public class ViewService : IViewService
     groupTaskResources.ForEach( g => result.Add( new KeyValuePair<int, object>( g.DisplayOrder, g ) ) );
     // get project setting
     var projectSetting = await _projectSettingRepository.GetByProjectId( view.ProjectId );
-    //var projectSetting = new ProjectSetting
 
     // get task
     IEnumerable<IGrouping<int?, ModelTask>> groupViewTasks = tasks.GroupBy( s => s.Group );
@@ -89,10 +88,10 @@ public class ViewService : IViewService
     return result.OrderBy( o => o.Key ).Select( o => o.Value );
   }
 
-  public async Task<IEnumerable<object>> GetViewDetailById(long projectId, IEnumerable<ViewTaskDetail> tasks )
+  public async Task<IEnumerable<object>> GetViewDetailById( long projectId, IEnumerable<ViewTaskDetail> tasks )
   {
-    CalculateDuration( tasks );
     var setting = await _projectSettingRepository.GetByProjectId( projectId );
+    CalculateDuration( tasks, setting! );
     var result = new List<KeyValuePair<int, object>>();
     var tasksByGroup = tasks.GroupBy( t => t.GroupTaskName );
 
@@ -110,8 +109,8 @@ public class ViewService : IViewService
       foreach ( var task in group ) {
         var taskResource = new TaskResource()
         {
-          Duration = task.Duration.DaysToColumnWidth( setting!.ColumnWidth ),
-          Start = task.MinStart.DaysToColumnWidth( setting.ColumnWidth ),
+          Duration = task.Duration,
+          Start = task.MinStart.DaysToColumnWidth( setting!.ColumnWidth ),
           End = task.MaxEnd.DaysToColumnWidth( setting.ColumnWidth ),
           Name = task.TaskName,
           Id = task.TaskLocalId,
@@ -120,7 +119,8 @@ public class ViewService : IViewService
           GroupId = groupId,
           DisplayOrder = i,
           Note = string.Empty,
-          ColorId = 1
+          ColorId = 1,
+          GroupsNumber = 0
         };
         i++;
         result.Add( new KeyValuePair<int, object>( i, taskResource ) );
@@ -130,15 +130,28 @@ public class ViewService : IViewService
     return result.OrderBy( o => o.Key ).Select( o => o.Value );
   }
 
-  private void CalculateDuration( IEnumerable<ViewTaskDetail> tasks )
+  private void CalculateDuration( IEnumerable<ViewTaskDetail> tasks, ProjectSetting setting )
   {
     var tasksByGroup = tasks.GroupBy( t => t.Group );
     foreach ( var group in tasksByGroup ) {
-      if ( group.Count() > 1 || group.Key > 0 ) {
-        var stepworks = group.SelectMany(task =>  task.Stepworks );
+      if ( group.Count() < 1 ) {
+        continue;
+      }
+      if ( group.Key == 0 ) {
+        foreach ( var task in group ) {
+          var minStart = task.Stepworks.Min( s => s.Start );
+          var maxEnd = task.Stepworks.Max( s => s.End );
+          task.MinStart = minStart;
+          task.MaxEnd = maxEnd;
+          task.Duration = task.MaxEnd - task.MinStart + ( task.NumberOfTeam == 0 ? 0 : ( task.Duration * ( setting!.AmplifiedFactor - 1 ) ) );
+        }
+      }
+      else {
+        var stepworks = group.SelectMany( task => task.Stepworks );
         var minStart = stepworks.Min( s => s.Start );
         var maxEnd = stepworks.Max( s => s.End );
-        var duration = maxEnd - minStart;
+        var lastTask = group.First( t => t.Stepworks.Any( s => s.End == maxEnd ) );
+        var duration = maxEnd - minStart + ( lastTask.NumberOfTeam == 0 ? 0 : ( lastTask.Duration * ( setting!.AmplifiedFactor - 1 ) ) );
 
         foreach ( var task in group ) {
           task.MinStart = minStart;
@@ -178,8 +191,8 @@ public class ViewService : IViewService
     await _viewRepository.DeleteView( viewId, isDeleteView );
   }
 
-  public async Task<IEnumerable<ViewTaskDetail>> GetViewTasks( long viewId )
+  public async Task<IEnumerable<ViewTaskDetail>> GetViewTasks( long projectId, long viewId )
   {
-    return await _viewRepository.GetViewTasks( viewId );
+    return await _viewRepository.GetViewTasks( projectId, viewId );
   }
 }

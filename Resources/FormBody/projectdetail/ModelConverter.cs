@@ -1,6 +1,5 @@
 ﻿using SchedulingTool.Api.Domain.Models;
 using SchedulingTool.Api.Extension;
-using System.Dynamic;
 using Task = SchedulingTool.Api.Domain.Models.Task;
 
 namespace SchedulingTool.Api.Resources.FormBody.projectdetail;
@@ -12,8 +11,8 @@ public class ModelConverter
   public List<Stepwork> Stepworks { get; private set; } = new List<Stepwork>();
   public List<ExtendedPredecessor> Predecessors { get; private set; } = new List<ExtendedPredecessor>();
 
-  public ModelConverter( 
-    long projectId, 
+  public ModelConverter(
+    long projectId,
     ProjectSetting setting,
     ICollection<GroupTaskFormData> grouptaskFormDataList )
   {
@@ -24,7 +23,7 @@ public class ModelConverter
           new GroupTask()
           {
             LocalId = grouptaskFormData.Id,
-            GroupTaskName = grouptaskFormData.Name,
+            GroupTaskName = grouptaskFormData.Name!,
             ProjectId = projectId,
             Index = grouptaskFormData.DisplayOrder,
             HideChidren = grouptaskFormData.HideChildren ?? false
@@ -38,16 +37,34 @@ public class ModelConverter
         Tasks.Add( new Task()
         {
           LocalId = grouptaskFormData.Id,
-          TaskName = grouptaskFormData.Name,
+          TaskName = grouptaskFormData.Name ?? string.Empty,
           Index = grouptaskFormData.DisplayOrder,
           NumberOfTeam = grouptaskFormData.GroupsNumber,
-          Duration = grouptaskFormData.Duration / setting.AmplifiedFactor,
+          Duration = grouptaskFormData.Duration,
           GroupTaskLocalId = grouptaskFormData.GroupId,
           Description = grouptaskFormData.Detail,
           Note = grouptaskFormData.Note
         } );
         // case had stepwork
         if ( grouptaskFormData.Stepworks != null ) {
+
+          if ( grouptaskFormData.Stepworks.Count > 1 && grouptaskFormData.GroupsNumber != 0 ) {
+            var factor = setting!.AmplifiedFactor - 1;
+            var firstStep = grouptaskFormData.Stepworks.ElementAt( 0 );
+            firstStep.Start = firstStep.Start.ColumnWidthToDays( setting.ColumnWidth );
+            var gap = firstStep.PercentStepWork * grouptaskFormData.Duration / 100 * factor;
+            for ( int i = 1; i < grouptaskFormData.Stepworks.Count; i++ ) {
+              var stepwork = grouptaskFormData.Stepworks.ElementAt( i );
+              stepwork.Start = stepwork.Start.ColumnWidthToDays( setting.ColumnWidth ) - gap;
+              gap += stepwork.PercentStepWork * grouptaskFormData.Duration / 100 * factor;
+            }
+          }
+          else {
+            foreach ( var stepworkFormData in grouptaskFormData.Stepworks ) {
+              stepworkFormData.Start = stepworkFormData.Start.ColumnWidthToDays( setting.ColumnWidth );
+            }
+          }
+
           foreach ( var stepworkFormData in grouptaskFormData.Stepworks ) {
             Stepworks.Add( new Stepwork()
             {
@@ -57,9 +74,9 @@ public class ModelConverter
               TaskLocalId = grouptaskFormData.Id,
               ColorId = 1, //stepworkFormData.ColorId ?? 1,
               Duration = stepworkFormData.PercentStepWork * stepworkFormData.Duration / 100,
-              Name = stepworkFormData.Name,
-              Start = stepworkFormData.Start.ColumnWidthToDays( setting.ColumnWidth ),
-              End = stepworkFormData.End.ColumnWidthToDays( setting.ColumnWidth )
+              Name = stepworkFormData.Name ?? string.Empty,
+              Start = stepworkFormData.Start,
+              End = stepworkFormData.End
             } );
             if ( stepworkFormData.Predecessors == null ) {
               continue;
@@ -85,10 +102,10 @@ public class ModelConverter
             Portion = 100,
             TaskLocalId = grouptaskFormData.Id,
             ColorId = 1, // grouptaskFormData.ColorId ?? 1,
-            Duration = grouptaskFormData.Duration / setting.AmplifiedFactor,
-            Name = grouptaskFormData.Name,
+            Duration = grouptaskFormData.Duration,
+            Name = grouptaskFormData.Name ?? string.Empty,
             Start = grouptaskFormData.Start.ColumnWidthToDays( setting.ColumnWidth ),
-            End = grouptaskFormData.End.ColumnWidthToDays( setting.ColumnWidth )
+            End = grouptaskFormData.End
           };
           Stepworks.Add( _ );
         }

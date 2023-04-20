@@ -8,5 +8,5 @@ public interface IViewRepository : IGenericRepository<View>
 {
   Task<IEnumerable<View>> GetViewsByProjectId( long projectId );
   Task DeleteView( long viewId, bool isDeleteView );
-  Task<IEnumerable<ViewTaskDetail>> GetViewTasks( long viewId );
+  Task<IEnumerable<ViewTaskDetail>> GetViewTasks( long projectId, long viewId );
 }
