@@ -11,8 +11,9 @@ public class ModelConverter
   public List<Stepwork> Stepworks { get; private set; } = new List<Stepwork>();
   public List<ExtendedPredecessor> Predecessors { get; private set; } = new List<ExtendedPredecessor>();
 
-  public ModelConverter( 
+  public ModelConverter(
     long projectId,
+    ProjectSetting setting,
     ICollection<GroupTaskFormData> grouptaskFormDataList )
   {
     foreach ( GroupTaskFormData grouptaskFormData in grouptaskFormDataList ) {
@@ -46,6 +47,19 @@ public class ModelConverter
         } );
         // case had stepwork
         if ( grouptaskFormData.Stepworks != null ) {
+
+          if ( grouptaskFormData.Stepworks.Count > 1 ) {
+            var factor = setting!.AmplifiedFactor - 1;
+            var firstStep = grouptaskFormData.Stepworks.ElementAt( 0 );
+            firstStep.Start = firstStep.Start.ColumnWidthToDays( setting.ColumnWidth );
+            var gap = firstStep.PercentStepWork * grouptaskFormData.Duration / 100 * factor;
+            for ( int i = 1; i < grouptaskFormData.Stepworks.Count; i++ ) {
+              var stepwork = grouptaskFormData.Stepworks.ElementAt( i );
+              stepwork.Start = stepwork.Start.ColumnWidthToDays( setting.ColumnWidth ) - gap;
+              gap += stepwork.PercentStepWork * grouptaskFormData.Duration / 100 * factor;
+            }
+          }
+
           foreach ( var stepworkFormData in grouptaskFormData.Stepworks ) {
             Stepworks.Add( new Stepwork()
             {
