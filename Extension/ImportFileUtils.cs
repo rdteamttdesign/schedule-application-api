@@ -83,11 +83,12 @@ public static class ImportFileUtils
         }
         else {
           task.Stepworks = new List<StepworkResource>();
+          var offset = 0f;
           for ( int j = 0; j < numberOfStepworks; j++ ) {
             var percentStepwork = GetFloat( worksheet.Cell( i, j + 7 ).Value );
             var stepwork = new StepworkResource()
             {
-              Start = 0,
+              Start = offset,
               Duration = task.Duration.DaysToColumnWidth( setting.ColumnWidth ),
               PercentStepWork = Math.Abs( percentStepwork * 100 ),
               Name = Guid.NewGuid().ToString(),
@@ -99,6 +100,7 @@ public static class ImportFileUtils
               Predecessors = new List<PredecessorResource>(),
               ColorId = percentStepwork > 0 ? installColorId : removalColorId
             };
+            offset += stepwork.Duration;
             task.Stepworks.Add( stepwork );
           }
         }
