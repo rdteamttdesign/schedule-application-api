@@ -369,6 +369,7 @@ public class ProjectsController : ControllerBase
               + stepworkResource.Duration.DaysToColumnWidth( setting.ColumnWidth ) * ( task.NumberOfTeam == 0 ? 1 : setting.AmplifiedFactor );
             stepworkResource.GroupId = groupTask.LocalId;
             stepworkResource.Predecessors = predecessorResources.Count == 0 ? null : predecessorResources;
+            stepworkResource.GroupNumbers = task.NumberOfTeam;
             stepworkResources.Add( stepworkResource );
           }
           taskResource.Stepworks = stepworkResources.Count == 0 ? null : stepworkResources;

@@ -98,7 +98,8 @@ public static class ImportFileUtils
               GroupId = groupId,
               DisplayOrder = index,
               Predecessors = new List<PredecessorResource>(),
-              ColorId = percentStepwork > 0 ? installColorId : removalColorId
+              ColorId = percentStepwork > 0 ? installColorId : removalColorId,
+              GroupNumbers = task.GroupsNumber
             };
             offset += stepwork.Duration;
             task.Stepworks.Add( stepwork );
