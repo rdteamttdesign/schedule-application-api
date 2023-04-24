@@ -52,11 +52,15 @@ public static class ImportFileUtils
         if ( string.IsNullOrEmpty( taskName ) ) {
           continue;
         }
+        var duration = GetFloat( worksheet.Cell( i, 4 ).Value );
+        if ( duration == 0 ) {
+          continue;
+        }
         var taskId = Guid.NewGuid().ToString();
         var task = new TaskResource()
         {
           Start = 0,
-          Duration = GetFloat( worksheet.Cell( i, 4 ).Value ),
+          Duration = duration,
           Name = GetText( worksheet.Cell( i, 2 ).Value ),
           Id = taskId,
           Type = "task",
