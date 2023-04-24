@@ -13,7 +13,7 @@ public static class ImportFileUtils
     ProjectSetting setting,
     long installColorId,
     long removalColorId,
-    int maxDisplayOrder)
+    int maxDisplayOrder )
   {
     using var workbook = new XLWorkbook( fileStream );
     var groupTasks = new List<object>();
@@ -84,12 +84,12 @@ public static class ImportFileUtils
         else {
           task.Stepworks = new List<StepworkResource>();
           for ( int j = 0; j < numberOfStepworks; j++ ) {
-            var percentStepwork = Math.Abs( GetFloat( worksheet.Cell( i, j + 7 ).Value ) * 100 );
+            var percentStepwork = GetFloat( worksheet.Cell( i, j + 7 ).Value );
             var stepwork = new StepworkResource()
             {
               Start = 0,
               Duration = task.Duration.DaysToColumnWidth( setting.ColumnWidth ),
-              PercentStepWork = percentStepwork*100,
+              PercentStepWork = Math.Abs( percentStepwork * 100 ),
               Name = Guid.NewGuid().ToString(),
               ParentTaskId = taskId,
               Id = Guid.NewGuid().ToString(),
@@ -107,7 +107,7 @@ public static class ImportFileUtils
       }
     }
     return groupTasks;
-  } 
+  }
 
   public static byte[] WriteToFile( ICollection<GroupTaskDetailResource> groupTasks )
   {
