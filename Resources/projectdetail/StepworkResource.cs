@@ -14,4 +14,5 @@ public class StepworkResource
   public ICollection<PredecessorResource>? Predecessors { get; set; }
   public long? ColorId { get; set; }
   public float End { get; set; }
+  public int GroupNumbers { get; set; }
 }
