@@ -52,16 +52,38 @@ public class ModelConverter
             var factor = setting!.AmplifiedFactor - 1;
             var firstStep = grouptaskFormData.Stepworks.ElementAt( 0 );
             firstStep.Start = firstStep.Start.ColumnWidthToDays( setting.ColumnWidth );
+            firstStep.End = firstStep.PercentStepWork * grouptaskFormData.Duration / 100;
+            if ( grouptaskFormData.GroupsNumber > 0 ) {
+              firstStep.End *= setting!.AmplifiedFactor;
+              firstStep.End /= grouptaskFormData.GroupsNumber > 0 ? grouptaskFormData.GroupsNumber : 1;
+            }
+            firstStep.End += firstStep.Start;
+
             var gap = firstStep.PercentStepWork * grouptaskFormData.Duration / 100 * factor;
+            if ( grouptaskFormData.GroupsNumber > 0 )
+              gap /= grouptaskFormData.GroupsNumber;
+
             for ( int i = 1; i < grouptaskFormData.Stepworks.Count; i++ ) {
               var stepwork = grouptaskFormData.Stepworks.ElementAt( i );
               stepwork.Start = stepwork.Start.ColumnWidthToDays( setting.ColumnWidth ) - gap;
-              gap += stepwork.PercentStepWork * grouptaskFormData.Duration / 100 * factor;
+              var stepDuration = stepwork.PercentStepWork * grouptaskFormData.Duration / 100;
+              stepwork.End = stepDuration;
+              if ( grouptaskFormData.GroupsNumber > 0 ) {
+                stepwork.End *= setting!.AmplifiedFactor;
+                stepwork.End /= grouptaskFormData.GroupsNumber > 0 ? grouptaskFormData.GroupsNumber : 1;
+              }
+              stepwork.End += stepwork.Start;
+
+              if ( grouptaskFormData.GroupsNumber > 1 )
+                gap += stepDuration * factor;
+              else
+                gap += stepDuration * factor / grouptaskFormData.GroupsNumber;
             }
           }
           else {
             foreach ( var stepworkFormData in grouptaskFormData.Stepworks ) {
               stepworkFormData.Start = stepworkFormData.Start.ColumnWidthToDays( setting.ColumnWidth );
+              stepworkFormData.End = stepworkFormData.Start + stepworkFormData.PercentStepWork * grouptaskFormData.Duration / 100;
             }
           }
 
@@ -95,7 +117,7 @@ public class ModelConverter
         }
         // case not stepwork
         if ( grouptaskFormData.Stepworks == null || grouptaskFormData.Stepworks.Count == 0 ) {
-          var _ = new Stepwork()
+          var _ = new Stepwork
           {
             LocalId = grouptaskFormData.Id,
             Index = grouptaskFormData.DisplayOrder,
@@ -104,9 +126,14 @@ public class ModelConverter
             ColorId = grouptaskFormData.ColorId ?? 1,
             Duration = grouptaskFormData.Duration,
             Name = grouptaskFormData.Name ?? string.Empty,
-            Start = grouptaskFormData.Start.ColumnWidthToDays( setting.ColumnWidth ),
-            End = grouptaskFormData.End
+            Start = grouptaskFormData.Start.ColumnWidthToDays( setting.ColumnWidth )
           };
+          _.End = _.Duration;
+          if ( grouptaskFormData.GroupsNumber > 0 ) {
+            _.End *= setting!.AmplifiedFactor;
+            _.End /= grouptaskFormData.GroupsNumber > 0 ? grouptaskFormData.GroupsNumber : 1;
+          }
+          _.End += _.Start;
           Stepworks.Add( _ );
         }
         // case not stepwork but had predecessor
