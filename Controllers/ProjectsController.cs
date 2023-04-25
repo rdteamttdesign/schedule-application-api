@@ -312,14 +312,20 @@ public class ProjectsController : ControllerBase
             + task.Duration.DaysToColumnWidth( setting.ColumnWidth ) * ( task.NumberOfTeam == 0 ? 1 : setting.AmplifiedFactor );
         }
         else {
-          var factor = setting!.AmplifiedFactor - 1;
-          var firstStep = stepworks.ElementAt( 0 );
-          firstStep.Start = firstStep.Start;
-          var gap = firstStep.Duration * factor;
-          for ( int i = 1; i < stepworks.Count(); i++ ) {
-            var stepwork = stepworks.ElementAt( i );
-            stepwork.Start = stepwork.Start + gap;
-            gap += stepwork.Duration * factor;
+          if ( task.NumberOfTeam != 0 ) {
+            var factor = setting!.AmplifiedFactor - 1;
+            var firstStep = stepworks.ElementAt( 0 );
+            var gap = firstStep.Duration * factor;
+            if ( task.NumberOfTeam > 0 )
+              gap /= task.NumberOfTeam;
+            for ( int i = 1; i < stepworks.Count(); i++ ) {
+              var stepwork = stepworks.ElementAt( i );
+              stepwork.Start += gap;
+              if ( task.NumberOfTeam > 1 )
+                gap += stepwork.Duration * factor;
+              else
+                gap += stepwork.Duration * factor / task.NumberOfTeam;
+            }
           }
 
           var stepworkResources = new List<StepworkResource>();
@@ -330,7 +336,7 @@ public class ProjectsController : ControllerBase
             var predecessors = await _predecessorService.GetPredecessorsByStepworkId( stepwork.StepworkId );
             var predecessorResources = _mapper.Map<List<PredecessorResource>>( predecessors );
             var stepworkResource = _mapper.Map<StepworkResource>( stepwork );
-            stepworkResource.Duration = task.Duration * stepworkResource.PercentStepWork;
+            stepworkResource.Duration = task.Duration;
             stepworkResource.PercentStepWork *= 100;
             stepworkResource.Start = stepwork.Start.DaysToColumnWidth( setting!.ColumnWidth );
             stepworkResource.End = stepworkResource.Start
@@ -397,7 +403,7 @@ public class ProjectsController : ControllerBase
     var stepworks = new Dictionary<string, Stepwork>();
     foreach ( var stepwork in converter.Stepworks ) {
       stepwork.TaskId = tasks [ stepwork.TaskLocalId ].TaskId;
-      stepwork.End = stepwork.Start + stepwork.Duration;
+      //stepwork.End = stepwork.Start + stepwork.Duration;
       var result = await _stepworkService.CreateStepwork( stepwork );
       if ( result.Success ) {
         stepworks.Add( result.Content.LocalId, result.Content );
