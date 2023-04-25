@@ -207,50 +207,18 @@ public class ProjectsController : ControllerBase
       },
       new GroupTaskFormData()
       {
-        Start = 0,
+        Start= 140,
         Duration = 30,
         Name = "Task 1",
         Id = taskId11,
+        Predecessors = Array.Empty<PredecessorResource>(),
         Type = "task",
-        Detail= "",
         GroupId = groupTaskId1,
-        DisplayOrder = 2,
+        DisplayOrder = 3,
         Note = "",
-        ColorId= installColorId,
         GroupsNumber = 1,
-        Stepworks = new StepworkResource[]
-        {
-          new StepworkResource()
-          {
-            Start = 0,
-            Duration = 30,
-            PercentStepWork = 50,
-            Name = "",
-            ParentTaskId = taskId11,
-            Id = Guid.NewGuid().ToString(),
-            Type = "task",
-            GroupId = groupTaskId1,
-            DisplayOrder = 2,
-            Predecessors = Array.Empty<PredecessorResource>(),
-            ColorId= installColorId,
-            End = 15 * columnWidth / 30 * setting.AmplifiedFactor
-          },
-          new StepworkResource()
-          {
-            Start = 70,
-            Duration = 30,
-            PercentStepWork = 50,
-            Name = "",
-            ParentTaskId = taskId11,
-            Id = Guid.NewGuid().ToString(),
-            Type = "task",
-            GroupId = groupTaskId1,
-            DisplayOrder = 2,
-            Predecessors = Array.Empty<PredecessorResource>(),
-            ColorId= removalColorId,
-            End = 70 + 15 * columnWidth / 30 * setting.AmplifiedFactor
-          }
-        }
+        ColorId = installColorId,
+        End = 140 + 30 * columnWidth / 30 * setting.AmplifiedFactor
       },
       new GroupTaskFormData()
       {
@@ -258,7 +226,7 @@ public class ProjectsController : ControllerBase
         Duration = 30,
         Name = "Task 2",
         Id = taskId12,
-        Predecessors = Array.Empty < PredecessorResource >(),
+        Predecessors = Array.Empty<PredecessorResource>(),
         Type = "task",
         GroupId = groupTaskId1,
         DisplayOrder = 3,
