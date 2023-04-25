@@ -138,20 +138,44 @@ public class ViewService : IViewService
         continue;
       }
       if ( group.Key == 0 ) {
+        // not in group
         foreach ( var task in group ) {
           var minStart = task.Stepworks.Min( s => s.Start );
           var maxEnd = task.Stepworks.Max( s => s.End );
           task.MinStart = minStart;
           task.MaxEnd = maxEnd;
-          task.Duration = task.MaxEnd - task.MinStart + ( task.NumberOfTeam == 0 ? 0 : ( task.Duration * ( setting!.AmplifiedFactor - 1 ) ) );
+          var duration = task.MaxEnd - task.MinStart;
+          if ( task.Stepworks.Count > 1 && task.NumberOfTeam != 0 ) {
+            // more than one stepwork and number of teams > 0
+            for ( int i = 0; i < task.Stepworks.Count - 1; i++ ) {
+              duration += task.Stepworks.ElementAt( i ).Duration * ( setting!.AmplifiedFactor - 1 ) / task.NumberOfTeam;
+            }
+            task.Duration = duration;
+          }
+          else {
+            // other cases
+            task.Duration = duration;
+          }
         }
       }
       else {
+        // in group
+        foreach ( var task in group ) {
+          if ( !( task.Stepworks.Count > 1 && task.NumberOfTeam != 0 ) ) {
+            continue;
+          }
+          //Recalculate end of last stepwork if task has more than one stepwork
+          var gap = 0f;
+          for ( int i = 0; i < task.Stepworks.Count; i++ ) {
+            gap += task.Stepworks.ElementAt( i ).Duration * ( setting!.AmplifiedFactor - 1 ) / task.NumberOfTeam;
+          }
+          task.Stepworks.Last().End += gap;
+        }
         var stepworks = group.SelectMany( task => task.Stepworks );
         var minStart = stepworks.Min( s => s.Start );
         var maxEnd = stepworks.Max( s => s.End );
         var lastTask = group.First( t => t.Stepworks.Any( s => s.End == maxEnd ) );
-        var duration = maxEnd - minStart + ( lastTask.NumberOfTeam == 0 ? 0 : ( lastTask.Duration * ( setting!.AmplifiedFactor - 1 ) ) );
+        var duration = maxEnd - minStart;
 
         foreach ( var task in group ) {
           task.MinStart = minStart;

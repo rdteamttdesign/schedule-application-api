@@ -210,50 +210,18 @@ public class ProjectsController : ControllerBase
       },
       new GroupTaskFormData()
       {
-        Start = 0,
+        Start= 140,
         Duration = 30,
         Name = "Task 1",
         Id = taskId11,
+        Predecessors = Array.Empty<PredecessorResource>(),
         Type = "task",
-        Detail= "",
         GroupId = groupTaskId1,
-        DisplayOrder = 2,
+        DisplayOrder = 3,
         Note = "",
-        ColorId= installColorId,
         GroupsNumber = 1,
-        Stepworks = new StepworkResource[]
-        {
-          new StepworkResource()
-          {
-            Start = 0,
-            Duration = 30,
-            PercentStepWork = 50,
-            Name = "",
-            ParentTaskId = taskId11,
-            Id = Guid.NewGuid().ToString(),
-            Type = "task",
-            GroupId = groupTaskId1,
-            DisplayOrder = 2,
-            Predecessors = Array.Empty<PredecessorResource>(),
-            ColorId= installColorId,
-            End = 15 * columnWidth / 30 * setting.AmplifiedFactor
-          },
-          new StepworkResource()
-          {
-            Start = 70,
-            Duration = 30,
-            PercentStepWork = 50,
-            Name = "",
-            ParentTaskId = taskId11,
-            Id = Guid.NewGuid().ToString(),
-            Type = "task",
-            GroupId = groupTaskId1,
-            DisplayOrder = 2,
-            Predecessors = Array.Empty<PredecessorResource>(),
-            ColorId= removalColorId,
-            End = 70 + 15 * columnWidth / 30 * setting.AmplifiedFactor
-          }
-        }
+        ColorId = installColorId,
+        End = 140 + 30 * columnWidth / 30 * setting.AmplifiedFactor
       },
       new GroupTaskFormData()
       {
@@ -261,7 +229,7 @@ public class ProjectsController : ControllerBase
         Duration = 30,
         Name = "Task 2",
         Id = taskId12,
-        Predecessors = Array.Empty < PredecessorResource >(),
+        Predecessors = Array.Empty<PredecessorResource>(),
         Type = "task",
         GroupId = groupTaskId1,
         DisplayOrder = 3,
@@ -347,14 +315,20 @@ public class ProjectsController : ControllerBase
             + task.Duration.DaysToColumnWidth( setting.ColumnWidth ) * ( task.NumberOfTeam == 0 ? 1 : setting.AmplifiedFactor );
         }
         else {
-          var factor = setting!.AmplifiedFactor - 1;
-          var firstStep = stepworks.ElementAt( 0 );
-          firstStep.Start = firstStep.Start;
-          var gap = firstStep.Duration * factor;
-          for ( int i = 1; i < stepworks.Count(); i++ ) {
-            var stepwork = stepworks.ElementAt( i );
-            stepwork.Start = stepwork.Start + gap;
-            gap += stepwork.Duration * factor;
+          if ( task.NumberOfTeam != 0 ) {
+            var factor = setting!.AmplifiedFactor - 1;
+            var firstStep = stepworks.ElementAt( 0 );
+            var gap = firstStep.Duration * factor;
+            if ( task.NumberOfTeam > 0 )
+              gap /= task.NumberOfTeam;
+            for ( int i = 1; i < stepworks.Count(); i++ ) {
+              var stepwork = stepworks.ElementAt( i );
+              stepwork.Start += gap;
+              if ( task.NumberOfTeam > 1 )
+                gap += stepwork.Duration * factor;
+              else
+                gap += stepwork.Duration * factor / task.NumberOfTeam;
+            }
           }
 
           var stepworkResources = new List<StepworkResource>();
@@ -365,13 +339,14 @@ public class ProjectsController : ControllerBase
             var predecessors = await _predecessorService.GetPredecessorsByStepworkId( stepwork.StepworkId );
             var predecessorResources = _mapper.Map<List<PredecessorResource>>( predecessors );
             var stepworkResource = _mapper.Map<StepworkResource>( stepwork );
-            stepworkResource.Duration = task.Duration * stepworkResource.PercentStepWork;
+            stepworkResource.Duration = task.Duration;
             stepworkResource.PercentStepWork *= 100;
             stepworkResource.Start = stepwork.Start.DaysToColumnWidth( setting!.ColumnWidth );
             stepworkResource.End = stepworkResource.Start
               + stepworkResource.Duration.DaysToColumnWidth( setting.ColumnWidth ) * ( task.NumberOfTeam == 0 ? 1 : setting.AmplifiedFactor );
             stepworkResource.GroupId = groupTask.LocalId;
             stepworkResource.Predecessors = predecessorResources.Count == 0 ? null : predecessorResources;
+            stepworkResource.GroupNumbers = task.NumberOfTeam;
             stepworkResources.Add( stepworkResource );
           }
           taskResource.Stepworks = stepworkResources.Count == 0 ? null : stepworkResources;
@@ -431,7 +406,7 @@ public class ProjectsController : ControllerBase
     var stepworks = new Dictionary<string, Stepwork>();
     foreach ( var stepwork in converter.Stepworks ) {
       stepwork.TaskId = tasks [ stepwork.TaskLocalId ].TaskId;
-      stepwork.End = stepwork.Start + stepwork.Duration;
+      //stepwork.End = stepwork.Start + stepwork.Duration;
       var result = await _stepworkService.CreateStepwork( stepwork );
       if ( result.Success ) {
         stepworks.Add( result.Content.LocalId, result.Content );
