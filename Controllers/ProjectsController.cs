@@ -479,6 +479,8 @@ public class ProjectsController : ControllerBase
     }
     var resource = _mapper.Map<ProjectResource>( result.Content );
 
+    //var setting = _projectSetting.GetProjectSetting( result.Content.ProjectId );
+
     #region Duplicate color
     await _colorService.DuplicateColorDefs( projectId, result.Content.ProjectId );
     var backgrounds = await _backgroundService.GetBackgroundsByProjectId( projectId );
@@ -490,6 +492,7 @@ public class ProjectsController : ControllerBase
       updatingBackground.ColorId = bg.ColorId;
       await _backgroundService.UpdateProjectBackground( bg );
     }
+    var swColors = await _colorService.GetStepworkColorDefsByProjectId( result.Content.ProjectId );
     #endregion
 
     #region Duplicate details
@@ -497,32 +500,64 @@ public class ProjectsController : ControllerBase
     var stepworkIdList = new Dictionary<long, long>();
     var groupTasks = await _groupTaskService.GetGroupTasksByProjectId( projectId );
     foreach ( var groupTask in groupTasks ) {
-      groupTask.GroupTaskId = 0;
-      groupTask.ProjectId = result.Content.ProjectId;
-      var newGroupTaskResult = await _groupTaskService.CreateGroupTask( groupTask );
+      var newGroupTask = new GroupTask
+      {
+        GroupTaskId = 0,
+        ProjectId = result.Content.ProjectId,
+        GroupTaskName = groupTask.GroupTaskName,
+        Index = groupTask.Index,
+        HideChidren = groupTask.HideChidren,
+        LocalId = groupTask.LocalId
+      };
+      var newGroupTaskResult = await _groupTaskService.CreateGroupTask( newGroupTask );
       if ( !newGroupTaskResult.Success ) {
         continue;
       }
       var tasks = await _taskService.GetTasksByGroupTaskId( groupTask.GroupTaskId );
 
       foreach ( var task in tasks ) {
-        task.TaskId = 0;
-        task.GroupTaskId = newGroupTaskResult.Content.GroupTaskId;
-        var newTaskResult = await _taskService.CreateTask( task );
+        var newTask = new ModelTask
+        {
+          TaskId = 0,
+          GroupTaskId = newGroupTaskResult.Content.GroupTaskId,
+          TaskName = task.TaskName,
+          Index = task.Index,
+          NumberOfTeam = task.NumberOfTeam,
+          Duration = task.Duration,
+          AmplifiedDuration = task.AmplifiedDuration,
+          Description = task.Description,
+          Note = task.Note,
+          LocalId = task.LocalId,
+          GroupTaskLocalId = task.GroupTaskLocalId
+        };
+
+        var newTaskResult = await _taskService.CreateTask( newTask );
         if ( !newTaskResult.Success ) {
           continue;
         }
         var stepworks = await _stepworkService.GetStepworksByTaskId( task.TaskId );
 
         foreach ( var stepwork in stepworks ) {
-          var oldId = stepwork.StepworkId;
-          stepwork.StepworkId = 0;
-          stepwork.TaskId = newTaskResult.Content.TaskId;
-          var newStepworkResult = await _stepworkService.CreateStepwork( stepwork );
+          var newStepwork = new Stepwork
+          {
+            StepworkId = 0,
+            TaskId = newTaskResult.Content.TaskId,
+            Index = stepwork.Index,
+            Portion = stepwork.Portion,
+            ColorId = swColors.FirstOrDefault( c => c.Name == stepwork.Name )?.ColorId ?? 1,
+            LocalId = stepwork.LocalId,
+            TaskLocalId = stepwork.TaskLocalId,
+            Name = stepwork.Name,
+            Start = stepwork.Start,
+            End = stepwork.End,
+            Duration = stepwork.Duration,
+            Type = stepwork.Type
+          };
+          var newStepworkResult = await _stepworkService.CreateStepwork( newStepwork );
           if ( !newStepworkResult.Success ) {
             continue;
           }
-          stepworkIdList.Add( oldId, newStepworkResult.Content.StepworkId );
+          stepworkIdList.Add( stepwork.StepworkId, newStepworkResult.Content.StepworkId );
           var predecessors = await _predecessorService.GetPredecessorsByStepworkId( stepwork.StepworkId );
           predecessorList.AddRange( predecessors );
         }
