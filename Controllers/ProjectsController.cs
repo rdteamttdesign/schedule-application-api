@@ -10,6 +10,7 @@ using SchedulingTool.Api.Resources;
 using SchedulingTool.Api.Resources.FormBody;
 using SchedulingTool.Api.Resources.FormBody.projectdetail;
 using SchedulingTool.Api.Resources.projectdetail;
+using System.Dynamic;
 using ModelTask = SchedulingTool.Api.Domain.Models.Task;
 using Task = System.Threading.Tasks.Task;
 
@@ -465,84 +466,198 @@ public class ProjectsController : ControllerBase
   [Authorize]
   public async Task<IActionResult> DuplicateProject( long projectId )
   {
-    var userId = long.Parse( HttpContext.User.Claims.FirstOrDefault( x => x.Type.ToLower() == "sid" )?.Value! );
-    var project = await _projectService.GetProject( userId, projectId );
-    if ( project == null ) {
-      return BadRequest( ProjectNotification.NonExisted );
-    }
-
-    project.ProjectId = 0;
-    project.ProjectName = $"Copy of {project.ProjectName}";
-    var result = await _projectService.CreateProject( project );
-    if ( !result.Success ) {
-      return BadRequest( ProjectNotification.ErrorDuplicating );
-    }
-    var resource = _mapper.Map<ProjectResource>( result.Content );
-
-    #region Duplicate color
-    await _colorService.DuplicateColorDefs( projectId, result.Content.ProjectId );
-    var backgrounds = await _backgroundService.GetBackgroundsByProjectId( projectId );
-    foreach ( var bg in backgrounds ) {
-      var updatingBackground = await _backgroundService.GetProjectBackground( result.Content.ProjectId, bg.Month );
-      if ( updatingBackground == null ) {
-        continue;
+    try {
+      var userId = long.Parse( HttpContext.User.Claims.FirstOrDefault( x => x.Type.ToLower() == "sid" )?.Value! );
+      var project = await _projectService.GetProject( userId, projectId );
+      if ( project == null ) {
+        return BadRequest( ProjectNotification.NonExisted );
       }
-      updatingBackground.ColorId = bg.ColorId;
-      await _backgroundService.UpdateProjectBackground( bg );
-    }
-    #endregion
+      var projects = await _projectService.GetActiveProjects( userId );
 
-    #region Duplicate details
-    var predecessorList = new List<Predecessor>();
-    var stepworkIdList = new Dictionary<long, long>();
-    var groupTasks = await _groupTaskService.GetGroupTasksByProjectId( projectId );
-    foreach ( var groupTask in groupTasks ) {
-      groupTask.GroupTaskId = 0;
-      groupTask.ProjectId = result.Content.ProjectId;
-      var newGroupTaskResult = await _groupTaskService.CreateGroupTask( groupTask );
-      if ( !newGroupTaskResult.Success ) {
-        continue;
+      var projectName = $"Copy of {project.ProjectName}";
+
+      var latestName = projects.Select( p => p.ProjectName )
+        .Where( name => name.Contains( projectName ) )
+        .OrderBy( x => x ).FirstOrDefault();
+
+      if ( latestName != null ) {
+        var suffix = latestName.Split( "_" );
+        if ( suffix.Length == 2 ) {
+          if ( int.TryParse( suffix [ 1 ], out var digit ) ) {
+            projectName += $"_{digit + 1}";
+          }
+          else {
+            projectName += "_1";
+          }
+        }
+        else {
+          projectName += "_1";
+        }
       }
-      var tasks = await _taskService.GetTasksByGroupTaskId( groupTask.GroupTaskId );
 
-      foreach ( var task in tasks ) {
-        task.TaskId = 0;
-        task.GroupTaskId = newGroupTaskResult.Content.GroupTaskId;
-        var newTaskResult = await _taskService.CreateTask( task );
-        if ( !newTaskResult.Success ) {
+      var newProject = new Project()
+      {
+        ProjectName = projectName,
+        UserId = project.UserId,
+        CreatedDate = project.CreatedDate,
+        ModifiedDate = project.ModifiedDate,
+        IsActivated = project.IsActivated,
+        NumberOfMonths = project.NumberOfMonths
+      };
+
+      var result = await _projectService.CreateProject( newProject );
+      if ( !result.Success ) {
+        return BadRequest( ProjectNotification.ErrorDuplicating );
+      }
+      var resource = _mapper.Map<ProjectResource>( result.Content );
+
+      var setting = await _projectSetting.GetProjectSetting( projectId );
+      var newSetting = await _projectSetting.GetProjectSetting( result.Content.ProjectId );
+      newSetting!.ColumnWidth = setting!.ColumnWidth;
+      newSetting.SeparateGroupTask = setting.SeparateGroupTask;
+      newSetting.AssemblyDurationRatio = setting.AssemblyDurationRatio;
+      newSetting.RemovalDurationRatio = setting.RemovalDurationRatio;
+      newSetting.ColumnWidth = setting.ColumnWidth;
+      newSetting.AmplifiedFactor = setting.AmplifiedFactor;
+      if ( newSetting != null ) {
+        await _projectSetting.UpdateProjectSetting( newSetting );
+      }
+
+      #region Duplicate color
+      //await _colorService.DuplicateColorDefs( projectId, result.Content.ProjectId );
+      var bgColorList = new Dictionary<long, ColorDef>();
+      var swColorList = new Dictionary<long, ColorDef>();
+
+      var swColors = await _colorService.GetStepworkColorDefsByProjectId( projectId );
+      foreach ( var color in swColors ) {
+        var newColor = new ColorDef()
+        {
+          Name = color.Name,
+          Code = color.Code,
+          Type = color.Type,
+          ProjectId = result.Content.ProjectId,
+          IsDefault = color.IsDefault,
+          IsInstall = color.IsInstall
+        };
+        var newColorResult = await _colorService.CreateColorDef( newColor );
+        swColorList.Add( color.ColorId, newColorResult.Content );
+      }
+      var bgColors = await _colorService.GetBackgroundColorDefsByProjectId( projectId );
+      foreach ( var color in bgColors ) {
+        var newColor = new ColorDef()
+        {
+          Name = color.Name,
+          Code = color.Code,
+          Type = color.Type,
+          ProjectId = result.Content.ProjectId,
+          IsDefault = color.IsDefault,
+          IsInstall = color.IsInstall
+        };
+        var newColorResult = await _colorService.CreateColorDef( newColor );
+        bgColorList.Add( color.ColorId, newColorResult.Content );
+      }
+
+      var backgrounds = await _backgroundService.GetBackgroundsByProjectId( projectId );
+      foreach ( var bg in backgrounds ) {
+        var updatingBackground = await _backgroundService.GetProjectBackground( result.Content.ProjectId, bg.Month );
+        if ( updatingBackground == null ) {
           continue;
         }
-        var stepworks = await _stepworkService.GetStepworksByTaskId( task.TaskId );
+        if ( bg.ColorId == null ) {
+          continue;
+        }
+        updatingBackground.ColorId = bgColorList [ bg.ColorId.Value ].ColorId;
+        await _backgroundService.UpdateProjectBackground( bg );
+      }
+      #endregion
 
-        foreach ( var stepwork in stepworks ) {
-          var oldId = stepwork.StepworkId;
-          stepwork.StepworkId = 0;
-          stepwork.TaskId = newTaskResult.Content.TaskId;
-          var newStepworkResult = await _stepworkService.CreateStepwork( stepwork );
-          if ( !newStepworkResult.Success ) {
+      #region Duplicate details
+      var predecessorList = new List<Predecessor>();
+      var stepworkIdList = new Dictionary<long, long>();
+      var groupTasks = await _groupTaskService.GetGroupTasksByProjectId( projectId );
+      foreach ( var groupTask in groupTasks ) {
+        var newGroupTask = new GroupTask
+        {
+          GroupTaskId = 0,
+          ProjectId = result.Content.ProjectId,
+          GroupTaskName = groupTask.GroupTaskName,
+          Index = groupTask.Index,
+          HideChidren = groupTask.HideChidren,
+          LocalId = groupTask.LocalId
+        };
+        var newGroupTaskResult = await _groupTaskService.CreateGroupTask( newGroupTask );
+        if ( !newGroupTaskResult.Success ) {
+          continue;
+        }
+        var tasks = await _taskService.GetTasksByGroupTaskId( groupTask.GroupTaskId );
+
+        foreach ( var task in tasks ) {
+          var newTask = new ModelTask
+          {
+            TaskId = 0,
+            GroupTaskId = newGroupTaskResult.Content.GroupTaskId,
+            TaskName = task.TaskName,
+            Index = task.Index,
+            NumberOfTeam = task.NumberOfTeam,
+            Duration = task.Duration,
+            AmplifiedDuration = task.AmplifiedDuration,
+            Description = task.Description,
+            Note = task.Note,
+            LocalId = task.LocalId,
+            GroupTaskLocalId = task.GroupTaskLocalId
+          };
+
+          var newTaskResult = await _taskService.CreateTask( newTask );
+          if ( !newTaskResult.Success ) {
             continue;
           }
-          stepworkIdList.Add( oldId, newStepworkResult.Content.StepworkId );
-          var predecessors = await _predecessorService.GetPredecessorsByStepworkId( stepwork.StepworkId );
-          predecessorList.AddRange( predecessors );
+          var stepworks = await _stepworkService.GetStepworksByTaskId( task.TaskId );
+
+          foreach ( var stepwork in stepworks ) {
+            var newStepwork = new Stepwork
+            {
+              StepworkId = 0,
+              TaskId = newTaskResult.Content.TaskId,
+              Index = stepwork.Index,
+              Portion = stepwork.Portion,
+              ColorId = swColorList [ stepwork.ColorId ].ColorId,
+              LocalId = stepwork.LocalId,
+              TaskLocalId = stepwork.TaskLocalId,
+              Name = stepwork.Name,
+              Start = stepwork.Start,
+              End = stepwork.End,
+              Duration = stepwork.Duration,
+              Type = stepwork.Type
+            };
+            var newStepworkResult = await _stepworkService.CreateStepwork( newStepwork );
+            if ( !newStepworkResult.Success ) {
+              continue;
+            }
+            stepworkIdList.Add( stepwork.StepworkId, newStepworkResult.Content.StepworkId );
+            var predecessors = await _predecessorService.GetPredecessorsByStepworkId( stepwork.StepworkId );
+            predecessorList.AddRange( predecessors );
+          }
         }
       }
-    }
 
-    foreach ( var predecessor in predecessorList ) {
-      if ( predecessor == null ) {
-        continue;
+      foreach ( var predecessor in predecessorList ) {
+        if ( predecessor == null ) {
+          continue;
+        }
+        if ( !( stepworkIdList.ContainsKey( predecessor.StepworkId ) && stepworkIdList.ContainsKey( predecessor.RelatedStepworkId ) ) ) {
+          continue;
+        }
+        predecessor.StepworkId = stepworkIdList [ predecessor.StepworkId ];
+        predecessor.RelatedStepworkId = stepworkIdList [ predecessor.RelatedStepworkId ];
+        await _predecessorService.CreatePredecessor( predecessor );
       }
-      if ( !( stepworkIdList.ContainsKey( predecessor.StepworkId ) && stepworkIdList.ContainsKey( predecessor.RelatedStepworkId ) ) ) {
-        continue;
-      }
-      predecessor.StepworkId = stepworkIdList [ predecessor.StepworkId ];
-      predecessor.RelatedStepworkId = stepworkIdList [ predecessor.RelatedStepworkId ];
-      await _predecessorService.CreatePredecessor( predecessor );
-    }
-    #endregion
+      #endregion
 
-    return Ok( resource );
+      return Ok( resource );
+    }
+    catch ( Exception ex ) {
+      return BadRequest( ex.Message );
+    }
   }
 
   //[HttpGet( "{projectId}/download" )]
