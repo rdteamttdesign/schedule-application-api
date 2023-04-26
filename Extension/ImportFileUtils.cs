@@ -82,7 +82,7 @@ public static class ImportFileUtils
           if ( value == 0 ) {
             continue;
           }
-          totalStepworkPortion += value;
+          totalStepworkPortion += Math.Abs( value );
           numberOfStepworks++;
         }
         if ( numberOfStepworks == 0 || Math.Abs( totalStepworkPortion - 1 ) > 10e-7 ) {
