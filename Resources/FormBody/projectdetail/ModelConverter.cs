@@ -121,7 +121,7 @@ public class ModelConverter
           {
             LocalId = grouptaskFormData.Id,
             Index = grouptaskFormData.DisplayOrder,
-            Portion = 100,
+            Portion = 1,
             TaskLocalId = grouptaskFormData.Id,
             ColorId = grouptaskFormData.ColorId ?? 1,
             Duration = grouptaskFormData.Duration,
