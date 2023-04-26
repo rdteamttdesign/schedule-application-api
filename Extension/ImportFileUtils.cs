@@ -85,7 +85,7 @@ public static class ImportFileUtils
           totalStepworkPortion += value;
           numberOfStepworks++;
         }
-        if ( numberOfStepworks == 0 || Math.Abs( totalStepworkPortion - 1 ) < 10e-7 ) {
+        if ( numberOfStepworks == 0 || Math.Abs( totalStepworkPortion - 1 ) > 10e-7 ) {
           task.Predecessors = new List<PredecessorResource>();
         }
         else {
