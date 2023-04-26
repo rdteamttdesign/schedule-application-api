@@ -49,9 +49,9 @@ public static class ImportFileUtils
           //index = 1;
         }
         var taskName = GetText( worksheet.Cell( i, 2 ).Value );
-        if ( string.IsNullOrEmpty( taskName ) ) {
-          continue;
-        }
+        //if ( string.IsNullOrEmpty( taskName ) ) {
+        //  continue;
+        //}
         var duration = GetFloat( worksheet.Cell( i, 4 ).Value );
         if ( duration == 0 ) {
           continue;
@@ -76,20 +76,26 @@ public static class ImportFileUtils
         //  taskIndex++;
         //}
         int numberOfStepworks = 0;
+        var totalStepworkPortion = 0d;
         for ( int j = 7; j < 17; j++ ) {
-          if ( GetFloat( worksheet.Cell( i, j ).Value ) == 0 ) {
-            break;
+          var value = GetFloat( worksheet.Cell( i, j ).Value );
+          if ( value == 0 ) {
+            continue;
           }
+          totalStepworkPortion += value;
           numberOfStepworks++;
         }
-        if ( numberOfStepworks == 0 ) {
+        if ( numberOfStepworks == 0 || Math.Abs( totalStepworkPortion - 1 ) < 10e-7 ) {
           task.Predecessors = new List<PredecessorResource>();
         }
         else {
           task.Stepworks = new List<StepworkResource>();
           var offset = 0f;
-          for ( int j = 0; j < numberOfStepworks; j++ ) {
-            var percentStepwork = GetFloat( worksheet.Cell( i, j + 7 ).Value );
+          for ( int j = 7; j < 17; j++ ) {
+            var percentStepwork = GetFloat( worksheet.Cell( i, j ).Value );
+            if ( percentStepwork == 0 ) {
+              continue;
+            }
             var stepwork = new StepworkResource()
             {
               Start = offset,

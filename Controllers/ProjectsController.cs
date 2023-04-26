@@ -456,7 +456,7 @@ public class ProjectsController : ControllerBase
       return BadRequest( "Display Order is not a number." );
     }
 
-    var sheetNameList = formCollection [ "SheetName" ];
+    var sheetNameList = formCollection [ "SheetName" ].ToString().Split( "," );
     var setting = await _projectSetting.GetProjectSetting( projectId );
     var result = ImportFileUtils.ReadFromFile( file.OpenReadStream(), sheetNameList, setting!, installColor!.ColorId, removalColor!.ColorId, maxDisplayOrder );
     return Ok( result );
