@@ -30,10 +30,10 @@ public static class ExportExcel
         i++;
         foreach ( var task in grouptask.Tasks ) {
           if ( task.Stepworks.Count > 1 ) {
-            var gap = task.Stepworks.First().Portion * task.Duration * ( task.NumberOfTeam == 0 ? 1 : ( setting.AmplifiedFactor - 1 ) );
+            var gap = task.Stepworks.First().Portion * task.Duration * ( task.NumberOfTeam == 0 ? 1 : ( ( setting.AmplifiedFactor - 1 ) / task.NumberOfTeam ) );
             for ( int j = 1; j < task.Stepworks.Count; j++ ) {
               task.Stepworks.ElementAt( j ).Start += gap;
-              gap += task.Stepworks.ElementAt( j ).Portion * task.Duration * ( task.NumberOfTeam == 0 ? 1 : ( setting.AmplifiedFactor - 1 ) );
+              gap += task.Stepworks.ElementAt( j ).Portion * task.Duration * ( task.NumberOfTeam == 0 ? 1 : ( ( setting.AmplifiedFactor - 1 ) / task.NumberOfTeam ) );
             }
           }
           foreach ( var sw in task.Stepworks ) {
@@ -42,7 +42,7 @@ public static class ExportExcel
               StepWorkId = sw.StepworkId,
               Color = WorksheetFormater.GetColor( "rgb(71, 71, 107)" ),
               Start = sw.Start,
-              Duration = sw.Portion * task.Duration   * ( task.NumberOfTeam == 0 ? 1 : setting.AmplifiedFactor ),
+              Duration = sw.Portion * task.Duration * ( task.NumberOfTeam == 0 ? 1 : ( setting.AmplifiedFactor / task.NumberOfTeam ) ),
               Lag = sw.Predecessors.Count != 0 ? sw.Predecessors.First().Lag : 0,
               RelatedProcessorStepWork = sw.Predecessors.Count != 0 ? sw.Predecessors.First().RelatedStepworkId : -1,
               PredecessorType = sw.Predecessors.Count != 0 ? ( PredecessorType ) sw.Predecessors.First().Type : PredecessorType.FinishToStart,
