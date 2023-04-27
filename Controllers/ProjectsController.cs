@@ -456,8 +456,16 @@ public class ProjectsController : ControllerBase
 
     var sheetNameList = formCollection [ "SheetName" ].ToString().Split( "," );
     var setting = await _projectSetting.GetProjectSetting( projectId );
-    var result = ImportFileUtils.ReadFromFile( file.OpenReadStream(), sheetNameList, setting!, installColor!.ColorId, removalColor!.ColorId, maxDisplayOrder );
-    return Ok( result );
+    var result = ImportFileUtils.ReadFromFile( 
+      file.OpenReadStream(), 
+      sheetNameList, 
+      setting!, 
+      installColor!.ColorId, 
+      removalColor!.ColorId,
+      maxDisplayOrder, 
+      out var messages);
+
+    return Ok( new { Messages = messages, Result = result } );
   }
 
   [HttpPost( "{projectId}/duplicate" )]
