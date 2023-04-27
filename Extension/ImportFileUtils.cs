@@ -56,6 +56,9 @@ public static class ImportFileUtils
         if ( duration == 0 ) {
           continue;
         }
+        else if ( duration < 0 ) {
+          duration = Math.Abs( duration );
+        }
         var taskId = Guid.NewGuid().ToString();
         var task = new TaskResource()
         {
