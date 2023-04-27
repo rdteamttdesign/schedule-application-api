@@ -213,7 +213,7 @@ public class ProjectsController : ControllerBase
         Predecessors = Array.Empty<PredecessorResource>(),
         Type = "task",
         GroupId = groupTaskId1,
-        DisplayOrder = 3,
+        DisplayOrder = 2,
         Note = "",
         GroupsNumber = 1,
         ColorId = installColorId,
