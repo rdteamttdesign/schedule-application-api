@@ -48,6 +48,9 @@ public static class ImportFileUtils
           continue;
         }
         groupName = GetText( worksheet.Cell( i, 1 ).Value );
+        if ( i == 2 && string.IsNullOrEmpty( groupName ) ) {
+          groupName = "<blank>";
+        }
 
         if ( !string.IsNullOrEmpty( groupName ) ) {
           groupId = Guid.NewGuid().ToString();
