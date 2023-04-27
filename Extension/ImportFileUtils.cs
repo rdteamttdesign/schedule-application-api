@@ -1,4 +1,5 @@
 ﻿using ClosedXML.Excel;
+using DocumentFormat.OpenXml.Spreadsheet;
 using SchedulingTool.Api.Domain.Models;
 using SchedulingTool.Api.Resources;
 using SchedulingTool.Api.Resources.projectdetail;
@@ -13,16 +14,31 @@ public static class ImportFileUtils
     ProjectSetting setting,
     long installColorId,
     long removalColorId,
-    int maxDisplayOrder )
+    int maxDisplayOrder,
+    out List<SheetImportMessage> messages )
   {
+    messages = new List<SheetImportMessage>();
     using var workbook = new XLWorkbook( fileStream );
     var groupTasks = new List<object>();
     int index = maxDisplayOrder + 1;
     foreach ( var sheetName in sheetNameList ) {
       if ( !workbook.Worksheets.Contains( sheetName ) ) {
+        messages.Add( new SheetImportMessage()
+        {
+          SheetName = sheetName,
+          Status = SheetImportMessage.SheetImportStatus.NotFound
+        } );
         continue;
       }
       var worksheet = workbook.Worksheet( sheetName );
+      if ( !AssertFormat( worksheet ) ) {
+        messages.Add( new SheetImportMessage()
+        {
+          SheetName = sheetName,
+          Status = SheetImportMessage.SheetImportStatus.WrongFormat
+        } );
+        continue;
+      }
       var usedRowCount = worksheet.RowsUsed().Count();
       var groupName = string.Empty;
       var groupId = string.Empty;
@@ -121,8 +137,23 @@ public static class ImportFileUtils
         groupTasks.Add( task );
         index++;
       }
+      messages.Add( new SheetImportMessage()
+      {
+        SheetName = sheetName,
+        Status = SheetImportMessage.SheetImportStatus.Success
+      } );
     }
     return groupTasks;
+  }
+
+  private static bool AssertFormat(IXLWorksheet sheet)
+  {
+    return GetText( sheet.Cell( 1, 1 ).Value ).Contains( "工種" )
+      && GetText( sheet.Cell( 1, 2 ).Value ).Contains( "種別" )
+      && GetText( sheet.Cell( 1, 3 ).Value ).Contains( "細目" )
+      && GetText( sheet.Cell( 1, 4 ).Value ).Contains( "所要日数" )
+      && GetText( sheet.Cell( 1, 5 ).Value ).Contains( "班数" )
+      && GetText( sheet.Cell( 1, 6 ).Value ).Contains( "備考" );
   }
 
   public static byte[] WriteToFile( ICollection<GroupTaskDetailResource> groupTasks )
@@ -179,5 +210,18 @@ public static class ImportFileUtils
   private static double GetDouble( XLCellValue cellValue )
   {
     return cellValue.IsNumber ? ( double ) cellValue.GetNumber() : 0;
+  }
+}
+
+public class SheetImportMessage
+{
+  public string SheetName { get; set; } = null!;
+  public string Status { get; set; } = null!;
+
+  public static class SheetImportStatus
+  {
+    public static string Success = "Success";
+    public static string NotFound = "Not found";
+    public static string WrongFormat = "Wrong format";
   }
 }
