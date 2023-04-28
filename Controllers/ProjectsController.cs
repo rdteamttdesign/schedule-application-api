@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using DocumentFormat.OpenXml.Spreadsheet;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SchedulingTool.Api.Domain.Models;
@@ -538,11 +539,12 @@ public class ProjectsController : ControllerBase
       var newSwColors = await _colorService.GetStepworkColorDefsByProjectId( result.Content.ProjectId );
       foreach ( var color in swColors ) {
         if ( color.IsDefault ) {
-          if ( color.IsInstall == 0 )
-            swColorList.Add( color.ColorId, newSwColors.FirstOrDefault( x => x.IsInstall == 0 ) );
-          else
-            swColorList.Add( color.ColorId, newSwColors.FirstOrDefault( x => x.IsInstall == 1 ) );
-          continue;
+          if ( color.IsInstall == 0 || color.IsInstall==1) {
+            var newDefColor = newSwColors.FirstOrDefault( x => x.IsInstall == color.IsInstall );
+            newDefColor.Code = swColors.FirstOrDefault( x => x.IsInstall == color.IsInstall ).Code;
+            await _colorService.UpdateColorDef( newDefColor );
+            swColorList.Add( color.ColorId, newDefColor ); 
+          }
         }
 
         var newColor = new ColorDef()
