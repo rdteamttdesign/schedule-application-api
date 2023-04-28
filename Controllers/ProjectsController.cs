@@ -535,7 +535,16 @@ public class ProjectsController : ControllerBase
       var swColorList = new Dictionary<long, ColorDef>();
 
       var swColors = await _colorService.GetStepworkColorDefsByProjectId( projectId );
+      var newSwColors = await _colorService.GetStepworkColorDefsByProjectId( result.Content.ProjectId );
       foreach ( var color in swColors ) {
+        if ( color.IsDefault ) {
+          if ( color.IsInstall == 0 )
+            swColorList.Add( color.ColorId, newSwColors.FirstOrDefault( x => x.IsInstall == 0 ) );
+          else
+            swColorList.Add( color.ColorId, newSwColors.FirstOrDefault( x => x.IsInstall == 1 ) );
+          continue;
+        }
+
         var newColor = new ColorDef()
         {
           Name = color.Name,
