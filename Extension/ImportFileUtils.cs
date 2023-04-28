@@ -78,6 +78,10 @@ public static class ImportFileUtils
         else if ( duration < 0 ) {
           duration = Math.Abs( duration );
         }
+        var numberOfGroups = GetInt( worksheet.Cell( i, 5 ).Value );
+        if ( numberOfGroups < 0 ) {
+          numberOfGroups = Math.Abs( numberOfGroups );
+        }
         var taskId = Guid.NewGuid().ToString();
         var task = new TaskResource()
         {
@@ -91,7 +95,7 @@ public static class ImportFileUtils
           DisplayOrder = index,
           Note = GetText( worksheet.Cell( i, 6 ).Value ),
           ColorId = installColorId,
-          GroupsNumber = GetInt( worksheet.Cell( i, 5 ).Value )
+          GroupsNumber = numberOfGroups
         };
         //if ( groupTask != null ) {
         //  groupTask.Tasks.Add( task );
