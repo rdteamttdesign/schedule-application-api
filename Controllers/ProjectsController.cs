@@ -541,10 +541,11 @@ public class ProjectsController : ControllerBase
         if ( color.IsDefault ) {
           if ( color.IsInstall == 0 || color.IsInstall == 1 ) {
             var newDefColor = newSwColors.FirstOrDefault( x => x.IsInstall == color.IsInstall );
-            newDefColor.Code = swColors.FirstOrDefault( x => x.IsInstall == color.IsInstall ).Code;
+            newDefColor.Code = color.Code;
             await _colorService.UpdateColorDef( newDefColor );
             swColorList.Add( color.ColorId, newDefColor );
           }
+          continue;
         }
 
         var newColor = new ColorDef()
