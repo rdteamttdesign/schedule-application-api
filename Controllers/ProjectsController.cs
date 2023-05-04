@@ -21,24 +21,28 @@ public class ProjectsController : ControllerBase
 {
   private readonly IMapper _mapper;
   private readonly IProjectService _projectService;
-  private readonly IProjectSettingService _projectSetting;
+  private readonly IProjectSettingService _projectSettingService;
   private readonly IGroupTaskService _groupTaskService;
   private readonly ITaskService _taskService;
   private readonly IStepworkService _stepworkService;
   private readonly IPredecessorService _predecessorService;
   private readonly IColorDefService _colorService;
   private readonly IBackgroundService _backgroundService;
+  private readonly IViewService _viewService;
+  private readonly IViewTaskService _viewTaskService;
 
   public ProjectsController(
     IMapper mapper,
     IProjectService projectService,
-    IProjectSettingService projectSetting,
+    IProjectSettingService projectSettingService,
     IGroupTaskService groupTaskService,
     ITaskService taskService,
     IStepworkService stepworkService,
     IPredecessorService predecessorService,
     IColorDefService colorService,
-    IBackgroundService backgroundService )
+    IBackgroundService backgroundService,
+    IViewService viewService,
+    IViewTaskService viewTaskService )
   {
     _mapper = mapper;
     _projectService = projectService;
@@ -47,8 +51,10 @@ public class ProjectsController : ControllerBase
     _stepworkService = stepworkService;
     _predecessorService = predecessorService;
     _colorService = colorService;
-    _projectSetting = projectSetting;
+    _projectSettingService = projectSettingService;
     _backgroundService = backgroundService;
+    _viewService = viewService;
+    _viewTaskService = viewTaskService;
   }
 
   [HttpGet( "{projectId}" )]
@@ -135,7 +141,7 @@ public class ProjectsController : ControllerBase
     var installColor = colors.FirstOrDefault( c => c.IsInstall == 0 );
     var removalColor = colors.FirstOrDefault( c => c.IsInstall == 1 );
 
-    var setting = await _projectSetting.GetProjectSetting( result.Content.ProjectId );
+    var setting = await _projectSettingService.GetProjectSetting( result.Content.ProjectId );
     await SaveProjectTasks( result.Content.ProjectId, SampleProjectDetail( setting!, installColor!.ColorId, removalColor!.ColorId ) );
 
     var resource = _mapper.Map<ProjectResource>( result.Content );
@@ -286,7 +292,7 @@ public class ProjectsController : ControllerBase
 
   private async Task<IEnumerable<object>> GetGroupTasksByProjectId( long projectId )
   {
-    var setting = await _projectSetting.GetProjectSetting( projectId );
+    var setting = await _projectSettingService.GetProjectSetting( projectId );
     var result = new List<KeyValuePair<int, object>>();
     var groupTasks = await _groupTaskService.GetGroupTasksByProjectId( projectId );
     var groupTaskResources = _mapper.Map<List<GroupTaskResource>>( groupTasks );
@@ -380,7 +386,7 @@ public class ProjectsController : ControllerBase
 
   private async Task SaveProjectTasks( long projectId, ICollection<GroupTaskFormData> formData )
   {
-    var setting = await _projectSetting.GetProjectSetting( projectId );
+    var setting = await _projectSettingService.GetProjectSetting( projectId );
     var converter = new ModelConverter( projectId, setting!, formData );
 
     var grouptasks = new Dictionary<string, GroupTask>();
@@ -456,7 +462,7 @@ public class ProjectsController : ControllerBase
     }
 
     var sheetNameList = formCollection [ "SheetName" ].ToString().Split( "," );
-    var setting = await _projectSetting.GetProjectSetting( projectId );
+    var setting = await _projectSettingService.GetProjectSetting( projectId );
     var result = ImportFileUtils.ReadFromFile( 
       file.OpenReadStream(), 
       sheetNameList, 
@@ -518,8 +524,8 @@ public class ProjectsController : ControllerBase
       }
       var resource = _mapper.Map<ProjectResource>( result.Content );
 
-      var setting = await _projectSetting.GetProjectSetting( projectId );
-      var newSetting = await _projectSetting.GetProjectSetting( result.Content.ProjectId );
+      var setting = await _projectSettingService.GetProjectSetting( projectId );
+      var newSetting = await _projectSettingService.GetProjectSetting( result.Content.ProjectId );
       newSetting!.ColumnWidth = setting!.ColumnWidth;
       newSetting.SeparateGroupTask = setting.SeparateGroupTask;
       newSetting.AssemblyDurationRatio = setting.AssemblyDurationRatio;
@@ -527,7 +533,7 @@ public class ProjectsController : ControllerBase
       newSetting.ColumnWidth = setting.ColumnWidth;
       newSetting.AmplifiedFactor = setting.AmplifiedFactor;
       if ( newSetting != null ) {
-        await _projectSetting.UpdateProjectSetting( newSetting );
+        await _projectSettingService.UpdateProjectSetting( newSetting );
       }
 
       #region Duplicate color
@@ -668,6 +674,31 @@ public class ProjectsController : ControllerBase
         predecessor.StepworkId = stepworkIdList [ predecessor.StepworkId ];
         predecessor.RelatedStepworkId = stepworkIdList [ predecessor.RelatedStepworkId ];
         await _predecessorService.CreatePredecessor( predecessor );
+      }
+      #endregion
+
+      #region Duplicate view
+      var views = await _viewService.GetViewsByProjectId( projectId );
+      foreach ( var view in views ) {
+        var newView = new View()
+        {
+          ViewName = view.ViewName,
+          ProjectId = result.Content.ProjectId
+        };
+        var newViewResult = await _viewService.CreateView( newView );
+        if ( newViewResult == null ) {
+          continue;
+        }
+        var viewtasks = await _viewTaskService.GetViewTasksByViewId( view.ViewId );
+        foreach ( var task in viewtasks ) {
+          var viewtaskFormData = viewtasks.Select( vt => new ViewTaskFormData()
+          {
+            Id = task.LocalTaskId,
+            Group = task.Group,
+            DisplayOrder = task.DisplayOrder
+          } ).ToList();
+          await _viewTaskService.CreateViewTasks( newViewResult.Content.ViewId, viewtaskFormData );
+        }
       }
       #endregion
 
