@@ -225,8 +225,10 @@ public static class WorksheetFormater
         continue;
       }
       var color = GetColor( bg.ColorCode );
-      ws.Cells [ startRow, startColumn + ( bg.Month - 1 ) * unitCellCount, startRow + numberOfTasks - 1, startColumn + unitCellCount * bg.Month - 1 ].Style.Fill.PatternType = ExcelFillStyle.Solid;
-      ws.Cells [ startRow, startColumn + ( bg.Month - 1 ) * unitCellCount, startRow + numberOfTasks - 1, startColumn + unitCellCount * bg.Month - 1 ].Style.Fill.BackgroundColor.SetColor( color );
+      ws.Cells [ startRow, startColumn + ( bg.Month - 1 ) * unitCellCount, 
+        startRow + numberOfTasks - 1, startColumn + unitCellCount * bg.Month - 1 ].Style.Fill.PatternType = ExcelFillStyle.Solid;
+      ws.Cells [ startRow, startColumn + ( bg.Month - 1 ) * unitCellCount, 
+        startRow + numberOfTasks - 1, startColumn + unitCellCount * bg.Month - 1 ].Style.Fill.BackgroundColor.SetColor( color );
     }
   } 
 

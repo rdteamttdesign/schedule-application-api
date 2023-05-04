@@ -11,7 +11,7 @@ namespace SchedulingTool.Api.ExportExcel;
 
 public static class WorksheetContentUtils
 {
-  public static void PopulateData( this ExcelWorksheet ws, IEnumerable<GroupTaskDetailResource> grouptasks, int startRow )
+  public static void PopulateData( this ExcelWorksheet ws, IEnumerable<GroupTaskDetailResource> grouptasks, int startRow, int numberOfMonths )
   {
     var index = 1;
     foreach ( var group in grouptasks ) {
@@ -40,6 +40,9 @@ public static class WorksheetContentUtils
           ws.Cells [ startRow, 8 ].Value = $"{Math.Round( task.Stepworks.ElementAt( 0 ).Portion * task.AmplifiedDuration, 1 )}日";
           ws.Cells [ startRow, 9 ].Value = $"{Math.Round( task.Stepworks.ElementAt( 1 ).Portion * task.AmplifiedDuration, 1 )}日";
         }
+
+        ws.Cells [ startRow, numberOfMonths * 6 + 11 ].Value = task.Note;
+
         index++;
         startRow++;
       }
@@ -56,7 +59,9 @@ public static class WorksheetContentUtils
       // CreateShape
       var offset = stepwork.Start * k; //CalculateOffsetStepWork( stepwork, chartStepwork );
       // Get position cell top, left
-      Range rangeColumnRowStart = xlWorkSheet.Range [ xlWorkSheet.Cells [ stepwork.RowIndex, startColumn ], xlWorkSheet.Cells [ stepwork.RowIndex, startColumn ] ];
+      Range rangeColumnRowStart = xlWorkSheet.Range [ 
+        xlWorkSheet.Cells [ stepwork.RowIndex, startColumn ], 
+        xlWorkSheet.Cells [ stepwork.RowIndex, startColumn ] ];
 
       var width = stepwork.Duration * k;
       var rect = xlWorkSheet.Shapes.AddShape(
@@ -70,94 +75,148 @@ public static class WorksheetContentUtils
       }
     }
 
-    //foreach ( var stepWork in chartStepwork ) {
-    //  if ( stepWork.Lag == 0 ) {
-    //    var related = chartStepwork.FirstOrDefault( x => x.StepWorkId == stepWork.RelatedProcessorStepWork );
-    //    var connection = xlWorkSheet.Shapes.AddConnector( MsoConnectorType.msoConnectorStraight, 1, 1, 1, 1 );
-    //    connection.Line.ForeColor.RGB = ColorTranslator.ToOle( stepWork.Color );
+    foreach ( var stepWork in chartStepwork ) {
+      if ( stepWork.Lag == 0 ) {
+        var related = chartStepwork.FirstOrDefault( x => x.StepWorkId == stepWork.RelatedProcessorStepWork );
+        var connection = xlWorkSheet.Shapes.AddConnector( MsoConnectorType.msoConnectorStraight, 1, 1, 1, 1 );
+        connection.Line.ForeColor.RGB = ColorTranslator.ToOle( stepWork.Color );
 
-    //    if ( related?.Shape == null )
-    //      continue;
+        if ( related?.Shape == null )
+          continue;
 
-    //    switch ( stepWork.PredecessorType ) {
-    //      case PredecessorType.FinishToStart:
-    //        connection.ConnectorFormat.BeginConnect( related.Shape, 4 );
-    //        connection.ConnectorFormat.EndConnect( stepWork.Shape, 2 );
-    //        break;
-    //      case PredecessorType.StartToStart:
-    //        connection.ConnectorFormat.BeginConnect( related.Shape, 2 );
-    //        connection.ConnectorFormat.EndConnect( stepWork.Shape, 2 );
-    //        break;
-    //      case PredecessorType.FinishToFinish:
-    //        connection.ConnectorFormat.BeginConnect( related.Shape, 4 );
-    //        connection.ConnectorFormat.EndConnect( stepWork.Shape, 4 );
-    //        break;
-    //      default:
-    //        break;
-    //    }
-        
-    //    connection.Line.Weight = 1f;
-    //    connection.Line.BeginArrowheadLength = MsoArrowheadLength.msoArrowheadLengthMedium;
-    //    connection.Line.BeginArrowheadWidth = MsoArrowheadWidth.msoArrowheadNarrow;
-    //    // connection.Line.EndArrowheadStyle = MsoArrowheadStyle.msoArrowheadTriangle ;
-    //  }
-    //  else {
-    //    var related = chartStepwork.FirstOrDefault( x => x.StepWorkId == stepWork.RelatedProcessorStepWork );
-    //    var connection = xlWorkSheet.Shapes.AddConnector( MsoConnectorType.msoConnectorElbow, 1, 1, 1, 1 );
-    //    connection.Line.ForeColor.RGB = ColorTranslator.ToOle( stepWork.Color );
+        switch ( stepWork.PredecessorType ) {
+          case PredecessorType.FinishToStart:
+            connection.ConnectorFormat.BeginConnect( stepWork.Shape, 4 );
+            connection.ConnectorFormat.EndConnect( related.Shape, 2 );
+            break;
+          case PredecessorType.StartToStart:
+            connection.ConnectorFormat.BeginConnect( related.Shape, 2 );
+            connection.ConnectorFormat.EndConnect( stepWork.Shape, 2 );
+            break;
+          case PredecessorType.FinishToFinish:
+            connection.ConnectorFormat.BeginConnect( related.Shape, 4 );
+            connection.ConnectorFormat.EndConnect( stepWork.Shape, 4 );
+            break;
+          default:
+            break;
+        }
 
-    //    if ( related?.Shape == null )
-    //      continue;
-    //    switch ( stepWork.PredecessorType ) {
-    //      case PredecessorType.FinishToStart:
-    //        connection.ConnectorFormat.BeginConnect( related.Shape, 4 );
-    //        connection.ConnectorFormat.EndConnect( stepWork.Shape, 2 );
-    //        break;
-    //      case PredecessorType.StartToStart:
-    //        connection.ConnectorFormat.BeginConnect( related.Shape, 2 );
-    //        connection.ConnectorFormat.EndConnect( stepWork.Shape, 2 );
-    //        connection.Adjustments [ 1 ] = -3f;
-    //        break;
-    //      case PredecessorType.FinishToFinish:
-    //        connection.ConnectorFormat.BeginConnect( related.Shape, 4 );
-    //        connection.ConnectorFormat.EndConnect( stepWork.Shape, 4 );
-    //        connection.Adjustments [ 1 ] = 3f;
-    //        break;
-    //      default:
-    //        break;
-    //    }
-    //    connection.Line.Weight = 1f;
-    //    // connection.Line.EndArrowheadStyle = MsoArrowheadStyle.msoArrowheadTriangle ;
-    //  }
-    //}
+        connection.Line.Weight = 1f;
+        connection.Line.BeginArrowheadLength = MsoArrowheadLength.msoArrowheadLengthMedium;
+        connection.Line.BeginArrowheadWidth = MsoArrowheadWidth.msoArrowheadNarrow;
+        // connection.Line.EndArrowheadStyle = MsoArrowheadStyle.msoArrowheadTriangle;
+      }
+      else {
+        var related = chartStepwork.FirstOrDefault( x => x.StepWorkId == stepWork.RelatedProcessorStepWork );
+        var connection = xlWorkSheet.Shapes.AddConnector( MsoConnectorType.msoConnectorElbow, 1, 1, 1, 1 );
+        connection.Line.ForeColor.RGB = ColorTranslator.ToOle( stepWork.Color );
+
+        if ( related?.Shape == null )
+          continue;
+        switch ( stepWork.PredecessorType ) {
+          case PredecessorType.FinishToStart:
+            connection.ConnectorFormat.BeginConnect( stepWork.Shape, 4 );
+            connection.ConnectorFormat.EndConnect( related.Shape, 2 );
+            break;
+          case PredecessorType.StartToStart:
+            connection.ConnectorFormat.BeginConnect( related.Shape, 2 );
+            connection.ConnectorFormat.EndConnect( stepWork.Shape, 2 );
+            connection.Adjustments [ 1 ] = -3f;
+            break;
+          case PredecessorType.FinishToFinish:
+            connection.ConnectorFormat.BeginConnect( related.Shape, 4 );
+            connection.ConnectorFormat.EndConnect( stepWork.Shape, 4 );
+            connection.Adjustments [ 1 ] = 3f;
+            break;
+          default:
+            break;
+        }
+        connection.Line.Weight = 1f;
+        // connection.Line.EndArrowheadStyle = MsoArrowheadStyle.msoArrowheadTriangle ;
+      }
+    }
   }
 
-  private static float CalculateOffsetStepWork( ChartStepwork stepWorksCheck, IEnumerable<ChartStepwork> listStepWork )
+  public static void PopulateData( this ExcelWorksheet worksheet, IEnumerable<ViewTaskDetail> tasks, int startRow, int numberOfMonths )
   {
-    double k = 1.80;
-    float offsetValue = 0;
-    if ( stepWorksCheck.RelatedProcessorStepWork == null )
-      return 0;
-
-    var relatedStep = listStepWork.FirstOrDefault( s => s.StepWorkId == stepWorksCheck.RelatedProcessorStepWork );
-    if ( relatedStep == null ) {
-      return 0;
+    var tasksByGroup = tasks.GroupBy( x => x.GroupTaskName );
+    var i = 1;
+    foreach ( var group in tasksByGroup ) {
+      worksheet.Cells [ startRow, 3 ].Value = group.Key;
+      worksheet.Cells [ startRow, 3 ].Style.Font.Bold = true;
+      worksheet.Cells [ startRow, 3 ].Style.WrapText = false;
+      startRow++;
+      foreach ( var task in group ) {
+        worksheet.Cells [ startRow, 2 ].Value = i;
+        worksheet.Cells [ startRow, 3 ].Value = task.TaskName;
+        worksheet.Cells [ startRow, 3 ].Style.Indent = 1;
+        worksheet.Cells [ startRow, 7 ].Value = task.Duration;
+        worksheet.Cells [ startRow, numberOfMonths * 6 + 11 ].Value = task.Note;
+        worksheet.Columns [ numberOfMonths * 6 + 11 ].AutoFit();
+        startRow++;
+        i++;
+      }
     }
-    offsetValue += ( float ) ( relatedStep.Duration * k );
-    offsetValue += CalculateOffsetStepWork( relatedStep, listStepWork );
-
-    if ( stepWorksCheck.PredecessorType == PredecessorType.StartToStart ) {
-      offsetValue -= ( float ) ( relatedStep.Duration * k );
-    }
-
-    if ( stepWorksCheck.PredecessorType == PredecessorType.FinishToFinish ) {
-      offsetValue -= ( float ) ( stepWorksCheck.Duration * k );
-    }
-
-    return stepWorksCheck.Lag < 0
-      ? offsetValue - ( float ) Math.Abs( stepWorksCheck.Lag * k ) 
-      : offsetValue + ( float ) Math.Abs( stepWorksCheck.Lag * k );
   }
+
+  public static void DrawChart( this Worksheet xlWorkSheet, IEnumerable<ViewTaskDetail> tasks, int startRow )
+  {
+    var color = Color.Violet;
+    var columnStart = 11;
+    var k = 1.8f;
+    var tasksByGroup = tasks.GroupBy( x => x.GroupTaskName );
+    var i = 1;
+    foreach ( var group in tasksByGroup ) {
+      startRow++;
+      foreach ( var task in group ) {
+        // CreateShape
+        var offset = task.MinStart * k;
+        // Get position cell top, left
+        Range rangeColumnRowStart = xlWorkSheet.Range [ 
+          xlWorkSheet.Cells [ startRow, columnStart ], 
+          xlWorkSheet.Cells [ startRow, columnStart ] ];
+        if ( task.Duration > 0 ) {
+          var width = task.Duration * k;
+          var rect = xlWorkSheet.Shapes.AddShape(
+            MsoAutoShapeType.msoShapeRectangle,
+            Convert.ToSingle( rangeColumnRowStart.Left ) + offset,
+            Convert.ToSingle( rangeColumnRowStart.Top ) + 7.5f, width, 5 );
+          if ( rect != null ) {
+            rect.Fill.ForeColor.RGB = ColorTranslator.ToOle( color );
+            rect.Line.Visible = MsoTriState.msoFalse;
+          }
+        }
+        startRow++;
+      }
+    }
+  }
+
+  //private static float CalculateOffsetStepWork( ChartStepwork stepWorksCheck, IEnumerable<ChartStepwork> listStepWork )
+  //{
+  //  double k = 1.80;
+  //  float offsetValue = 0;
+  //  if ( stepWorksCheck.RelatedProcessorStepWork == null )
+  //    return 0;
+
+  //  var relatedStep = listStepWork.FirstOrDefault( s => s.StepWorkId == stepWorksCheck.RelatedProcessorStepWork );
+  //  if ( relatedStep == null ) {
+  //    return 0;
+  //  }
+  //  offsetValue += ( float ) ( relatedStep.Duration * k );
+  //  offsetValue += CalculateOffsetStepWork( relatedStep, listStepWork );
+
+  //  if ( stepWorksCheck.PredecessorType == PredecessorType.StartToStart ) {
+  //    offsetValue -= ( float ) ( relatedStep.Duration * k );
+  //  }
+
+  //  if ( stepWorksCheck.PredecessorType == PredecessorType.FinishToFinish ) {
+  //    offsetValue -= ( float ) ( stepWorksCheck.Duration * k );
+  //  }
+
+  //  return stepWorksCheck.Lag < 0
+  //    ? offsetValue - ( float ) Math.Abs( stepWorksCheck.Lag * k ) 
+  //    : offsetValue + ( float ) Math.Abs( stepWorksCheck.Lag * k );
+  //}
 }
 
 public class ChartStepwork

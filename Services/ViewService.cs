@@ -15,17 +15,17 @@ namespace SchedulingTool.Api.Services;
 public class ViewService : IViewService
 {
   private readonly IViewRepository _viewRepository;
-  private readonly IStepworkRepository _stepworkService;
+  private readonly IStepworkRepository _stepworkRepository;
   private readonly IProjectSettingRepository _projectSettingRepository;
   private readonly IUnitOfWork _unitOfWork;
   private readonly IMapper _mapper;
 
-  public ViewService( IViewRepository viewRepository, IUnitOfWork unitOfWork, IMapper mapper, IStepworkRepository stepworkService, IProjectSettingRepository projectSettingRepository )
+  public ViewService( IViewRepository viewRepository, IUnitOfWork unitOfWork, IMapper mapper, IStepworkRepository stepworkRepository, IProjectSettingRepository projectSettingRepository )
   {
     _viewRepository = viewRepository;
     _unitOfWork = unitOfWork;
     _mapper = mapper;
-    _stepworkService = stepworkService;
+    _stepworkRepository = stepworkRepository;
     _projectSettingRepository = projectSettingRepository;
   }
 
@@ -53,7 +53,7 @@ public class ViewService : IViewService
     foreach ( IGrouping<int?, ModelTask> group in groupViewTasks ) {
       if ( group.Count() == 1 || group.Key is null || group.Key == 0 ) {
         foreach ( var task in group ) {
-          var stepworks = await _stepworkService.GetStepworksByTaskLocalId( group.First().LocalId );
+          var stepworks = await _stepworkRepository.GetStepworksByTaskLocalId( group.First().LocalId );
           var taskResource = _mapper.Map<TaskResource>( group.First() );
           if ( stepworks.Count() == 1 ) {
             taskResource.Predecessors = null;
@@ -73,7 +73,7 @@ public class ViewService : IViewService
         List<Stepwork> stepworkGroup = new();
         List<TaskResource> taskGroup = new();
         foreach ( var task in group ) {
-          var stepworks = await _stepworkService.GetStepworksByTaskLocalId( task.LocalId );
+          var stepworks = await _stepworkRepository.GetStepworksByTaskLocalId( task.LocalId );
           stepworkGroup.AddRange( stepworks );
           var _ = _mapper.Map<TaskResource>( task );
           _.ColorId = stepworks.First().ColorId;
@@ -217,6 +217,13 @@ public class ViewService : IViewService
 
   public async Task<IEnumerable<ViewTaskDetail>> GetViewTasks( long projectId, long viewId )
   {
-    return await _viewRepository.GetViewTasks( projectId, viewId );
+    var setting = await _projectSettingRepository.GetByProjectId( projectId );
+    var viewtasks = await _viewRepository.GetViewTasks( projectId, viewId );
+    foreach ( var task in viewtasks ) {
+      var stepworks = await _stepworkRepository.GetStepworksByTaskId( task.TaskId );
+      task.Stepworks = stepworks.ToList();
+    }
+    CalculateDuration( viewtasks, setting! );
+    return viewtasks;
   }
 }

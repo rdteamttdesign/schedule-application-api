@@ -715,15 +715,26 @@ public class ProjectsController : ControllerBase
   {
     var groupTaskResources = await GetGroupTaskResourcesByProjectId( projectId );
     var bgResources = await GetBackgrounds( projectId );
-    var setting = await _projectSetting.GetProjectSetting( projectId );
-    //var viewResources = await GetViewTasks( projectId );
-    if ( ExportExcel.ExportExcel.GetFile( setting!, groupTaskResources, bgResources, out var result ) ) {
+    var setting = await _projectSettingService.GetProjectSetting( projectId );
+    var viewResources = await GetViewTasks( projectId );
+    if ( ExportExcel.ExportExcel.GetFile( setting!, viewResources, groupTaskResources, bgResources, out var result ) ) {
       var fileBytes = System.IO.File.ReadAllBytes( result );
       return File( fileBytes, System.Net.Mime.MediaTypeNames.Application.Octet, $"{Guid.NewGuid()}.xlsx" );
     }
     else {
       return BadRequest( result );
     }
+  }
+
+  private async Task<Dictionary<View, List<ViewTaskDetail>>> GetViewTasks( long projectId )
+  {
+    var result = new Dictionary<View, List<ViewTaskDetail>>();
+    var views = await _viewService.GetViewsByProjectId( projectId );
+    foreach ( var view in views ) {
+      var viewTasks = await _viewService.GetViewTasks( projectId, view.ViewId );
+      result.Add( view, viewTasks.ToList() );
+    }
+    return result;
   }
 
   private async Task<List<GroupTaskDetailResource>> GetGroupTaskResourcesByProjectId( long projectId )
@@ -771,20 +782,4 @@ public class ProjectsController : ControllerBase
     }
     return resources;
   }
-
-  //private async Task<IEnumerable<ViewResource>> GetViewTasks( long projectId )
-  //{
-  //  var views = await _viewService.GetViewsByProjectId( projectId );
-  //  var viewResources = _mapper.Map<IEnumerable<ViewResource>>( views );
-  //  foreach ( var view in viewResources ) {
-  //    var viewTasks = await _viewService.GetViewTasks( view.ViewId );
-  //    view.ViewTasks = viewTasks.ToList();
-  //    foreach ( var viewTask in viewTasks ) {
-  //      var stepworks = await _stepworkService.GetStepworksByTaskId( viewTask.TaskId );
-  //      var stepworkResources = _mapper.Map<IEnumerable<StepworkResource>>( stepworks );
-  //      viewTask.Stepworks = stepworkResources.ToList();
-  //    }
-  //  }
-  //  return viewResources;
-  //}
 }

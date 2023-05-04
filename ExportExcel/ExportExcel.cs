@@ -1,4 +1,5 @@
-﻿using Microsoft.Office.Interop.Excel;
+﻿using ExcelSchedulingSample.Utils;
+using Microsoft.Office.Interop.Excel;
 using OfficeOpenXml;
 using SchedulingTool.Api.Domain.Models;
 using SchedulingTool.Api.Resources;
@@ -9,6 +10,7 @@ public static class ExportExcel
 {
   public static bool GetFile( 
     ProjectSetting setting,
+    Dictionary<View, List<ViewTaskDetail>> viewTasks,
     IEnumerable<GroupTaskDetailResource> grouptasks, 
     IEnumerable<ProjectBackgroundResource> backgrounds, 
     //IEnumerable<ViewResource> viewResources,
@@ -23,7 +25,7 @@ public static class ExportExcel
       //  .SelectMany( g => g.Tasks );
       //.SelectMany( t => t.Stepworks );
 
-      #region
+      #region Verify data
       var i = 10;
       var data = new List<ChartStepwork>();
       foreach ( var grouptask in grouptasks ) {
@@ -36,6 +38,7 @@ public static class ExportExcel
               gap += task.Stepworks.ElementAt( j ).Portion * task.Duration * ( task.NumberOfTeam == 0 ? 1 : ( ( setting.AmplifiedFactor - 1 ) / task.NumberOfTeam ) );
             }
           }
+          task.AmplifiedDuration = task.Duration * ( task.NumberOfTeam == 0 ? 1 : ( setting.AmplifiedFactor / task.NumberOfTeam ) );
           foreach ( var sw in task.Stepworks ) {
             data.Add( new ChartStepwork()
             {
@@ -54,6 +57,11 @@ public static class ExportExcel
       }
       #endregion
 
+      var numberOfContents = 8;
+      var numberOfTasks = i - 10;
+      var numberOfMonths = backgrounds.Count();
+
+      #region Populate data, sheet 1
       var sheet = excel.Workbook.Worksheets.Add( "Sheet1" );
 
       // Hide gridlines
@@ -61,10 +69,6 @@ public static class ExportExcel
 
       // Clear shapes
       sheet.Drawings.Clear();
-
-      var numberOfContents = 8;
-      var numberOfTasks = i - 10;
-      var numberOfMonths = backgrounds.Count();
 
       sheet.CreateTitle( numberOfContents, numberOfMonths );
 
@@ -82,10 +86,43 @@ public static class ExportExcel
 
       sheet.PaintChart( startRow: 10, startColumn: 11, numberOfTasks: numberOfTasks, backgrounds );
 
-      sheet.PopulateData( grouptasks, startRow: 10 );
+      sheet.PopulateData( grouptasks, startRow: 10, numberOfMonths );
 
       sheet.Cells.Style.Font.Name = "MS Gothic";
+      #endregion
 
+      #region Populate data, custom views
+      foreach ( var view in viewTasks.Keys ) {
+        var sheet2 = excel.Workbook.Worksheets.Add( view.ViewName );
+        // Hide gridlines
+        sheet2.View.ShowGridLines = false;
+
+        // Clear shapes
+        sheet2.Drawings.Clear();
+
+        sheet2.Cells.Style.Font.Name = "MS Gothic";
+
+        sheet2.CreateTitle( numberOfContents, numberOfMonths );
+
+        sheet2.FormatChartTable(
+          startRow: 7,
+          startColumn: 2 + numberOfContents + 1,
+          rowCount: numberOfTasks,
+          columnCount: numberOfMonths );
+
+        sheet2.FormatTaskTable(
+          startRow: 7,
+          startColumn: 2,
+          rowCount: numberOfTasks,
+          columnCount: numberOfContents );
+
+        sheet2.PaintChart( startRow: 10, startColumn: 11, numberOfTasks: numberOfTasks, backgrounds );
+
+        sheet2.PopulateData( viewTasks [ view ], startRow: 10, numberOfMonths );
+      }
+      #endregion
+
+      #region 
       excel.Save();
       if ( File.Exists( path ) )
         File.Delete( path );
@@ -93,13 +130,17 @@ public static class ExportExcel
       fileStream.Close();
       File.WriteAllBytes( path, excel.GetAsByteArray() );
       excel.Dispose();
+      #endregion
 
       var xlWorkBook = xlApp.Workbooks.Open( path );
-      var xlWorkSheet = ( Worksheet ) xlWorkBook.Worksheets.get_Item( 1 );
-      var xlmmm = xlWorkSheet.Name;
-      //var xlWorkSheet2 = ( Worksheet ) xlWorkBook.Worksheets.get_Item( 2 );
 
+      var xlWorkSheet = ( Worksheet ) xlWorkBook.Worksheets.get_Item( 1 );
       xlWorkSheet.DrawChart( data );
+
+      for ( int j = 2; j < viewTasks.Count + 2; j++ ) {
+        var xlWorkSheet2 = ( Worksheet ) xlWorkBook.Worksheets.get_Item( j );
+        xlWorkSheet2.DrawChart( viewTasks.Values.ElementAt( j - 2 ), startRow: 10 );
+      }
 
       xlWorkBook.Save();
       xlWorkBook.Close();
