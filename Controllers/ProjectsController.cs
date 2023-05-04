@@ -179,6 +179,7 @@ public class ProjectsController : ControllerBase
       return BadRequest( ProjectNotification.NonExisted );
 
     existingProject.ProjectName = formData.ProjectName;
+    existingProject.ModifiedDate = DateTime.Now;
     //existingProject.NumberOfMonths = formData.NumberOfMonths;
 
     var result = await _projectService.UpdateProject( existingProject );
@@ -380,6 +381,9 @@ public class ProjectsController : ControllerBase
     }
 
     await SaveProjectTasks( projectId, formData );
+
+    project.ModifiedDate = DateTime.Now;
+    await _projectService.UpdateProject( project );
 
     return NoContent();
   }
