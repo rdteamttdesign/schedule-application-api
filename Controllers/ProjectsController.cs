@@ -391,7 +391,9 @@ public class ProjectsController : ControllerBase
   private async Task SaveProjectTasks( long projectId, ICollection<GroupTaskFormData> formData )
   {
     var setting = await _projectSettingService.GetProjectSetting( projectId );
-    var converter = new ModelConverter( projectId, setting!, formData );
+    var stepworkColor = await _colorService.GetStepworkColorDefsByProjectId( projectId );
+    var installColor = stepworkColor.First( c => c.IsInstall == 0 ); 
+    var converter = new ModelConverter( projectId, setting!, installColor!, formData );
 
     var grouptasks = new Dictionary<string, GroupTask>();
     foreach ( var grouptask in converter.GroupTasks ) {
