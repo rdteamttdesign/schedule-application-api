@@ -26,7 +26,12 @@ public class BackgroundService : IBackgroundService
 
   public async Task BatchDelete( long projectId, int fromMonth )
   {
-    _backgroundRepository.BatchDelete( projectId, fromMonth );
+    await _backgroundRepository.BatchDelete( projectId, fromMonth );
+  }
+
+  public async Task AddMonth( long projectId, int numberOfMonth )
+  {
+    await _backgroundRepository.AddMonth( projectId, numberOfMonth );
   }
 
   public async Task<ProjectBackground?> GetProjectBackground( long projectId, int month )

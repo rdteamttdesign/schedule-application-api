@@ -2,6 +2,7 @@
 
 public class ViewTaskResource
 {
-  public long TaskId { get; set; }
+  public string Id { get; set; } = null!;
   public int Group { get; set; }
+  public int DisplayOrder { get; set; }
 }

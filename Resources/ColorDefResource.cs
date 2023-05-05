@@ -7,5 +7,6 @@ public class ColorDefResource
   public string Code { get; set; } = null!;
   public long Type { get; set; }
   public long ProjectId { get; set; }
-  public ulong IsDefault { get; set; }
+  public bool IsDefault { get; set; }
+  public int IsInstall { get; set; }
 }

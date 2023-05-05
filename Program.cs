@@ -1,17 +1,17 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Http.Features;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
+using SchedulingTool.Api.Domain.Repositories;
+using SchedulingTool.Api.Domain.Services;
+using SchedulingTool.Api.Persistence.Context;
+using SchedulingTool.Api.Persistence.Repositories;
+using SchedulingTool.Api.Security.Security.Tokens;
+using SchedulingTool.Api.Security.Tokens;
+using SchedulingTool.Api.Services;
 using Serilog;
 using System.Text.Json.Serialization;
-using Microsoft.AspNetCore.Http.Features;
-using SchedulingTool.Api.Security.Security.Tokens;
-using Microsoft.EntityFrameworkCore;
-using SchedulingTool.Api.Persistence.Context;
-using SchedulingTool.Api.Domain.Repositories;
-using SchedulingTool.Api.Persistence.Repositories;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using SchedulingTool.Api.Security.Tokens;
-using Microsoft.IdentityModel.Tokens;
-using SchedulingTool.Api.Domain.Services;
-using SchedulingTool.Api.Services;
-using SchedulingTool.Api.Domain.Models;
 using BackgroundService = SchedulingTool.Api.Services.BackgroundService;
 
 var builder = WebApplication.CreateBuilder( args );
@@ -43,7 +43,33 @@ builder.Services.AddControllers().AddJsonOptions( options =>
   options.JsonSerializerOptions.Converters.Add( new JsonStringEnumConverter() );
 } );
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen( options =>
+{
+  options.AddSecurityDefinition( name: "Bearer", securityScheme: new OpenApiSecurityScheme
+  {
+    Name = "Authorization",
+    Description = "Enter the Bearer Authorization string as following: `Bearer Generated-JWT-Token`",
+    In = ParameterLocation.Header,
+    Type = SecuritySchemeType.ApiKey,
+    Scheme = "Bearer"
+  } );
+  options.AddSecurityRequirement( new OpenApiSecurityRequirement
+      {
+        {
+          new OpenApiSecurityScheme
+          {
+              Name = "Bearer",
+              In = ParameterLocation.Header,
+              Reference = new OpenApiReference
+              {
+                  Id = "Bearer",
+                  Type = ReferenceType.SecurityScheme
+              }
+          },
+          new List<string>()
+        }
+      } );
+} );
 
 builder.Configuration.AddJsonFile(
   path: $"appsettings.{Environment.GetEnvironmentVariable( "DOTTNET_ENVIRONMENT" )}.json",
@@ -141,6 +167,9 @@ builder.Services.AddScoped<IPredecessorTypeService, PredecessorTypeService>();
 builder.Services.AddScoped<IViewRepository, ViewRepository>();
 builder.Services.AddScoped<IViewService, ViewService>();
 
+builder.Services.AddScoped<IViewTaskRepository, ViewTaskRepository>();
+builder.Services.AddScoped<IViewTaskService, ViewTaskService>();
+
 builder.Services.AddAutoMapper( AppDomain.CurrentDomain.GetAssemblies() );
 
 var app = builder.Build();
@@ -166,31 +195,3 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 app.Run();
-
-
-
-
-//var builder = WebApplication.CreateBuilder( args );
-
-//// Add services to the container.
-
-//builder.Services.AddControllers();
-//// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-//builder.Services.AddEndpointsApiExplorer();
-//builder.Services.AddSwaggerGen();
-
-//var app = builder.Build();
-
-//// Configure the HTTP request pipeline.
-//if ( app.Environment.IsDevelopment() ) {
-//  app.UseSwagger();
-//  app.UseSwaggerUI();
-//}
-
-//app.UseHttpsRedirection();
-
-//app.UseAuthorization();
-
-//app.MapControllers();
-
-//app.Run();

@@ -1,7 +1,11 @@
-﻿namespace SchedulingTool.Api.Resources.FormBody;
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace SchedulingTool.Api.Resources.FormBody;
 
 public class ViewTaskFormData
 {
-  public long TaskId { get; set; }
+  [Required]
+  public string Id { get; set; } = null!;
   public int Group { get; set; }
+  public int DisplayOrder { get; set; }
 }

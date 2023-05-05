@@ -17,6 +17,7 @@ namespace SchedulingTool.Api.Domain.Models
         public long Type { get; set; }
         public long ProjectId { get; set; }
         public bool IsDefault { get; set; }
+        public int IsInstall { get; set; }
 
         public virtual Project Project { get; set; } = null!;
         public virtual ColorType TypeNavigation { get; set; } = null!;

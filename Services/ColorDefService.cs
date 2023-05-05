@@ -71,4 +71,9 @@ public class ColorDefService : IColorDefService
       return new ServiceResponse<ColorDef>( $"{ColorDefNotification.ErrorDeleting} {ex.Message}" );
     }
   }
+
+  public async Task DuplicateColorDefs( long fromProjectId, long toProjectId )
+  {
+    await _colorDefRepository.DuplicateColorDefs( fromProjectId, toProjectId );
+  }
 }

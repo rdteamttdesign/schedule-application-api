@@ -9,9 +9,8 @@ namespace SchedulingTool.Api.Domain.Models
         public long RelatedStepworkId { get; set; }
         public long Type { get; set; }
         public float Lag { get; set; }
+        public string RelatedStepworkLocalId { get; set; } = null!;
 
-        public virtual Stepwork RelatedStepwork { get; set; } = null!;
-        public virtual Stepwork Stepwork { get; set; } = null!;
         public virtual PredecessorType TypeNavigation { get; set; } = null!;
     }
 }

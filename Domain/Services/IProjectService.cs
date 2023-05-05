@@ -11,4 +11,5 @@ public interface IProjectService
   Task<Project?> GetProject( long userId, long projectId );
   Task BatchDeactiveProjects( long userId, ICollection<long> projectIds );
   Task<ServiceResponse<Project>> UpdateProject( Project project );
+  Task BatchDeleteProjectDetails( long projectId );
 }
