@@ -8,23 +8,19 @@ namespace SchedulingTool.Api.ExportExcel;
 
 public static class ExportExcel
 {
-  public static bool GetFile( 
+  public static bool GetFile(
     ProjectSetting setting,
     Dictionary<View, List<ViewTaskDetail>> viewTasks,
-    IEnumerable<GroupTaskDetailResource> grouptasks, 
-    IEnumerable<ProjectBackgroundResource> backgrounds, 
+    IEnumerable<GroupTaskDetailResource> grouptasks,
+    IEnumerable<ProjectBackgroundResource> backgrounds,
     //IEnumerable<ViewResource> viewResources,
     out string result )
   {
     ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
     var excel = new ExcelPackage();
     var xlApp = new Application();
-    string path = Path.Combine( AppDomain.CurrentDomain.BaseDirectory, $"{Guid.NewGuid().ToString()}.xlsx" );
+    string path = Path.Combine( AppDomain.CurrentDomain.BaseDirectory, $"{Guid.NewGuid()}.xlsx" );
     try {
-      //var tasks = grouptasks
-      //  .SelectMany( g => g.Tasks );
-      //.SelectMany( t => t.Stepworks );
-
       #region Verify data
       var i = 10;
       var data = new List<ChartStepwork>();
@@ -43,7 +39,7 @@ public static class ExportExcel
             data.Add( new ChartStepwork()
             {
               StepWorkId = sw.StepworkId,
-              Color = WorksheetFormater.GetColor( "rgb(71, 71, 107)" ),
+              Color = WorksheetFormater.GetColor( sw.ColorCode ),
               Start = sw.Start,
               Duration = sw.Portion * task.Duration * ( task.NumberOfTeam == 0 ? 1 : ( setting.AmplifiedFactor / task.NumberOfTeam ) ),
               Lag = sw.Predecessors.Count != 0 ? sw.Predecessors.First().Lag : 0,

@@ -1,18 +1,8 @@
 ﻿using AutoMapper;
-using DocumentFormat.OpenXml.Spreadsheet;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SchedulingTool.Api.Domain.Models;
 using SchedulingTool.Api.Domain.Services;
-using SchedulingTool.Api.Extension;
-using SchedulingTool.Api.Notification;
 using SchedulingTool.Api.Resources;
-using SchedulingTool.Api.Resources.FormBody;
-using SchedulingTool.Api.Resources.FormBody.projectdetail;
-using SchedulingTool.Api.Resources.projectdetail;
-using SchedulingTool.Api.Services;
-using ModelTask = SchedulingTool.Api.Domain.Models.Task;
-using Task = System.Threading.Tasks.Task;
 
 namespace SchedulingTool.Api.Controllers;
 

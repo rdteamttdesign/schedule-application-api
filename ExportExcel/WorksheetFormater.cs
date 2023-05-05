@@ -264,14 +264,19 @@ public static class WorksheetFormater
 
   public static Color GetColor( string code )
   {
-    var matches = Regex.Matches( code, "[0-9]+" );
-    if ( matches.Count == 3 ) {
-      if ( int.TryParse( matches [ 0 ].Value, out var red )
-        && int.TryParse( matches [ 1 ].Value, out var green )
-        && int.TryParse( matches [ 2 ].Value, out var blue ) ) {
-        return Color.FromArgb( red, green, blue );
-      }
-    }
-    return Color.White;
+    return ColorTranslator.FromHtml( code );
   }
+
+  //public static Color GetColor( string code )
+  //{
+  //  var matches = Regex.Matches( code, "[0-9]+" );
+  //  if ( matches.Count == 3 ) {
+  //    if ( int.TryParse( matches [ 0 ].Value, out var red )
+  //      && int.TryParse( matches [ 1 ].Value, out var green )
+  //      && int.TryParse( matches [ 2 ].Value, out var blue ) ) {
+  //      return Color.FromArgb( red, green, blue );
+  //    }
+  //  }
+  //  return Color.White;
+  //}
 }
