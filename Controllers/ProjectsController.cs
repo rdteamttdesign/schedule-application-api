@@ -1,5 +1,4 @@
 ﻿using AutoMapper;
-using DocumentFormat.OpenXml.Spreadsheet;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SchedulingTool.Api.Domain.Models;
@@ -136,13 +135,6 @@ public class ProjectsController : ControllerBase
     if ( !result.Success ) {
       return BadRequest( result.Message );
     }
-
-    var colors = await _colorService.GetStepworkColorDefsByProjectId( newProject.ProjectId );
-    var installColor = colors.FirstOrDefault( c => c.IsInstall == 0 );
-    var removalColor = colors.FirstOrDefault( c => c.IsInstall == 1 );
-
-    var setting = await _projectSettingService.GetProjectSetting( result.Content.ProjectId );
-    await SaveProjectTasks( result.Content.ProjectId, SampleProjectDetail( setting!, installColor!.ColorId, removalColor!.ColorId ) );
 
     var resource = _mapper.Map<ProjectResource>( result.Content );
 
