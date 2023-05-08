@@ -1,5 +1,4 @@
-﻿using ExcelSchedulingSample.Utils;
-using Microsoft.Office.Interop.Excel;
+﻿using Microsoft.Office.Interop.Excel;
 using OfficeOpenXml;
 using SchedulingTool.Api.Domain.Models;
 using SchedulingTool.Api.Resources;
@@ -27,7 +26,7 @@ public static class ExportExcel
       foreach ( var grouptask in grouptasks ) {
         i++;
         foreach ( var task in grouptask.Tasks ) {
-          if ( task.Stepworks.Count > 1 ) {
+          if ( task.Stepworks.Count > 1 && task.NumberOfTeam > 0 ) {
             var gap = task.Stepworks.First().Portion * task.Duration * ( task.NumberOfTeam == 0 ? 1 : ( ( setting.AmplifiedFactor - 1 ) / task.NumberOfTeam ) );
             for ( int j = 1; j < task.Stepworks.Count; j++ ) {
               task.Stepworks.ElementAt( j ).Start += gap;

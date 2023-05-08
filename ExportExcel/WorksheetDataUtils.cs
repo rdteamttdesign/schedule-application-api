@@ -30,8 +30,13 @@ public static class WorksheetContentUtils
         ws.Cells [ startRow, 5 ].Value = task.Duration;
         ws.Cells [ startRow, 5 ].Style.Numberformat.Format = "#,###.0 日";
 
-        ws.Cells [ startRow, 6 ].Value = task.NumberOfTeam;
-        ws.Cells [ startRow, 6 ].Style.Numberformat.Format = "#,### 班";
+        if ( task.NumberOfTeam > 0 ) {
+          ws.Cells [ startRow, 6 ].Value = task.NumberOfTeam;
+          ws.Cells [ startRow, 6 ].Style.Numberformat.Format = "#,### 班";
+        }
+        else {
+          ws.Cells [ startRow, 6 ].Value = "-";
+        }
 
         ws.Cells [ startRow, 7 ].Value = task.AmplifiedDuration;
         ws.Cells [ startRow, 7 ].Style.Numberformat.Format = "#,###.00 日";
@@ -191,31 +196,33 @@ public static class WorksheetContentUtils
     }
   }
 
-  //private static float CalculateOffsetStepWork( ChartStepwork stepWorksCheck, IEnumerable<ChartStepwork> listStepWork )
+  //public static void AddLegend( this Worksheet xlWorkSheet, int startRow, int columnStart, Color color1, Color color2, Color color3 )
   //{
-  //  double k = 1.80;
-  //  float offsetValue = 0;
-  //  if ( stepWorksCheck.RelatedProcessorStepWork == null )
-  //    return 0;
+  //  var shapeDescribeSeason = xlWorkSheet.Shapes.AddShape(
+  //      MsoAutoShapeType.msoShapeRectangle,
+  //      Convert.ToSingle( xlWorkSheet.Range [ xlWorkSheet.Cells [ startRow, columnStart ], xlWorkSheet.Cells [ startRow, columnStart ] ].Left ),
+  //      Convert.ToSingle( xlWorkSheet.Range [ xlWorkSheet.Cells [ startRow, columnStart ], xlWorkSheet.Cells [ startRow, columnStart ] ].Top ),
+  //      15 * 1.808f, 13.5f );
 
-  //  var relatedStep = listStepWork.FirstOrDefault( s => s.StepWorkId == stepWorksCheck.RelatedProcessorStepWork );
-  //  if ( relatedStep == null ) {
-  //    return 0;
-  //  }
-  //  offsetValue += ( float ) ( relatedStep.Duration * k );
-  //  offsetValue += CalculateOffsetStepWork( relatedStep, listStepWork );
+  //  shapeDescribeSeason.Fill.ForeColor.RGB = ColorTranslator.ToOle( color1 );
+  //  shapeDescribeSeason.Line.Visible = MsoTriState.msoFalse;
+  //  xlWorkSheet.Cells [ startRow, columnStart - 4 ] = "冬期:";
 
-  //  if ( stepWorksCheck.PredecessorType == PredecessorType.StartToStart ) {
-  //    offsetValue -= ( float ) ( relatedStep.Duration * k );
-  //  }
+  //  var shapeDescribeTask = xlWorkSheet.Shapes.AddShape(
+  //    MsoAutoShapeType.msoShapeRectangle,
+  //    Convert.ToSingle( xlWorkSheet.Range [ xlWorkSheet.Cells [ startRow + 1, columnStart ], xlWorkSheet.Cells [ startRow + 1, columnStart ] ].Left ),
+  //    Convert.ToSingle( xlWorkSheet.Range [ xlWorkSheet.Cells [ startRow + 1, columnStart ], xlWorkSheet.Cells [ startRow + 1, columnStart ] ].Top ) + 5f, 15 * 1.808f, 5 );
+  //  shapeDescribeTask.Fill.ForeColor.RGB = ColorTranslator.ToOle( color2 );
+  //  shapeDescribeTask.Line.Visible = MsoTriState.msoFalse;
+  //  xlWorkSheet.Cells [ startRow + 1, columnStart - 4 ] = "設置:";
+  //  xlWorkSheet.Cells [ startRow + 1, columnStart - 8 ] = "凡例:";
 
-  //  if ( stepWorksCheck.PredecessorType == PredecessorType.FinishToFinish ) {
-  //    offsetValue -= ( float ) ( stepWorksCheck.Duration * k );
-  //  }
+  //  var shapeDescribeStepWork = xlWorkSheet.Shapes.AddShape( MsoAutoShapeType.msoShapeRectangle, xlWorkSheet.Range [ xlWorkSheet.Cells [ startRow + 2, columnStart ], xlWorkSheet.Cells [ startRow + 2, columnStart ] ].Left, xlWorkSheet.Range [ xlWorkSheet.Cells [ startRow + 2, columnStart ], xlWorkSheet.Cells [ startRow + 2, columnStart ] ].Top + 5f, 15 * 1.808f, 5 ) as Shape;
+  //  shapeDescribeStepWork.Fill.ForeColor.RGB = System.Drawing.ColorTranslator.ToOle( color3 );
+  //  shapeDescribeStepWork.Line.Visible = MsoTriState.msoFalse;
+  //  xlWorkSheet.Cells [ startRow + 2, columnStart - 4 ] = "撤去:";
 
-  //  return stepWorksCheck.Lag < 0
-  //    ? offsetValue - ( float ) Math.Abs( stepWorksCheck.Lag * k ) 
-  //    : offsetValue + ( float ) Math.Abs( stepWorksCheck.Lag * k );
+
   //}
 }
 
