@@ -41,9 +41,6 @@ public static class ExportExcel
               Color = WorksheetFormater.GetColor( sw.ColorCode ),
               Start = sw.Start,
               Duration = sw.Portion * task.Duration * ( task.NumberOfTeam == 0 ? 1 : ( setting.AmplifiedFactor / task.NumberOfTeam ) ),
-              //Lag = sw.Predecessors.Count != 0 ? sw.Predecessors.First().Lag : 0,
-              //RelatedProcessorStepWork = sw.Predecessors.Count != 0 ? sw.Predecessors.First().RelatedStepworkId : -1,
-              PredecessorType = sw.Predecessors.Count != 0 ? ( PredecessorType ) sw.Predecessors.First().Type : PredecessorType.FinishToStart,
               RowIndex = i
             };
             foreach ( var predecessor in sw.Predecessors ) {
@@ -51,7 +48,8 @@ public static class ExportExcel
                 new ChartPredecessor()
                 {
                   RelatedProcessorStepWork = predecessor.RelatedStepworkId,
-                  Lag = predecessor.Lag
+                  Lag = predecessor.Lag,
+                  Type = sw.Predecessors.Count != 0 ? ( PredecessorType ) sw.Predecessors.First().Type : PredecessorType.FinishToStart
                 } );
             }
             data.Add( chartSw );

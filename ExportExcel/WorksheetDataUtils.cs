@@ -39,11 +39,13 @@ public static class WorksheetContentUtils
         }
 
         ws.Cells [ startRow, 7 ].Value = task.AmplifiedDuration;
-        ws.Cells [ startRow, 7 ].Style.Numberformat.Format = "#,###.00 日";
+        ws.Cells [ startRow, 7 ].Style.Numberformat.Format = "#,###.0 日";
 
         if ( task.Stepworks.Count == 2 ) {
-          ws.Cells [ startRow, 8 ].Value = $"{Math.Round( task.Stepworks.ElementAt( 0 ).Portion * task.AmplifiedDuration, 1 )}日";
-          ws.Cells [ startRow, 9 ].Value = $"{Math.Round( task.Stepworks.ElementAt( 1 ).Portion * task.AmplifiedDuration, 1 )}日";
+          ws.Cells [ startRow, 8 ].Value = task.Stepworks.ElementAt( 0 ).Portion * task.AmplifiedDuration;
+          ws.Cells [ startRow, 8 ].Style.Numberformat.Format = "#,###.0 日";
+          ws.Cells [ startRow, 9 ].Value = task.Stepworks.ElementAt( 1 ).Portion * task.AmplifiedDuration;
+          ws.Cells [ startRow, 9 ].Style.Numberformat.Format = "#,###.0 日";
         }
 
         ws.Cells [ startRow, numberOfMonths * 6 + 11 ].Value = task.Note;
@@ -82,67 +84,38 @@ public static class WorksheetContentUtils
 
     foreach ( var stepWork in chartStepwork ) {
       foreach ( var predecessor in stepWork.Predecessors ) {
-        if ( predecessor.Lag == 0 ) {
-          var related = chartStepwork.FirstOrDefault( x => x.StepWorkId == predecessor.RelatedProcessorStepWork );
-          var connection = xlWorkSheet.Shapes.AddConnector( MsoConnectorType.msoConnectorStraight, 1, 1, 1, 1 );
-          connection.Line.ForeColor.RGB = ColorTranslator.ToOle( stepWork.Color );
-
-          if ( related?.Shape == null )
-            continue;
-
-          switch ( stepWork.PredecessorType ) {
-            case PredecessorType.FinishToStart:
-              connection.ConnectorFormat.BeginConnect( stepWork.Shape, 4 );
-              connection.ConnectorFormat.EndConnect( related.Shape, 2 );
-              break;
-            case PredecessorType.StartToStart:
-              connection.ConnectorFormat.BeginConnect( related.Shape, 2 );
-              connection.ConnectorFormat.EndConnect( stepWork.Shape, 2 );
-              break;
-            case PredecessorType.FinishToFinish:
-              connection.ConnectorFormat.BeginConnect( related.Shape, 4 );
-              connection.ConnectorFormat.EndConnect( stepWork.Shape, 4 );
-              break;
-            default:
-              break;
-          }
-
-          connection.Line.Weight = 1f;
-          connection.Line.BeginArrowheadLength = MsoArrowheadLength.msoArrowheadLengthMedium;
-          connection.Line.BeginArrowheadWidth = MsoArrowheadWidth.msoArrowheadNarrow;
-          // connection.Line.EndArrowheadStyle = MsoArrowheadStyle.msoArrowheadTriangle;
-        }
-        else {
-          var related = chartStepwork.FirstOrDefault( x => x.StepWorkId == predecessor.RelatedProcessorStepWork );
-          var connection = xlWorkSheet.Shapes.AddConnector( MsoConnectorType.msoConnectorElbow, 1, 1, 1, 1 );
-          connection.Line.ForeColor.RGB = ColorTranslator.ToOle( stepWork.Color );
-
-          if ( related?.Shape == null )
-            continue;
-          switch ( stepWork.PredecessorType ) {
-            case PredecessorType.FinishToStart:
-              connection.ConnectorFormat.BeginConnect( stepWork.Shape, 4 );
-              connection.ConnectorFormat.EndConnect( related.Shape, 2 );
-              break;
-            case PredecessorType.StartToStart:
-              connection.ConnectorFormat.BeginConnect( related.Shape, 2 );
-              connection.ConnectorFormat.EndConnect( stepWork.Shape, 2 );
-              connection.Adjustments [ 1 ] = -3f;
-              break;
-            case PredecessorType.FinishToFinish:
-              connection.ConnectorFormat.BeginConnect( related.Shape, 4 );
-              connection.ConnectorFormat.EndConnect( stepWork.Shape, 4 );
-              connection.Adjustments [ 1 ] = 3f;
-              break;
-            default:
-              break;
-          }
-          connection.Line.Weight = 1f;
-          // connection.Line.EndArrowheadStyle = MsoArrowheadStyle.msoArrowheadTriangle ;
-        }
+        var related = chartStepwork.FirstOrDefault( x => x.StepWorkId == predecessor.RelatedProcessorStepWork );
+        var connection = xlWorkSheet.Shapes.AddConnector( MsoConnectorType.msoConnectorStraight, 1, 1, 1, 1 );
+        connection.Line.ForeColor.RGB = ColorTranslator.ToOle( stepWork.Color );
+        EditConnectorShape( connection, stepWork.Shape, related.Shape, predecessor.Type, hasLag: predecessor.Lag != 0 );
       }
     }
-  } 
+  }
+
+  private static void EditConnectorShape( Shape connection, Shape stepworkShape, Shape relatedShape, PredecessorType predecessorType, bool hasLag )
+  {
+    switch ( predecessorType ) {
+      case PredecessorType.FinishToStart:
+        connection.ConnectorFormat.BeginConnect( stepworkShape, 4 );
+        connection.ConnectorFormat.EndConnect( relatedShape, 2 );
+        break;
+      case PredecessorType.StartToStart:
+        connection.ConnectorFormat.BeginConnect( relatedShape, 2 );
+        connection.ConnectorFormat.EndConnect( stepworkShape, 2 );
+        if ( hasLag )
+          connection.Adjustments [ 1 ] = -3f;
+        break;
+      case PredecessorType.FinishToFinish:
+        connection.ConnectorFormat.BeginConnect( relatedShape, 4 );
+        connection.ConnectorFormat.EndConnect( stepworkShape, 4 );
+        if ( hasLag )
+          connection.Adjustments [ 1 ] = 3f;
+        break;
+      default:
+        break;
+    }
+    connection.Line.Weight = 1f;
+  }
 
   public static void PopulateData( this ExcelWorksheet worksheet, IEnumerable<ViewTaskDetail> tasks, int startRow, int numberOfMonths )
   {
@@ -240,13 +213,13 @@ public class ChartStepwork
   public int RowIndex { get; set; }
   public Shape? Shape { get; set; }
   public Color Color { get; set; } = Color.AliceBlue;
-  public PredecessorType PredecessorType { get; set; }
 }
 
 public class ChartPredecessor
 {
   public long RelatedProcessorStepWork { get; set; }
   public float Lag { get; set; }
+  public PredecessorType Type { get; set; }
 }
 
 public class ChartTaskSummary
