@@ -85,36 +85,69 @@ public static class WorksheetContentUtils
     foreach ( var stepWork in chartStepwork ) {
       foreach ( var predecessor in stepWork.Predecessors ) {
         var related = chartStepwork.FirstOrDefault( x => x.StepWorkId == predecessor.RelatedProcessorStepWork );
-        var connection = xlWorkSheet.Shapes.AddConnector( MsoConnectorType.msoConnectorStraight, 1, 1, 1, 1 );
-        connection.Line.ForeColor.RGB = ColorTranslator.ToOle( stepWork.Color );
-        EditConnectorShape( connection, stepWork.Shape, related.Shape, predecessor.Type, hasLag: predecessor.Lag != 0 );
+        if ( related == null )
+          continue;
+        EditConnectorShape( xlWorkSheet, stepWork, related, predecessor );
       }
     }
   }
 
-  private static void EditConnectorShape( Shape connection, Shape stepworkShape, Shape relatedShape, PredecessorType predecessorType, bool hasLag )
+  private static void EditConnectorShape(
+    Worksheet xlWorkSheet,
+    ChartStepwork stepwork,
+    ChartStepwork relatedStepwork,
+    ChartPredecessor predecessor )
   {
-    switch ( predecessorType ) {
+    switch ( predecessor.Type ) {
       case PredecessorType.FinishToStart:
-        connection.ConnectorFormat.BeginConnect( stepworkShape, 4 );
-        connection.ConnectorFormat.EndConnect( relatedShape, 2 );
+        var isClosed = Math.Abs( stepwork.Start + stepwork.Duration - relatedStepwork.Start ) < 10e-6;
+        var connectorType = isClosed ? MsoConnectorType.msoConnectorStraight : MsoConnectorType.msoConnectorElbow;
+        var connection = xlWorkSheet.Shapes.AddConnector( connectorType, 1, 1, 1, 1 );
+        connection.Line.ForeColor.RGB = ColorTranslator.ToOle( stepwork.Color );
+        connection.ConnectorFormat.BeginConnect( stepwork.Shape, 4 );
+        connection.ConnectorFormat.EndConnect( relatedStepwork.Shape, 2 );
+        var relatedDistance = relatedStepwork.Start - stepwork.Start - stepwork.Duration;
+        if ( Math.Abs( relatedDistance ) > 10e-6 && relatedDistance > 0 ) {
+          connection.Adjustments [ 1 ] = -0.1f;
+          connection.Adjustments [ 3 ] = 1f;
+        }
+        else
+          connection.Adjustments [ 1 ] = 0.05f;
+        connection.Line.Weight = 1f;
         break;
       case PredecessorType.StartToStart:
-        connection.ConnectorFormat.BeginConnect( relatedShape, 2 );
-        connection.ConnectorFormat.EndConnect( stepworkShape, 2 );
-        if ( hasLag )
-          connection.Adjustments [ 1 ] = -3f;
+        isClosed = Math.Abs( stepwork.Start - relatedStepwork.Start ) < 10e-6;
+        connectorType = isClosed ? MsoConnectorType.msoConnectorStraight : MsoConnectorType.msoConnectorElbow;
+        connection = xlWorkSheet.Shapes.AddConnector( connectorType, 1, 1, 1, 1 );
+        connection.Line.ForeColor.RGB = ColorTranslator.ToOle( stepwork.Color );
+        connection.ConnectorFormat.BeginConnect( relatedStepwork.Shape, 2 );
+        connection.ConnectorFormat.EndConnect( stepwork.Shape, 2 );
+        relatedDistance = stepwork.Start - relatedStepwork.Start;
+        if ( Math.Abs( relatedDistance ) > 10e-6 && relatedDistance > 0 )
+          connection.Adjustments [ 1 ] = 1;
+        else {
+            
+        }
+          connection.Adjustments [ 1 ] = 0;
+        connection.Line.Weight = 1f;
         break;
       case PredecessorType.FinishToFinish:
-        connection.ConnectorFormat.BeginConnect( relatedShape, 4 );
-        connection.ConnectorFormat.EndConnect( stepworkShape, 4 );
-        if ( hasLag )
-          connection.Adjustments [ 1 ] = 3f;
+        isClosed = Math.Abs( stepwork.Start + stepwork.Duration - relatedStepwork.Start - relatedStepwork.Duration ) < 10e-6;
+        connectorType = isClosed ? MsoConnectorType.msoConnectorStraight : MsoConnectorType.msoConnectorElbow;
+        connection = xlWorkSheet.Shapes.AddConnector( connectorType, 1, 1, 1, 1 );
+        connection.Line.ForeColor.RGB = ColorTranslator.ToOle( stepwork.Color );
+        connection.ConnectorFormat.BeginConnect( relatedStepwork.Shape, 4 );
+        connection.ConnectorFormat.EndConnect( stepwork.Shape, 4 );
+        relatedDistance = relatedStepwork.Start + relatedStepwork.Duration - stepwork.Start - stepwork.Duration;
+        if ( Math.Abs( relatedDistance ) > 10e-6 && relatedDistance > 0 )
+          connection.Adjustments [ 1 ] = 1;
+        else
+          connection.Adjustments [ 1 ] = 0;
+        connection.Line.Weight = 1f;
         break;
       default:
         break;
     }
-    connection.Line.Weight = 1f;
   }
 
   public static void PopulateData( this ExcelWorksheet worksheet, IEnumerable<ViewTaskDetail> tasks, int startRow, int numberOfMonths )

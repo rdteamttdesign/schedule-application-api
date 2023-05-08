@@ -64,7 +64,7 @@ public static class ExportExcel
       var numberOfMonths = backgrounds.Count();
 
       #region Populate data, sheet 1
-      var sheet = excel.Workbook.Worksheets.Add( "Sheet1" );
+      var sheet = excel.Workbook.Worksheets.Add( "メインビュー" );
 
       // Hide gridlines
       sheet.View.ShowGridLines = false;
