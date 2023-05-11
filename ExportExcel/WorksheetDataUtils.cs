@@ -106,13 +106,15 @@ public static class WorksheetContentUtils
         connection.Line.ForeColor.RGB = ColorTranslator.ToOle( stepwork.Color );
         connection.ConnectorFormat.BeginConnect( stepwork.Shape, 4 );
         connection.ConnectorFormat.EndConnect( relatedStepwork.Shape, 2 );
-        var relatedDistance = relatedStepwork.Start - stepwork.Start - stepwork.Duration;
-        if ( Math.Abs( relatedDistance ) > 10e-6 && relatedDistance > 0 ) {
-          connection.Adjustments [ 1 ] = -0.1f;
-          connection.Adjustments [ 3 ] = 1f;
+        if ( connectorType == MsoConnectorType.msoConnectorElbow ) {
+          var relatedDistance = relatedStepwork.Start - stepwork.Start - stepwork.Duration;
+          if ( Math.Abs( relatedDistance ) > 10e-6 && relatedDistance < 0 ) {
+            connection.Adjustments [ 1 ] = -0.1f;
+            connection.Adjustments [ 3 ] = 1f;
+          }
+          else
+            connection.Adjustments [ 1 ] = 1f;
         }
-        else
-          connection.Adjustments [ 1 ] = 0.05f;
         connection.Line.Weight = 1f;
         break;
       case PredecessorType.StartToStart:
@@ -122,13 +124,13 @@ public static class WorksheetContentUtils
         connection.Line.ForeColor.RGB = ColorTranslator.ToOle( stepwork.Color );
         connection.ConnectorFormat.BeginConnect( relatedStepwork.Shape, 2 );
         connection.ConnectorFormat.EndConnect( stepwork.Shape, 2 );
-        relatedDistance = stepwork.Start - relatedStepwork.Start;
-        if ( Math.Abs( relatedDistance ) > 10e-6 && relatedDistance > 0 )
-          connection.Adjustments [ 1 ] = 1;
-        else {
-            
+        if ( connectorType == MsoConnectorType.msoConnectorElbow ) {
+          var relatedDistance = stepwork.Start - relatedStepwork.Start;
+          if ( Math.Abs( relatedDistance ) > 10e-6 && relatedDistance > 0 )
+            connection.Adjustments [ 1 ] = 0f;
+          else
+            connection.Adjustments [ 1 ] = 1f;
         }
-          connection.Adjustments [ 1 ] = 0;
         connection.Line.Weight = 1f;
         break;
       case PredecessorType.FinishToFinish:
@@ -138,11 +140,13 @@ public static class WorksheetContentUtils
         connection.Line.ForeColor.RGB = ColorTranslator.ToOle( stepwork.Color );
         connection.ConnectorFormat.BeginConnect( relatedStepwork.Shape, 4 );
         connection.ConnectorFormat.EndConnect( stepwork.Shape, 4 );
-        relatedDistance = relatedStepwork.Start + relatedStepwork.Duration - stepwork.Start - stepwork.Duration;
-        if ( Math.Abs( relatedDistance ) > 10e-6 && relatedDistance > 0 )
-          connection.Adjustments [ 1 ] = 1;
-        else
-          connection.Adjustments [ 1 ] = 0;
+        if ( connectorType == MsoConnectorType.msoConnectorElbow ) {
+          var relatedDistance = relatedStepwork.Start + relatedStepwork.Duration - stepwork.Start - stepwork.Duration;
+          if ( Math.Abs( relatedDistance ) > 10e-6 && relatedDistance > 0 )
+            connection.Adjustments [ 1 ] = 0f;
+          else
+            connection.Adjustments [ 1 ] = 1f;
+        }
         connection.Line.Weight = 1f;
         break;
       default:
