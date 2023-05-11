@@ -28,7 +28,7 @@ public static class WorksheetContentUtils
         ws.Cells [ startRow, 4 ].Value = task.Description;
 
         ws.Cells [ startRow, 5 ].Value = task.Duration;
-        ws.Cells [ startRow, 5 ].Style.Numberformat.Format = "#,###.0 日";
+        ws.Cells [ startRow, 5 ].Style.Numberformat.Format = "#,###0.0 日";
 
         if ( task.NumberOfTeam > 0 ) {
           ws.Cells [ startRow, 6 ].Value = task.NumberOfTeam;
@@ -39,13 +39,13 @@ public static class WorksheetContentUtils
         }
 
         ws.Cells [ startRow, 7 ].Value = task.AmplifiedDuration;
-        ws.Cells [ startRow, 7 ].Style.Numberformat.Format = "#,###.0 日";
+        ws.Cells [ startRow, 7 ].Style.Numberformat.Format = "#,###0.0 日";
 
         if ( task.Stepworks.Count == 2 ) {
           ws.Cells [ startRow, 8 ].Value = task.Stepworks.ElementAt( 0 ).Portion * task.AmplifiedDuration;
-          ws.Cells [ startRow, 8 ].Style.Numberformat.Format = "#,###.0 日";
+          ws.Cells [ startRow, 8 ].Style.Numberformat.Format = "#,###0.0 日";
           ws.Cells [ startRow, 9 ].Value = task.Stepworks.ElementAt( 1 ).Portion * task.AmplifiedDuration;
-          ws.Cells [ startRow, 9 ].Style.Numberformat.Format = "#,###.0 日";
+          ws.Cells [ startRow, 9 ].Style.Numberformat.Format = "#,###0.0 日";
         }
 
         ws.Cells [ startRow, numberOfMonths * 6 + 11 ].Value = task.Note;
