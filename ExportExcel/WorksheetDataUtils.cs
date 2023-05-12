@@ -183,10 +183,9 @@ public static class WorksheetContentUtils
     var columnStart = 11;
     var k = 1.8f;
     var tasksByGroup = tasks.GroupBy( x => x.GroupTaskName );
-    var i = 1;
     foreach ( var group in tasksByGroup ) {
       startRow++;
-      foreach ( var task in group ) {
+      foreach ( var task in group.OrderBy( t => t.DisplayOrder ) ) {
         // CreateShape
         var offset = task.MinStart * k;
         // Get position cell top, left
