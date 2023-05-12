@@ -168,6 +168,7 @@ public static class WorksheetContentUtils
         worksheet.Cells [ startRow, 3 ].Value = task.TaskName;
         worksheet.Cells [ startRow, 3 ].Style.Indent = 1;
         worksheet.Cells [ startRow, 7 ].Value = task.Duration;
+        worksheet.Cells [ startRow, 7 ].Style.Numberformat.Format = "#,###0.0 日";
         worksheet.Cells [ startRow, numberOfMonths * 6 + 11 ].Value = task.Note;
         worksheet.Columns [ numberOfMonths * 6 + 11 ].AutoFit();
         startRow++;
