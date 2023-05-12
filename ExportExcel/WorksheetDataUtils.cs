@@ -163,7 +163,7 @@ public static class WorksheetContentUtils
       worksheet.Cells [ startRow, 3 ].Style.Font.Bold = true;
       worksheet.Cells [ startRow, 3 ].Style.WrapText = false;
       startRow++;
-      foreach ( var task in group ) {
+      foreach ( var task in group.OrderBy( t => t.DisplayOrder ) ) {
         worksheet.Cells [ startRow, 2 ].Value = i;
         worksheet.Cells [ startRow, 3 ].Value = task.TaskName;
         worksheet.Cells [ startRow, 3 ].Style.Indent = 1;
