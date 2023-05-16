@@ -182,92 +182,9 @@ public class ProjectsController : ControllerBase
     return Ok( resource );
   }
 
-  private ICollection<GroupTaskFormData> SampleProjectDetail( ProjectSetting setting, long installColorId, long removalColorId )
-  {
-    var groupTaskId1 = Guid.NewGuid().ToString();
-    var taskId11 = Guid.NewGuid().ToString();
-    var taskId12 = Guid.NewGuid().ToString();
-    var groupTaskId2 = Guid.NewGuid().ToString();
-    var taskId21 = Guid.NewGuid().ToString();
-    var columnWidth = setting.ColumnWidth;
-    return new GroupTaskFormData []
-    {
-      new GroupTaskFormData()
-      {
-        Start = 0,
-        Duration = 30,
-        Name = "Group 1",
-        Id = groupTaskId1,
-        Type = "project",
-        HideChildren = false,
-        DisplayOrder = 1,
-        GroupsNumber = 1,
-        ColorId = installColorId
-      },
-      new GroupTaskFormData()
-      {
-        Start= 140,
-        Duration = 30,
-        Name = "Task 1",
-        Id = taskId11,
-        Predecessors = Array.Empty<PredecessorResource>(),
-        Type = "task",
-        GroupId = groupTaskId1,
-        DisplayOrder = 2,
-        Note = "",
-        GroupsNumber = 1,
-        ColorId = installColorId,
-        End = 140 + 30 * columnWidth / 30 * setting.AmplifiedFactor
-      },
-      new GroupTaskFormData()
-      {
-        Start= 140,
-        Duration = 30,
-        Name = "Task 2",
-        Id = taskId12,
-        Predecessors = Array.Empty<PredecessorResource>(),
-        Type = "task",
-        GroupId = groupTaskId1,
-        DisplayOrder = 3,
-        Note = "",
-        GroupsNumber = 1,
-        ColorId = installColorId,
-        End = 140 + 30 * columnWidth / 30 * setting.AmplifiedFactor
-      },
-      new GroupTaskFormData()
-      {
-        Start = 0,
-        Duration = 30,
-        Name = "Group 2",
-        Id = groupTaskId2,
-        Type = "project",
-        HideChildren = false,
-        DisplayOrder = 4,
-        GroupsNumber = 1,
-        ColorId = installColorId,
-        End = 30 * columnWidth / 30 * setting.AmplifiedFactor
-      },
-      new GroupTaskFormData()
-      {
-        Start= 140,
-        Duration= 30,
-        Name = "Task 3",
-        Id = taskId21,
-        Predecessors = Array.Empty<PredecessorResource>(),
-        Type = "task",
-        GroupId = groupTaskId2,
-        DisplayOrder = 5,
-        Note = "",
-        GroupsNumber = 1,
-        ColorId = installColorId,
-        End = 140 + 30 * columnWidth / 30 * setting.AmplifiedFactor
-      },
-    };
-  }
-
   [HttpGet( "{projectId}/details" )]
   [Authorize]
-  public async Task<IActionResult> GetProjectDetails( long projectId )
+  public async Task<IActionResult> GetProjectDetails( long projectId, [FromBody] GetProjectDetailFormData formData )
   {
     var userId = long.Parse( HttpContext.User.Claims.FirstOrDefault( x => x.Type.ToLower() == "sid" )?.Value! );
     var project = await _projectService.GetProject( userId, projectId );
@@ -275,7 +192,7 @@ public class ProjectsController : ControllerBase
       return BadRequest( ProjectNotification.NonExisted );
     }
     try {
-      var groupTaskResources = await GetGroupTasksByProjectId( projectId );
+      var groupTaskResources = await GetGroupTasksByProjectId( projectId, formData );
       return Ok( groupTaskResources );
     }
     catch ( Exception ex ) {
@@ -283,9 +200,13 @@ public class ProjectsController : ControllerBase
     }
   }
 
-  private async Task<IEnumerable<object>> GetGroupTasksByProjectId( long projectId )
+  private async Task<IEnumerable<object>> GetGroupTasksByProjectId( long projectId, GetProjectDetailFormData formData )
   {
     var setting = await _projectSettingService.GetProjectSetting( projectId );
+    var columnWidth =  setting!.ColumnWidth;
+    if ( formData.ColumnWidth != null ) {
+      columnWidth = formData.ColumnWidth.Value;
+    }
     var result = new List<KeyValuePair<int, object>>();
     var groupTasks = await _groupTaskService.GetGroupTasksByProjectId( projectId );
     var groupTaskResources = _mapper.Map<List<GroupTaskResource>>( groupTasks );
@@ -306,9 +227,9 @@ public class ProjectsController : ControllerBase
           var predecessorResources = _mapper.Map<List<PredecessorResource>>( predecessors );
           taskResource.Predecessors = predecessorResources.Count == 0 ? null : predecessorResources;
           taskResource.ColorId = stepworks.First().ColorId;
-          taskResource.Start = stepworks.First().Start.DaysToColumnWidth( setting!.ColumnWidth );
+          taskResource.Start = stepworks.First().Start.DaysToColumnWidth( columnWidth );
           taskResource.End = taskResource.Start
-            + task.Duration.DaysToColumnWidth( setting.ColumnWidth ) * ( task.NumberOfTeam == 0 ? 1 : setting.AmplifiedFactor );
+            + task.Duration.DaysToColumnWidth( columnWidth ) * ( task.NumberOfTeam == 0 ? 1 : setting!.AmplifiedFactor );
         }
         else {
           if ( task.NumberOfTeam != 0 ) {
@@ -337,9 +258,9 @@ public class ProjectsController : ControllerBase
             var stepworkResource = _mapper.Map<StepworkResource>( stepwork );
             stepworkResource.Duration = task.Duration;
             stepworkResource.PercentStepWork *= 100;
-            stepworkResource.Start = stepwork.Start.DaysToColumnWidth( setting!.ColumnWidth );
+            stepworkResource.Start = stepwork.Start.DaysToColumnWidth( columnWidth );
             stepworkResource.End = stepworkResource.Start
-              + stepworkResource.Duration.DaysToColumnWidth( setting.ColumnWidth ) * ( task.NumberOfTeam == 0 ? 1 : setting.AmplifiedFactor );
+              + stepworkResource.Duration.DaysToColumnWidth( columnWidth ) * ( task.NumberOfTeam == 0 ? 1 : setting!.AmplifiedFactor );
             stepworkResource.GroupId = groupTask.LocalId;
             stepworkResource.Predecessors = predecessorResources.Count == 0 ? null : predecessorResources;
             stepworkResource.GroupNumbers = task.NumberOfTeam;
