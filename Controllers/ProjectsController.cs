@@ -184,7 +184,7 @@ public class ProjectsController : ControllerBase
 
   [HttpGet( "{projectId}/details" )]
   [Authorize]
-  public async Task<IActionResult> GetProjectDetails( long projectId, [FromBody] GetProjectDetailFormData formData )
+  public async Task<IActionResult> GetProjectDetails( long projectId, int columnWidth, float amplifiedFactor )
   {
     var userId = long.Parse( HttpContext.User.Claims.FirstOrDefault( x => x.Type.ToLower() == "sid" )?.Value! );
     var project = await _projectService.GetProject( userId, projectId );
@@ -192,7 +192,7 @@ public class ProjectsController : ControllerBase
       return BadRequest( ProjectNotification.NonExisted );
     }
     try {
-      var groupTaskResources = await GetGroupTasksByProjectId( projectId, formData );
+      var groupTaskResources = await GetGroupTasksByProjectId( projectId, columnWidth, amplifiedFactor );
       return Ok( groupTaskResources );
     }
     catch ( Exception ex ) {
@@ -200,17 +200,14 @@ public class ProjectsController : ControllerBase
     }
   }
 
-  private async Task<IEnumerable<object>> GetGroupTasksByProjectId( long projectId, GetProjectDetailFormData formData )
+  private async Task<IEnumerable<object>> GetGroupTasksByProjectId( long projectId, int columnWidth, float amplifiedFactor )
   {
     var setting = await _projectSettingService.GetProjectSetting( projectId );
-    var columnWidth =  setting!.ColumnWidth;
-    if ( formData.ColumnWidth != null ) {
-      columnWidth = formData.ColumnWidth.Value;
-    }
-    var amplifiedFactor = setting!.AmplifiedFactor;
-    if ( formData.AmplifiedFactor != null ) {
-      amplifiedFactor = formData.AmplifiedFactor.Value;
-    }
+    if ( columnWidth == -1 )
+      columnWidth = setting!.ColumnWidth;
+    if ( amplifiedFactor == -1 ) 
+      amplifiedFactor = setting!.AmplifiedFactor;
+
     var result = new List<KeyValuePair<int, object>>();
     var groupTasks = await _groupTaskService.GetGroupTasksByProjectId( projectId );
     var groupTaskResources = _mapper.Map<List<GroupTaskResource>>( groupTasks );
