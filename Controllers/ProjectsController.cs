@@ -207,6 +207,10 @@ public class ProjectsController : ControllerBase
     if ( formData.ColumnWidth != null ) {
       columnWidth = formData.ColumnWidth.Value;
     }
+    var amplifiedFactor = setting!.AmplifiedFactor;
+    if ( formData.AmplifiedFactor != null ) {
+      amplifiedFactor = formData.AmplifiedFactor.Value;
+    }
     var result = new List<KeyValuePair<int, object>>();
     var groupTasks = await _groupTaskService.GetGroupTasksByProjectId( projectId );
     var groupTaskResources = _mapper.Map<List<GroupTaskResource>>( groupTasks );
@@ -229,11 +233,11 @@ public class ProjectsController : ControllerBase
           taskResource.ColorId = stepworks.First().ColorId;
           taskResource.Start = stepworks.First().Start.DaysToColumnWidth( columnWidth );
           taskResource.End = taskResource.Start
-            + task.Duration.DaysToColumnWidth( columnWidth ) * ( task.NumberOfTeam == 0 ? 1 : setting!.AmplifiedFactor );
+            + task.Duration.DaysToColumnWidth( columnWidth ) * ( task.NumberOfTeam == 0 ? 1 : amplifiedFactor );
         }
         else {
           if ( task.NumberOfTeam != 0 ) {
-            var factor = setting!.AmplifiedFactor - 1;
+            var factor = amplifiedFactor - 1;
             var firstStep = stepworks.ElementAt( 0 );
             var gap = firstStep.Duration * factor;
             if ( task.NumberOfTeam > 0 )
@@ -260,7 +264,7 @@ public class ProjectsController : ControllerBase
             stepworkResource.PercentStepWork *= 100;
             stepworkResource.Start = stepwork.Start.DaysToColumnWidth( columnWidth );
             stepworkResource.End = stepworkResource.Start
-              + stepworkResource.Duration.DaysToColumnWidth( columnWidth ) * ( task.NumberOfTeam == 0 ? 1 : setting!.AmplifiedFactor );
+              + stepworkResource.Duration.DaysToColumnWidth( columnWidth ) * ( task.NumberOfTeam == 0 ? 1 : amplifiedFactor );
             stepworkResource.GroupId = groupTask.LocalId;
             stepworkResource.Predecessors = predecessorResources.Count == 0 ? null : predecessorResources;
             stepworkResource.GroupNumbers = task.NumberOfTeam;
