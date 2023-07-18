@@ -59,7 +59,6 @@ public static class WorksheetContentUtils
   public static void DrawChart( this Worksheet xlWorkSheet, IEnumerable<ChartStepwork> chartStepwork )
   {
     var k = 1.8f;
-    var color = Color.Blue;
     var startColumn = 11;
     //var startRow = 1;
     foreach ( var stepwork in chartStepwork ) {
@@ -189,8 +188,8 @@ public static class WorksheetContentUtils
         // CreateShape
         var offset = task.MinStart * k;
         // Get position cell top, left
-        Range rangeColumnRowStart = xlWorkSheet.Range [ 
-          xlWorkSheet.Cells [ startRow, columnStart ], 
+        Range rangeColumnRowStart = xlWorkSheet.Range [
+          xlWorkSheet.Cells [ startRow, columnStart ],
           xlWorkSheet.Cells [ startRow, columnStart ] ];
         if ( task.Duration > 0 ) {
           var width = task.Duration * k;
@@ -208,34 +207,88 @@ public static class WorksheetContentUtils
     }
   }
 
-  //public static void AddLegend( this Worksheet xlWorkSheet, int startRow, int columnStart, Color color1, Color color2, Color color3 )
-  //{
-  //  var shapeDescribeSeason = xlWorkSheet.Shapes.AddShape(
-  //      MsoAutoShapeType.msoShapeRectangle,
-  //      Convert.ToSingle( xlWorkSheet.Range [ xlWorkSheet.Cells [ startRow, columnStart ], xlWorkSheet.Cells [ startRow, columnStart ] ].Left ),
-  //      Convert.ToSingle( xlWorkSheet.Range [ xlWorkSheet.Cells [ startRow, columnStart ], xlWorkSheet.Cells [ startRow, columnStart ] ].Top ),
-  //      15 * 1.808f, 13.5f );
+  public static void AddLegend( this Worksheet xlWorkSheet, IList<ColorDef> colors, int endColumnIndex )
+  {
+    int space = 9;
 
-  //  shapeDescribeSeason.Fill.ForeColor.RGB = ColorTranslator.ToOle( color1 );
-  //  shapeDescribeSeason.Line.Visible = MsoTriState.msoFalse;
-  //  xlWorkSheet.Cells [ startRow, columnStart - 4 ] = "冬期:";
+    int startRow = 3;
+    int numberOfStack = ( int ) Math.Ceiling( ( double ) colors.Count / 3 );
+    int startColumn = endColumnIndex - 5 - ( numberOfStack - 1 ) * space;
 
-  //  var shapeDescribeTask = xlWorkSheet.Shapes.AddShape(
-  //    MsoAutoShapeType.msoShapeRectangle,
-  //    Convert.ToSingle( xlWorkSheet.Range [ xlWorkSheet.Cells [ startRow + 1, columnStart ], xlWorkSheet.Cells [ startRow + 1, columnStart ] ].Left ),
-  //    Convert.ToSingle( xlWorkSheet.Range [ xlWorkSheet.Cells [ startRow + 1, columnStart ], xlWorkSheet.Cells [ startRow + 1, columnStart ] ].Top ) + 5f, 15 * 1.808f, 5 );
-  //  shapeDescribeTask.Fill.ForeColor.RGB = ColorTranslator.ToOle( color2 );
-  //  shapeDescribeTask.Line.Visible = MsoTriState.msoFalse;
-  //  xlWorkSheet.Cells [ startRow + 1, columnStart - 4 ] = "設置:";
-  //  xlWorkSheet.Cells [ startRow + 1, columnStart - 8 ] = "凡例:";
+    int iColor = 0;
+    for ( int i = 0; i < numberOfStack - 1; i++ ) {
+      for ( int j = 0; j < 3; j++ ) {
+        var color = colors [ iColor ];
+        if ( color.ColorId == 1 ) {
+          var shape = xlWorkSheet.Shapes.AddShape(
+            MsoAutoShapeType.msoShapeRectangle,
+            Convert.ToSingle( xlWorkSheet.Range [
+              xlWorkSheet.Cells [ startRow + j, startColumn - i * space + 5 ],
+              xlWorkSheet.Cells [ startRow + j, startColumn - i * space + 5 ] ].Left ),
+            Convert.ToSingle( xlWorkSheet.Range [
+              xlWorkSheet.Cells [ startRow + j, startColumn - i * space + 5 ],
+              xlWorkSheet.Cells [ startRow + j, startColumn - i * space + 5 ] ].Top ),
+            15 * 1.808f, 13.5f );
+          shape.Fill.ForeColor.RGB = ColorTranslator.ToOle( WorksheetFormater.GetColor( color.Code ) );
+          shape.Line.Visible = MsoTriState.msoFalse;
+          xlWorkSheet.Cells [ startRow + j, startColumn - i * space ] = color.Name;
+        }
+        else {
+          var shape = xlWorkSheet.Shapes.AddShape(
+            MsoAutoShapeType.msoShapeRectangle,
+            Convert.ToSingle( xlWorkSheet.Range [
+              xlWorkSheet.Cells [ startRow + j, startColumn - i * space + 5 ],
+              xlWorkSheet.Cells [ startRow + j, startColumn - i * space + 5 ] ].Left ),
+            Convert.ToSingle( xlWorkSheet.Range [
+              xlWorkSheet.Cells [ startRow + j, startColumn - i * space + 5 ],
+              xlWorkSheet.Cells [ startRow + j, startColumn - i * space + 5 ] ].Top ) + 5f,
+            15 * 1.808f, 5 );
+          shape.Fill.ForeColor.RGB = ColorTranslator.ToOle( WorksheetFormater.GetColor( color.Code ) );
+          shape.Line.Visible = MsoTriState.msoFalse;
+          xlWorkSheet.Cells [ startRow + j, startColumn - i * space ] = color.Name;
+        }
+        iColor++;
+      }
+    }
 
-  //  var shapeDescribeStepWork = xlWorkSheet.Shapes.AddShape( MsoAutoShapeType.msoShapeRectangle, xlWorkSheet.Range [ xlWorkSheet.Cells [ startRow + 2, columnStart ], xlWorkSheet.Cells [ startRow + 2, columnStart ] ].Left, xlWorkSheet.Range [ xlWorkSheet.Cells [ startRow + 2, columnStart ], xlWorkSheet.Cells [ startRow + 2, columnStart ] ].Top + 5f, 15 * 1.808f, 5 ) as Shape;
-  //  shapeDescribeStepWork.Fill.ForeColor.RGB = System.Drawing.ColorTranslator.ToOle( color3 );
-  //  shapeDescribeStepWork.Line.Visible = MsoTriState.msoFalse;
-  //  xlWorkSheet.Cells [ startRow + 2, columnStart - 4 ] = "撤去:";
+    for ( int j = 0; j < 3; j++ ) {
+      var color = colors [ iColor ];
+      if ( color.ColorId == 1 ) {
+        var shape = xlWorkSheet.Shapes.AddShape(
+          MsoAutoShapeType.msoShapeRectangle,
+          Convert.ToSingle( xlWorkSheet.Range [
+            xlWorkSheet.Cells [ startRow + j, endColumnIndex ],
+            xlWorkSheet.Cells [ startRow + j, endColumnIndex ] ].Left ),
+          Convert.ToSingle( xlWorkSheet.Range [
+            xlWorkSheet.Cells [ startRow + j, endColumnIndex ],
+            xlWorkSheet.Cells [ startRow + j, endColumnIndex ] ].Top ),
+          15 * 1.808f, 13.5f );
+        shape.Fill.ForeColor.RGB = ColorTranslator.ToOle( WorksheetFormater.GetColor( color.Code ) );
+        shape.Line.Visible = MsoTriState.msoFalse;
+        xlWorkSheet.Cells [ startRow + j, endColumnIndex - 4 ] = color.Name;
+      }
+      else {
+        var shape = xlWorkSheet.Shapes.AddShape(
+          MsoAutoShapeType.msoShapeRectangle,
+          Convert.ToSingle( xlWorkSheet.Range [
+            xlWorkSheet.Cells [ startRow + j, endColumnIndex ],
+            xlWorkSheet.Cells [ startRow + j, endColumnIndex ] ].Left ),
+          Convert.ToSingle( xlWorkSheet.Range [
+            xlWorkSheet.Cells [ startRow + j, endColumnIndex ],
+            xlWorkSheet.Cells [ startRow + j, endColumnIndex ] ].Top ) + 5f,
+          15 * 1.808f, 5 );
+        shape.Fill.ForeColor.RGB = ColorTranslator.ToOle( WorksheetFormater.GetColor( color.Code ) );
+        shape.Line.Visible = MsoTriState.msoFalse;
+        xlWorkSheet.Cells [ startRow + j, endColumnIndex - 4 ] = color.Name;
+      }
+      iColor++;
+      if ( iColor >= colors.Count ) {
+        break;
+      }
+    }
 
-
-  //}
+    xlWorkSheet.Cells [ 4, startColumn - 5 ] = "凡例:";
+  }
 }
 
 public class ChartStepwork

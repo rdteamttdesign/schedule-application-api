@@ -8,12 +8,12 @@ namespace SchedulingTool.Api.ExportExcel;
 
 public static class WorksheetFormater
 {
-  public static void CreateTitle( this ExcelWorksheet ws, int columnCount, int numberOfMonths )
+  public static void CreateTitle( this ExcelWorksheet ws, string title, int columnCount, int numberOfMonths )
   {
     ws.Cells [ 2, 2, 2, columnCount + 1 + numberOfMonths * 6 + 2 ].Merge = true;
     ws.Cells [ 2, 2, 2, columnCount + 1 + numberOfMonths * 6 + 1 ].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
     ws.Cells [ 2, 2, 2, columnCount + 1 + numberOfMonths * 6 + 1 ].Style.VerticalAlignment = ExcelVerticalAlignment.Bottom;
-    ws.Cells [ 2, 2 ].Value = "21号橋 上部工工事工程表(その1)";
+    ws.Cells [ 2, 2 ].Value = $"【{title}】";
     ws.Cells [ 2, 2 ].Style.Font.Size = 27;
 
     //ws.Cells [ 5, 2 ].Value = "【○○○工法】";

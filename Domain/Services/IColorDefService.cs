@@ -10,6 +10,7 @@ public interface IColorDefService
   Task<ServiceResponse<ColorDef>> DeleteColorDef( long colorDefId );
   Task<ColorDef?> GetColor( long colorId );
   Task<IEnumerable<ColorDef>> GetBackgroundColorDefsByProjectId( long projectId );
+  Task<IEnumerable<ColorDef>> GetAllColorDefsByProjectId( long projectId );
   Task<IEnumerable<ColorDef>> GetStepworkColorDefsByProjectId( long projectId );
   Task<ServiceResponse<ColorDef>> UpdateColorDef( ColorDef colorDef );
   Task DuplicateColorDefs( long fromProjectId, long toProjectId );

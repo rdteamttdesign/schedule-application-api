@@ -76,4 +76,9 @@ public class ColorDefService : IColorDefService
   {
     await _colorDefRepository.DuplicateColorDefs( fromProjectId, toProjectId );
   }
+
+  public async Task<IEnumerable<ColorDef>> GetAllColorDefsByProjectId( long projectId )
+  {
+    return await _colorDefRepository.GeAllColorDefsByProjectId( projectId );
+  }
 }

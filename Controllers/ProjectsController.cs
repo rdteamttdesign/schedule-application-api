@@ -1,8 +1,10 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.CodeAnalysis;
 using SchedulingTool.Api.Domain.Models;
 using SchedulingTool.Api.Domain.Services;
 using SchedulingTool.Api.Resources;
+using System.Collections;
 
 namespace SchedulingTool.Api.Controllers;
 
@@ -11,6 +13,7 @@ namespace SchedulingTool.Api.Controllers;
 public class ProjectsController : ControllerBase
 {
   private readonly IMapper _mapper;
+  private readonly IProjectService _projectService;
   private readonly IProjectSettingService _projectSettingService;
   private readonly IGroupTaskService _groupTaskService;
   private readonly ITaskService _taskService;
@@ -22,6 +25,7 @@ public class ProjectsController : ControllerBase
 
   public ProjectsController(
     IMapper mapper,
+    IProjectService projectService,
     IProjectSettingService projectSettingService,
     IGroupTaskService groupTaskService,
     ITaskService taskService,
@@ -38,25 +42,36 @@ public class ProjectsController : ControllerBase
     _predecessorService = predecessorService;
     _colorService = colorService;
     _projectSettingService = projectSettingService;
+    _projectService = projectService;
     _backgroundService = backgroundService;
     _viewService = viewService;
   }
 
   [HttpGet( "{projectId}/download" )]
-  //[Authorize]
   public async Task<IActionResult> DownloadFile( long projectId )
   {
+    var project = await _projectService.GetProject( projectId );
     var groupTaskResources = await GetGroupTaskResourcesByProjectId( projectId );
     var bgResources = await GetBackgrounds( projectId );
+    var usedColor = await GetUsedColor( projectId, groupTaskResources, bgResources );
     var setting = await _projectSettingService.GetProjectSetting( projectId );
     var viewResources = await GetViewTasks( projectId );
-    if ( ExportExcel.ExportExcel.GetFile( setting!, viewResources, groupTaskResources, bgResources, out var result ) ) {
+    if ( ExportExcel.ExportExcel.GetFile( project!.ProjectName, setting!, usedColor, viewResources, groupTaskResources, bgResources, out var result ) ) {
       var fileBytes = System.IO.File.ReadAllBytes( result );
       return File( fileBytes, System.Net.Mime.MediaTypeNames.Application.Octet, $"{Guid.NewGuid()}.xlsx" );
     }
     else {
       return BadRequest( result );
     }
+  }
+
+  private async Task<IEnumerable<ColorDef>> GetUsedColor( long projectId, IEnumerable<GroupTaskDetailResource> tasks, IEnumerable<ProjectBackgroundResource> background )
+  {
+    var colorSetting = await _colorService.GetAllColorDefsByProjectId( projectId );
+    var usedStepworkColorIds = tasks.SelectMany( x => x.Tasks ).SelectMany( x => x.Stepworks ).Select( x => x.ColorId );
+    var usedBgColorIds = background.Select( x => x.ColorId );
+
+    return colorSetting.Where( x => usedStepworkColorIds.Contains( x.ColorId ) || usedBgColorIds.Contains( x.ColorId ) );
   }
 
   private async Task<Dictionary<View, List<ViewTaskDetail>>> GetViewTasks( long projectId )

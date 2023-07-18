@@ -18,6 +18,11 @@ public class ColorDefRepository : GenericRepository<ColorDef>, IColorDefReposito
     return await _context.ColorDefs.Where( c => c.ProjectId == projectId && c.Type == ( int ) Domain.Models.Enum.ColorType.Background ).ToListAsync();
   }
 
+  public async Task<IEnumerable<ColorDef>> GeAllColorDefsByProjectId( long projectId )
+  {
+    return await _context.ColorDefs.Where( c => c.ProjectId == projectId ).ToListAsync();
+  }
+
   public async Task<IEnumerable<ColorDef>> GetStepworkColorDefsByProjectId( long projectId )
   {
     return await _context.ColorDefs.Where( c => c.ProjectId == projectId && c.Type == ( int ) Domain.Models.Enum.ColorType.Stepwork ).ToListAsync();

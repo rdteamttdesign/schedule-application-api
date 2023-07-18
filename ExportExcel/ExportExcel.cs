@@ -8,7 +8,9 @@ namespace SchedulingTool.Api.ExportExcel;
 public static class ExportExcel
 {
   public static bool GetFile(
+    string projectName,
     ProjectSetting setting,
+    IEnumerable<ColorDef> usedcolors,
     Dictionary<View, List<ViewTaskDetail>> viewTasks,
     IEnumerable<GroupTaskDetailResource> grouptasks,
     IEnumerable<ProjectBackgroundResource> backgrounds,
@@ -72,7 +74,7 @@ public static class ExportExcel
       // Clear shapes
       sheet.Drawings.Clear();
 
-      sheet.CreateTitle( numberOfContents, numberOfMonths );
+      sheet.CreateTitle( projectName, numberOfContents, numberOfMonths );
 
       sheet.FormatChartTable(
         startRow: 7,
@@ -104,7 +106,7 @@ public static class ExportExcel
 
         sheet2.Cells.Style.Font.Name = "MS Gothic";
 
-        sheet2.CreateTitle( numberOfContents, numberOfMonths );
+        sheet2.CreateTitle( projectName, numberOfContents, numberOfMonths );
 
         sheet2.FormatChartTable(
           startRow: 7,
@@ -138,6 +140,7 @@ public static class ExportExcel
 
       var xlWorkSheet = ( Worksheet ) xlWorkBook.Worksheets.get_Item( 1 );
       xlWorkSheet.DrawChart( data );
+      xlWorkSheet.AddLegend( usedcolors.OrderBy( x => x.Type ).ToList(), 10 + numberOfMonths * 6 + 1 );
 
       for ( int j = 2; j < viewTasks.Count + 2; j++ ) {
         var xlWorkSheet2 = ( Worksheet ) xlWorkBook.Worksheets.get_Item( j );

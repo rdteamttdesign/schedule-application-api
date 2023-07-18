@@ -9,5 +9,7 @@ public interface IColorDefRepository : IGenericRepository<ColorDef>
 
   Task<IEnumerable<ColorDef>> GetStepworkColorDefsByProjectId( long projectId );
 
+  Task<IEnumerable<ColorDef>> GeAllColorDefsByProjectId( long projectId );
+
   Task DuplicateColorDefs( long fromProjectId, long toProjectId );
 }

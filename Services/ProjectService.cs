@@ -28,10 +28,9 @@ public class ProjectService : IProjectService
     await _projectRepository.BatchDeleteProjectDetails( projectId );
   }
 
-  public async Task<Project?> GetProject( long userId, long projectId )
+  public async Task<Project?> GetProject( long projectId )
   {
-    var project = await _projectRepository.GetById( projectId );
-    return ( ( project?.IsActivated ?? false ) && project?.UserId == userId ) ? project : null;
+    return await _projectRepository.GetById( projectId );
   }
 
   public async Task<ServiceResponse<Project>> CreateProject( Project project )
