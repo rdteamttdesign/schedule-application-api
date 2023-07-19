@@ -102,7 +102,7 @@ public static class WorksheetContentUtils
         var isClosed = Math.Abs( stepwork.Start + stepwork.Duration - relatedStepwork.Start ) < 10e-6;
         var connectorType = isClosed ? MsoConnectorType.msoConnectorStraight : MsoConnectorType.msoConnectorElbow;
         var connection = xlWorkSheet.Shapes.AddConnector( connectorType, 1, 1, 1, 1 );
-        connection.Line.ForeColor.RGB = ColorTranslator.ToOle( stepwork.Color );
+        connection.Line.ForeColor.RGB = ColorTranslator.ToOle( relatedStepwork.Color );
         connection.ConnectorFormat.BeginConnect( stepwork.Shape, 4 );
         connection.ConnectorFormat.EndConnect( relatedStepwork.Shape, 2 );
         if ( connectorType == MsoConnectorType.msoConnectorElbow ) {
@@ -120,7 +120,7 @@ public static class WorksheetContentUtils
         isClosed = Math.Abs( stepwork.Start - relatedStepwork.Start ) < 10e-6;
         connectorType = isClosed ? MsoConnectorType.msoConnectorStraight : MsoConnectorType.msoConnectorElbow;
         connection = xlWorkSheet.Shapes.AddConnector( connectorType, 1, 1, 1, 1 );
-        connection.Line.ForeColor.RGB = ColorTranslator.ToOle( stepwork.Color );
+        connection.Line.ForeColor.RGB = ColorTranslator.ToOle( relatedStepwork.Color );
         connection.ConnectorFormat.BeginConnect( relatedStepwork.Shape, 2 );
         connection.ConnectorFormat.EndConnect( stepwork.Shape, 2 );
         if ( connectorType == MsoConnectorType.msoConnectorElbow ) {
@@ -136,7 +136,7 @@ public static class WorksheetContentUtils
         isClosed = Math.Abs( stepwork.Start + stepwork.Duration - relatedStepwork.Start - relatedStepwork.Duration ) < 10e-6;
         connectorType = isClosed ? MsoConnectorType.msoConnectorStraight : MsoConnectorType.msoConnectorElbow;
         connection = xlWorkSheet.Shapes.AddConnector( connectorType, 1, 1, 1, 1 );
-        connection.Line.ForeColor.RGB = ColorTranslator.ToOle( stepwork.Color );
+        connection.Line.ForeColor.RGB = ColorTranslator.ToOle( relatedStepwork.Color );
         connection.ConnectorFormat.BeginConnect( relatedStepwork.Shape, 4 );
         connection.ConnectorFormat.EndConnect( stepwork.Shape, 4 );
         if ( connectorType == MsoConnectorType.msoConnectorElbow ) {
