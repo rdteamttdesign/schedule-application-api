@@ -27,6 +27,7 @@ namespace SchedulingTool.Api.Persistence.Context
         public virtual DbSet<Project> Projects { get; set; } = null!;
         public virtual DbSet<ProjectBackground> ProjectBackgrounds { get; set; } = null!;
         public virtual DbSet<ProjectSetting> ProjectSettings { get; set; } = null!;
+        public virtual DbSet<ProjectVersion> ProjectVersions { get; set; } = null!;
         public virtual DbSet<Stepwork> Stepworks { get; set; } = null!;
         public virtual DbSet<Task> Tasks { get; set; } = null!;
         public virtual DbSet<User> Users { get; set; } = null!;
@@ -201,25 +202,6 @@ namespace SchedulingTool.Api.Persistence.Context
                 entity.Property(e => e.ProjectName)
                     .HasMaxLength(125)
                     .HasColumnName("project_name");
-
-                entity.HasMany(d => d.Versions)
-                    .WithMany(p => p.Projects)
-                    .UsingEntity<Dictionary<string, object>>(
-                        "ProjectVersion",
-                        l => l.HasOne<Version>().WithMany().HasForeignKey("VersionId").OnDelete(DeleteBehavior.ClientSetNull).HasConstraintName("fk_project_version_version"),
-                        r => r.HasOne<Project>().WithMany().HasForeignKey("ProjectId").OnDelete(DeleteBehavior.ClientSetNull).HasConstraintName("fk_project_version_project"),
-                        j =>
-                        {
-                            j.HasKey("ProjectId", "VersionId").HasName("PRIMARY").HasAnnotation("MySql:IndexPrefixLength", new[] { 0, 0 });
-
-                            j.ToTable("project_version");
-
-                            j.HasIndex(new[] { "VersionId" }, "fk_project_version_version_idx");
-
-                            j.IndexerProperty<long>("ProjectId").HasColumnName("project_id");
-
-                            j.IndexerProperty<long>("VersionId").HasColumnName("version_id");
-                        });
             });
 
             modelBuilder.Entity<ProjectBackground>(entity =>
@@ -292,6 +274,37 @@ namespace SchedulingTool.Api.Persistence.Context
                     .HasForeignKey<ProjectSetting>(d => d.VersionId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("fk_project_setting_project");
+            });
+
+            modelBuilder.Entity<ProjectVersion>(entity =>
+            {
+                entity.HasKey(e => new { e.ProjectId, e.VersionId })
+                    .HasName("PRIMARY")
+                    .HasAnnotation("MySql:IndexPrefixLength", new[] { 0, 0 });
+
+                entity.ToTable("project_version");
+
+                entity.HasIndex(e => e.VersionId, "fk_project_version_version_idx")
+                    .IsUnique();
+
+                entity.HasIndex(e => e.ProjectId, "project_id_UNIQUE")
+                    .IsUnique();
+
+                entity.Property(e => e.ProjectId).HasColumnName("project_id");
+
+                entity.Property(e => e.VersionId).HasColumnName("version_id");
+
+                entity.HasOne(d => d.Project)
+                    .WithOne(p => p.ProjectVersion)
+                    .HasForeignKey<ProjectVersion>(d => d.ProjectId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("fk_project_version_project");
+
+                entity.HasOne(d => d.Version)
+                    .WithOne(p => p.ProjectVersion)
+                    .HasForeignKey<ProjectVersion>(d => d.VersionId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("fk_project_version_version");
             });
 
             modelBuilder.Entity<Stepwork>(entity =>

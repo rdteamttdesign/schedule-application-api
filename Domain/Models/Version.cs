@@ -11,7 +11,6 @@ namespace SchedulingTool.Api.Domain.Models
             GroupTasks = new HashSet<GroupTask>();
             ProjectBackgrounds = new HashSet<ProjectBackground>();
             Views = new HashSet<View>();
-            Projects = new HashSet<Project>();
         }
 
         public long VersionId { get; set; }
@@ -23,11 +22,10 @@ namespace SchedulingTool.Api.Domain.Models
         public int NumberOfMonths { get; set; }
 
         public virtual ProjectSetting? ProjectSetting { get; set; }
+        public virtual ProjectVersion? ProjectVersion { get; set; }
         public virtual ICollection<ColorDef> ColorDefs { get; set; }
         public virtual ICollection<GroupTask> GroupTasks { get; set; }
         public virtual ICollection<ProjectBackground> ProjectBackgrounds { get; set; }
         public virtual ICollection<View> Views { get; set; }
-
-        public virtual ICollection<Project> Projects { get; set; }
     }
 }
