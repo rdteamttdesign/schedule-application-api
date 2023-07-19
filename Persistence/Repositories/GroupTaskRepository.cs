@@ -14,6 +14,6 @@ public class GroupTaskRepository : GenericRepository<GroupTask>, IGroupTaskRepos
   
   public async Task<IEnumerable<GroupTask>> GetGroupTasksByProjectId( long projectId )
   {
-    return await _context.GroupTasks.Where( gt => gt.ProjectId == projectId ).ToListAsync();
+    return await _context.GroupTasks.Where( gt => gt.VersionId == projectId ).ToListAsync();
   }
 }

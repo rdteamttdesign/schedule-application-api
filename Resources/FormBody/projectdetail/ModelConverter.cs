@@ -25,7 +25,7 @@ public class ModelConverter
           {
             LocalId = grouptaskFormData.Id,
             GroupTaskName = grouptaskFormData.Name!,
-            ProjectId = projectId,
+            VersionId = projectId,
             Index = grouptaskFormData.DisplayOrder,
             HideChidren = grouptaskFormData.HideChildren ?? false
           } );

@@ -58,7 +58,7 @@ public class ViewsController : ControllerBase
     var view = new View()
     {
       ViewName = formData.ViewName,
-      ProjectId = projectId
+      VersionId = projectId
     };
     var result = await _viewService.CreateView( view );
     if ( !result.Success ) {

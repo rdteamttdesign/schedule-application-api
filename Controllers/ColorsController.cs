@@ -59,7 +59,7 @@ public class ColorsController : ControllerBase
       Name = formData.Name,
       Code = formData.Code,
       Type = formData.Type,
-      ProjectId = projectId
+      VersionId = projectId
     };
     var result = await _colorDefService.CreateColorDef( newColor );
     if ( !result.Success ) {

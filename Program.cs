@@ -137,8 +137,8 @@ builder.Services.AddAuthentication( JwtBearerDefaults.AuthenticationScheme )
 //builder.Services.AddScoped<IUserRepository, UserRepository>();
 //builder.Services.AddScoped<IUserService, UserService>();
 
-builder.Services.AddScoped<IProjectRepository, ProjectRepository>();
-builder.Services.AddScoped<IProjectService, ProjectService>();
+builder.Services.AddScoped<IVersionRepository, VersionRepository>();
+builder.Services.AddScoped<IVersionService, VersionService>();
 
 builder.Services.AddScoped<IProjectSettingRepository, ProjectSettingRepository>();
 builder.Services.AddScoped<IProjectSettingService, ProjectSettingService>();

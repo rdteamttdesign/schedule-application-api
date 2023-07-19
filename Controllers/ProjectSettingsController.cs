@@ -18,14 +18,14 @@ public class ProjectSettingsController : ControllerBase
   private readonly IProjectSettingService _projectSettingService;
   private readonly IColorDefService _colorDefService;
   private readonly IBackgroundService _backgroundService;
-  private readonly IProjectService _projectService;
+  private readonly IVersionService _projectService;
 
   public ProjectSettingsController(
     IMapper mapper,
     IProjectSettingService projectSettingService,
     IColorDefService colorDefService,
     IBackgroundService backgroundService,
-    IProjectService projectService )
+    IVersionService projectService )
   {
     _mapper = mapper;
     _projectSettingService = projectSettingService;
@@ -39,7 +39,7 @@ public class ProjectSettingsController : ControllerBase
   public async Task<IActionResult> GetProjectSetting( long projectId )
   {
     var userId = long.Parse( HttpContext.User.Claims.FirstOrDefault( x => x.Type.ToLower() == "sid" )?.Value! );
-    var project = await _projectService.GetProject( userId, projectId );
+    var project = await _projectService.GetVersion( userId, projectId );
     if ( project == null ) {
       return BadRequest( ProjectSettingNotification.NonExisted );
     }
@@ -79,7 +79,7 @@ public class ProjectSettingsController : ControllerBase
 
     #region Save number of months
     var userId = long.Parse( HttpContext.User.Claims.FirstOrDefault( x => x.Type.ToLower() == "sid" )?.Value! );
-    var project = await _projectService.GetProject( userId, projectId );
+    var project = await _projectService.GetVersion( userId, projectId );
     if ( project == null ) {
       return BadRequest( ProjectSettingNotification.NonExisted );
     }
@@ -116,7 +116,7 @@ public class ProjectSettingsController : ControllerBase
           Name = stepworkColorData.Name,
           Code = stepworkColorData.Code,
           Type = 2,
-          ProjectId = projectId
+          VersionId = projectId
         };
         await _colorDefService.CreateColorDef( newColor );
       }
@@ -147,7 +147,7 @@ public class ProjectSettingsController : ControllerBase
           Name = backgroundColorData.Name,
           Code = backgroundColorData.Code,
           Type = 1,
-          ProjectId = projectId
+          VersionId = projectId
         };
         var bgResult = await _colorDefService.CreateColorDef( newColor );
         if ( bgResult.Success ) {

@@ -14,12 +14,12 @@ public class ProjectBackgroundsController : ControllerBase
 {
   private readonly IMapper _mapper;
   private readonly IBackgroundService _backgroundService;
-  private readonly IProjectService _projectService;
+  private readonly IVersionService _projectService;
 
   public ProjectBackgroundsController(
     IMapper mapper,
     IBackgroundService backgroundService,
-    IProjectService projectService )
+    IVersionService projectService )
   {
     _mapper = mapper;
     _backgroundService = backgroundService;
@@ -31,7 +31,7 @@ public class ProjectBackgroundsController : ControllerBase
   public async Task<IActionResult> GetProjectBackgrounds( long projectId )
   {
     var userId = long.Parse( HttpContext.User.Claims.FirstOrDefault( x => x.Type.ToLower() == "sid" )?.Value! );
-    var project = await _projectService.GetProject( userId, projectId );
+    var project = await _projectService.GetVersion( userId, projectId );
     if ( project == null ) {
       return BadRequest( ProjectNotification.NonExisted );
     }
@@ -48,7 +48,7 @@ public class ProjectBackgroundsController : ControllerBase
   public async Task<IActionResult> DeleteProjectBackgroundsFromMonth( long projectId, [FromBody] DeleteBackgroundsFormBody formBody )
   {
     var userId = long.Parse( HttpContext.User.Claims.FirstOrDefault( x => x.Type.ToLower() == "sid" )?.Value! );
-    var project = await _projectService.GetProject( userId, projectId );
+    var project = await _projectService.GetVersion( userId, projectId );
     if ( project == null ) {
       return BadRequest( ProjectNotification.NonExisted );
     }
@@ -66,7 +66,7 @@ public class ProjectBackgroundsController : ControllerBase
   public async Task<IActionResult> UpdateProjectBackgroundsFromMonth( long projectId, [FromBody] ICollection<BackgroundFormBody> formBody )
   {
     var userId = long.Parse( HttpContext.User.Claims.FirstOrDefault( x => x.Type.ToLower() == "sid" )?.Value! );
-    var project = await _projectService.GetProject( userId, projectId );
+    var project = await _projectService.GetVersion( userId, projectId );
     if ( project == null ) {
       return BadRequest( ProjectNotification.NonExisted );
     }

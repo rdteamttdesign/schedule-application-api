@@ -6,6 +6,7 @@ using SchedulingTool.Api.Resources.Extended;
 using SchedulingTool.Api.Resources.FormBody.projectdetail;
 using SchedulingTool.Api.Resources.projectdetail;
 using Task = SchedulingTool.Api.Domain.Models.Task;
+using Version = SchedulingTool.Api.Domain.Models.Version;
 
 namespace SchedulingTool.Api.Mapping;
 
@@ -19,7 +20,7 @@ public class ModelToResourceProfile : Profile
       .ForMember( a => a.AccessExpiration, opt => opt.MapFrom( a => a.Expiration ) )
       .ForMember( a => a.RefreshExpiration, opt => opt.MapFrom( a => a.RefreshToken.Expiration ) );
 
-    CreateMap<Project, ProjectResource>();
+    CreateMap<Version, ProjectResource>();
     CreateMap<ColorDef, ColorDefResource>();
     CreateMap<ColorDef, BackgroundColorResource>();
     CreateMap<ProjectSetting, ProjectSettingResource>();
