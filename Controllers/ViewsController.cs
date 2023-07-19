@@ -7,7 +7,6 @@ using SchedulingTool.Api.Extension;
 using SchedulingTool.Api.Notification;
 using SchedulingTool.Api.Resources;
 using SchedulingTool.Api.Resources.FormBody;
-using ModelTask = SchedulingTool.Api.Domain.Models.Task;
 
 namespace SchedulingTool.Api.Controllers;
 
@@ -18,8 +17,6 @@ public class ViewsController : ControllerBase
   private readonly IMapper _mapper;
   private readonly IViewService _viewService;
   private readonly IViewTaskService _viewTaskService;
-  private readonly ITaskService _taskService;
-  private readonly IGroupTaskService _groupTaskService;
   private readonly IStepworkService _stepworkService;
 
   public ViewsController(
@@ -33,8 +30,6 @@ public class ViewsController : ControllerBase
     _mapper = mapper;
     _viewService = viewService;
     _viewTaskService = viewTaskService;
-    _taskService = taskService;
-    _groupTaskService = groupTaskService;
     _stepworkService = stepworkService;
   }
 
