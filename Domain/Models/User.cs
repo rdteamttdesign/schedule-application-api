@@ -5,6 +5,11 @@ namespace SchedulingTool.Api.Domain.Models
 {
     public partial class User
     {
+        public User()
+        {
+            Projects = new HashSet<Project>();
+        }
+
         public long UserId { get; set; }
         public string UserName { get; set; } = null!;
         public string Password { get; set; } = null!;
@@ -14,5 +19,7 @@ namespace SchedulingTool.Api.Domain.Models
         public ulong? IsOnline { get; set; }
         public DateTime? CreatedDate { get; set; }
         public long? CreatedBy { get; set; }
+
+        public virtual ICollection<Project> Projects { get; set; }
     }
 }

@@ -194,14 +194,32 @@ namespace SchedulingTool.Api.Persistence.Context
             {
                 entity.ToTable("project");
 
+                entity.HasIndex(e => e.UserId, "fk_project_user_idx");
+
                 entity.HasIndex(e => e.ProjectId, "project_id_UNIQUE")
                     .IsUnique();
 
                 entity.Property(e => e.ProjectId).HasColumnName("project_id");
 
+                entity.Property(e => e.CreatedDate)
+                    .HasColumnType("datetime")
+                    .HasColumnName("created_date");
+
+                entity.Property(e => e.ModifiedDate)
+                    .HasColumnType("datetime")
+                    .HasColumnName("modified_date");
+
                 entity.Property(e => e.ProjectName)
                     .HasMaxLength(125)
                     .HasColumnName("project_name");
+
+                entity.Property(e => e.UserId).HasColumnName("user_id");
+
+                entity.HasOne(d => d.User)
+                    .WithMany(p => p.Projects)
+                    .HasForeignKey(d => d.UserId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("fk_project_user");
             });
 
             modelBuilder.Entity<ProjectBackground>(entity =>
