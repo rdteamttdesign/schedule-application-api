@@ -58,14 +58,14 @@ public class VersionsController : ControllerBase
     _viewTaskService = viewTaskService;
   }
 
-  [HttpPut( "versions/deactive-versions" )]  //-ok
-  //[Authorize]
+  [HttpPut( "versions/deactive-versions" )]
+  [Authorize]
   public async Task<IActionResult> DeactiveVersions( [FromBody] ICollection<long> versionIds )
   {
     if ( !ModelState.IsValid ) {
       return BadRequest( ModelState.GetErrorMessages() );
     }
-    var userId = 1;//long.Parse( HttpContext.User.Claims.FirstOrDefault( x => x.Type.ToLower() == "sid" )?.Value! );
+    var userId = long.Parse( HttpContext.User.Claims.FirstOrDefault( x => x.Type.ToLower() == "sid" )?.Value! );
     try {
       await _versionService.BatchDeactiveVersions( userId, versionIds );
       return NoContent();
@@ -75,8 +75,8 @@ public class VersionsController : ControllerBase
     }
   }
 
-  [HttpPut( "versions/{versionId}" )]  //ok
-  //[Authorize]
+  [HttpPut( "versions/{versionId}" )]
+  [Authorize]
   public async Task<IActionResult> UpdateVersion( long versionId, [FromBody] UpdateVersionFormData formData )
   {
     if ( !ModelState.IsValid ) {
@@ -98,10 +98,10 @@ public class VersionsController : ControllerBase
   }
 
   [HttpGet( "versions/{versionId}/details" )]
-  //[Authorize]
+  [Authorize]
   public async Task<IActionResult> GetProjectDetails( long versionId, int columnWidth, float amplifiedFactor )
   {
-    var userId = 1;//long.Parse( HttpContext.User.Claims.FirstOrDefault( x => x.Type.ToLower() == "sid" )?.Value! );
+    var userId = long.Parse( HttpContext.User.Claims.FirstOrDefault( x => x.Type.ToLower() == "sid" )?.Value! );
     var version = await _versionService.GetVersionById( versionId );
     if ( version == null ) {
       return BadRequest( ProjectNotification.NonExisted );
@@ -189,13 +189,13 @@ public class VersionsController : ControllerBase
   }
 
   [HttpPost( "versions/{versionId}/details" )]
-  //[Authorize]
+  [Authorize]
   public async Task<IActionResult> SaveProjectDetails( long versionId, [FromBody] ICollection<GroupTaskFormData> formData )
   {
     if ( !ModelState.IsValid ) {
       return BadRequest( ModelState.GetErrorMessages() );
     }
-    var userId = 1;//long.Parse( HttpContext.User.Claims.FirstOrDefault( x => x.Type.ToLower() == "sid" )?.Value! );
+    var userId = long.Parse( HttpContext.User.Claims.FirstOrDefault( x => x.Type.ToLower() == "sid" )?.Value! );
     var version = await _versionService.GetVersionById( versionId );
     if ( version == null ) {
       return BadRequest( ProjectNotification.NonExisted );
@@ -265,7 +265,7 @@ public class VersionsController : ControllerBase
   }
 
   [HttpPost( "versions/{versionId}/import" ), DisableRequestSizeLimit]
-  //[Authorize]
+  [Authorize]
   public async Task<IActionResult> Import( long versionId )
   {
     if ( !ModelState.IsValid ) {
@@ -309,11 +309,11 @@ public class VersionsController : ControllerBase
   }
 
   [HttpPost( "projects/{projectId}/versions/{versionId}/duplicate" )]
-  //[Authorize]
+  [Authorize]
   public async Task<IActionResult> DuplicateVersion( long projectId, long versionId )
   {
     try {
-      var userId = 1; //long.Parse( HttpContext.User.Claims.FirstOrDefault( x => x.Type.ToLower() == "sid" )?.Value! );
+      var userId = long.Parse( HttpContext.User.Claims.FirstOrDefault( x => x.Type.ToLower() == "sid" )?.Value! );
       var version = await _versionService.GetVersionById( versionId );
       if ( version == null ) {
         return BadRequest( ProjectNotification.NonExisted );

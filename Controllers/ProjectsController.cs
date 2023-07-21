@@ -7,10 +7,6 @@ using SchedulingTool.Api.Extension;
 using SchedulingTool.Api.Notification;
 using SchedulingTool.Api.Resources;
 using SchedulingTool.Api.Resources.FormBody;
-using SchedulingTool.Api.Resources.FormBody.projectdetail;
-using SchedulingTool.Api.Resources.projectdetail;
-using ModelTask = SchedulingTool.Api.Domain.Models.Task;
-using Task = System.Threading.Tasks.Task;
 using Version = SchedulingTool.Api.Domain.Models.Version;
 
 namespace SchedulingTool.Api.Controllers;
@@ -31,10 +27,10 @@ public class ProjectsController : ControllerBase
   } 
 
   [HttpGet()]
-  //[Authorize]
+  [Authorize]
   public async Task<IActionResult> GetProjects( [FromQuery] QueryProjectFormData formData )
   {
-    var userId = 1;//long.Parse( HttpContext.User.Claims.FirstOrDefault( x => x.Type.ToLower() == "sid" )?.Value! );
+    var userId = long.Parse( HttpContext.User.Claims.FirstOrDefault( x => x.Type.ToLower() == "sid" )?.Value! );
     var projects = await _projectService.GetProjectListByUserId( userId );
     if ( !projects.Any() ) {
       return Ok( new
@@ -63,13 +59,13 @@ public class ProjectsController : ControllerBase
   }
 
   [HttpPost()]
-  //[Authorize]
+  [Authorize]
   public async Task<IActionResult> CreateProject( [FromBody] NewProjectFormData formData )
   {
     if ( !ModelState.IsValid ) {
       return BadRequest( ModelState.GetErrorMessages() );
     }
-    var userId = 1;//long.Parse( HttpContext.User.Claims.FirstOrDefault( x => x.Type.ToLower() == "sid" )?.Value! );
+    var userId = long.Parse( HttpContext.User.Claims.FirstOrDefault( x => x.Type.ToLower() == "sid" )?.Value! );
     var version = new Version()
     {
       VersionName = formData.VersionName,
@@ -96,13 +92,13 @@ public class ProjectsController : ControllerBase
   }
 
   [HttpPut( "{projectId}" )]
-  //[Authorize]
+  [Authorize]
   public async Task<IActionResult> UpdateProject( long projectId, [FromBody] UpdateProjectFormData formData )
   {
     if ( !ModelState.IsValid ) {
       return BadRequest( ModelState.GetErrorMessages() );
     }
-    //var userId = long.Parse( HttpContext.User.Claims.FirstOrDefault( x => x.Type.ToLower() == "sid" )?.Value! );
+    var userId = long.Parse( HttpContext.User.Claims.FirstOrDefault( x => x.Type.ToLower() == "sid" )?.Value! );
     var existingProject = await _projectService.GetProjectById( projectId );
     if ( existingProject is null )
       return BadRequest( ProjectNotification.NonExisted );
