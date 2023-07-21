@@ -9,13 +9,14 @@ using SchedulingTool.Api.Resources;
 using SchedulingTool.Api.Resources.FormBody;
 using SchedulingTool.Api.Resources.FormBody.projectdetail;
 using SchedulingTool.Api.Resources.projectdetail;
+using System.Text.RegularExpressions;
 using ModelTask = SchedulingTool.Api.Domain.Models.Task;
 using Task = System.Threading.Tasks.Task;
 using Version = SchedulingTool.Api.Domain.Models.Version;
 
 namespace SchedulingTool.Api.Controllers;
 
-[Route( "api/[controller]" )]
+[Route( "api" )]
 [ApiController]
 public class VersionsController : ControllerBase
 {
@@ -57,7 +58,7 @@ public class VersionsController : ControllerBase
     _viewTaskService = viewTaskService;
   }
 
-  [HttpPut( "deactive-versions" )]  //-ok
+  [HttpPut( "versions/deactive-versions" )]  //-ok
   //[Authorize]
   public async Task<IActionResult> DeactiveVersions( [FromBody] ICollection<long> versionIds )
   {
@@ -74,7 +75,7 @@ public class VersionsController : ControllerBase
     }
   }
 
-  [HttpPut( "{versionId}" )]
+  [HttpPut( "versions/{versionId}" )]  //ok
   //[Authorize]
   public async Task<IActionResult> UpdateVersion( long versionId, [FromBody] UpdateVersionFormData formData )
   {
@@ -96,11 +97,11 @@ public class VersionsController : ControllerBase
     return Ok( resource );
   }
 
-  [HttpGet( "{versionId}/details" )]
+  [HttpGet( "versions/{versionId}/details" )]
   //[Authorize]
   public async Task<IActionResult> GetProjectDetails( long versionId, int columnWidth, float amplifiedFactor )
   {
-    var userId = long.Parse( HttpContext.User.Claims.FirstOrDefault( x => x.Type.ToLower() == "sid" )?.Value! );
+    var userId = 1;//long.Parse( HttpContext.User.Claims.FirstOrDefault( x => x.Type.ToLower() == "sid" )?.Value! );
     var version = await _versionService.GetVersionById( versionId );
     if ( version == null ) {
       return BadRequest( ProjectNotification.NonExisted );
@@ -187,14 +188,14 @@ public class VersionsController : ControllerBase
     return result.OrderBy( o => o.Key ).Select( o => o.Value );
   }
 
-  [HttpPost( "{versionId}/details" )]
+  [HttpPost( "versions/{versionId}/details" )]
   //[Authorize]
   public async Task<IActionResult> SaveProjectDetails( long versionId, [FromBody] ICollection<GroupTaskFormData> formData )
   {
     if ( !ModelState.IsValid ) {
       return BadRequest( ModelState.GetErrorMessages() );
     }
-    var userId = long.Parse( HttpContext.User.Claims.FirstOrDefault( x => x.Type.ToLower() == "sid" )?.Value! );
+    var userId = 1;//long.Parse( HttpContext.User.Claims.FirstOrDefault( x => x.Type.ToLower() == "sid" )?.Value! );
     var version = await _versionService.GetVersionById( versionId );
     if ( version == null ) {
       return BadRequest( ProjectNotification.NonExisted );
@@ -263,7 +264,7 @@ public class VersionsController : ControllerBase
     }
   }
 
-  [HttpPost( "{versionId}/import" ), DisableRequestSizeLimit]
+  [HttpPost( "versions/{versionId}/import" ), DisableRequestSizeLimit]
   //[Authorize]
   public async Task<IActionResult> Import( long versionId )
   {
@@ -307,15 +308,13 @@ public class VersionsController : ControllerBase
     return Ok( new { Messages = messages, Result = result } );
   }
 
-
-  // Chưa tạo liên kết project - version
-  [HttpPost( "{versionId}/duplicate" )]
+  [HttpPost( "projects/{projectId}/versions/{versionId}/duplicate" )]
   //[Authorize]
-  public async Task<IActionResult> DuplicateVersion( long versionId )
+  public async Task<IActionResult> DuplicateVersion( long projectId, long versionId )
   {
     try {
       var userId = 1; //long.Parse( HttpContext.User.Claims.FirstOrDefault( x => x.Type.ToLower() == "sid" )?.Value! );
-      var version = await _versionService.GetVersionById(versionId);
+      var version = await _versionService.GetVersionById( versionId );
       if ( version == null ) {
         return BadRequest( ProjectNotification.NonExisted );
       }
@@ -324,22 +323,16 @@ public class VersionsController : ControllerBase
       var versionName = $"Copy of {version.VersionName}";
 
       var latestName = versions.Select( p => p.VersionName )
-        .Where( name => name.Contains( versionName ) )
-        .OrderBy( x => x ).FirstOrDefault();
+        .Where( name => Regex.IsMatch( name, $"{versionName} \\([1-9]\\)" ) )
+        .OrderByDescending( x => x ).FirstOrDefault();
 
       if ( latestName != null ) {
-        var suffix = latestName.Split( "_" );
-        if ( suffix.Length == 2 ) {
-          if ( int.TryParse( suffix [ 1 ], out var digit ) ) {
-            versionName += $"_{digit + 1}";
-          }
-          else {
-            versionName += "_1";
-          }
-        }
-        else {
-          versionName += "_1";
-        }
+        var duplicatedNumber = latestName.Replace( $"{versionName} ", "" ).Replace( "(", "" ).Replace( ")", "" );
+        int.TryParse( duplicatedNumber, out var digit );
+        versionName += $" ({digit})";
+      }
+      else {
+        versionName += " (1)";
       }
 
       var newVersion = new Version()
@@ -352,7 +345,7 @@ public class VersionsController : ControllerBase
         NumberOfMonths = version.NumberOfMonths
       };
 
-      var result = await _versionService.CreateVersion( newVersion );
+      var result = await _versionService.CreateVersion( projectId, newVersion );
       if ( !result.Success ) {
         return BadRequest( ProjectNotification.ErrorDuplicating );
       }

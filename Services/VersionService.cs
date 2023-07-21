@@ -1,4 +1,5 @@
-﻿using SchedulingTool.Api.Domain.Repositories;
+﻿using SchedulingTool.Api.Domain.Models;
+using SchedulingTool.Api.Domain.Repositories;
 using SchedulingTool.Api.Domain.Services;
 using SchedulingTool.Api.Domain.Services.Communication;
 using SchedulingTool.Api.Notification;
@@ -9,11 +10,16 @@ namespace SchedulingTool.Api.Services;
 
 public class VersionService : IVersionService
 {
+  private readonly IProjectVersionRepository _projectVersionRepository;
   private readonly IVersionRepository _versionRepository;
   private readonly IUnitOfWork _unitOfWork;
 
-  public VersionService( IVersionRepository versionRepository, IUnitOfWork unitOfWork )
+  public VersionService( 
+    IProjectVersionRepository projectVersionRepository,
+    IVersionRepository versionRepository, 
+    IUnitOfWork unitOfWork )
   {
+    _projectVersionRepository = projectVersionRepository;
     _versionRepository = versionRepository;
     _unitOfWork = unitOfWork;
   }
@@ -34,10 +40,12 @@ public class VersionService : IVersionService
     return ( version?.IsActivated ?? false ) ? version : null;
   }
 
-  public async Task<ServiceResponse<Version>> CreateVersion( Version version )
+  public async Task<ServiceResponse<Version>> CreateVersion( long projectId, Version version )
   {
     try {
       var newVersion = await _versionRepository.Create( version );
+      await _unitOfWork.CompleteAsync();
+      await _projectVersionRepository.Create( new ProjectVersion() { ProjectId = projectId, VersionId = version.VersionId } );
       await _unitOfWork.CompleteAsync();
       return new ServiceResponse<Version>( newVersion );
     }

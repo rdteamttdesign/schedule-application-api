@@ -298,16 +298,13 @@ namespace SchedulingTool.Api.Persistence.Context
                 entity.HasIndex(e => e.VersionId, "fk_project_version_version_idx")
                     .IsUnique();
 
-                entity.HasIndex(e => e.ProjectId, "project_id_UNIQUE")
-                    .IsUnique();
-
                 entity.Property(e => e.ProjectId).HasColumnName("project_id");
 
                 entity.Property(e => e.VersionId).HasColumnName("version_id");
 
                 entity.HasOne(d => d.Project)
-                    .WithOne(p => p.ProjectVersion)
-                    .HasForeignKey<ProjectVersion>(d => d.ProjectId)
+                    .WithMany(p => p.ProjectVersions)
+                    .HasForeignKey(d => d.ProjectId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("fk_project_version_project");
 
@@ -546,30 +543,7 @@ namespace SchedulingTool.Api.Persistence.Context
                     .HasConstraintName("fk_view_task_view");
             });
 
-      modelBuilder.Entity<ProjectVersionDetails>( entity =>
-      {
-        entity.HasNoKey();
-
-        entity.Property( e => e.ProjectId ).HasColumnName( "project_id" );
-
-        entity.Property( e => e.ProjectName ).HasColumnName( "project_name" );
-
-        entity.Property( e => e.VersionId ).HasColumnName( "version_id" );
-
-        entity.Property( e => e.VersionName ).HasColumnName( "version_name" );
-
-        entity.Property( e => e.UserId ).HasColumnName( "user_id" );
-
-        entity.Property( e => e.CreatedDate ).HasColumnName( "created_date" );
-
-        entity.Property( e => e.ModifiedDate ).HasColumnName( "modified_date" );
-
-        entity.Property( e => e.IsActivated ).HasColumnName( "is_activated" );
-
-        entity.Property( e => e.NumberOfMonths ).HasColumnName( "number_of_months" );
-      } );
-
-      OnModelCreatingPartial(modelBuilder);
+            OnModelCreatingPartial(modelBuilder);
         }
 
         partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
