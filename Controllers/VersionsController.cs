@@ -329,7 +329,7 @@ public class VersionsController : ControllerBase
       if ( latestName != null ) {
         var duplicatedNumber = latestName.Replace( $"{versionName} ", "" ).Replace( "(", "" ).Replace( ")", "" );
         int.TryParse( duplicatedNumber, out var digit );
-        versionName += $" ({digit})";
+        versionName += $" ({digit + 1})";
       }
       else {
         versionName += " (1)";
