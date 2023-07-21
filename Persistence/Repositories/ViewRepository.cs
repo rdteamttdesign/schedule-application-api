@@ -14,7 +14,7 @@ public class ViewRepository : GenericRepository<View>, IViewRepository
 
   public async Task<IEnumerable<View>> GetViewsByProjectId( long projectId )
   {
-    return await _context.Views.Where( view => view.ProjectId == projectId ).ToListAsync();
+    return await _context.Views.Where( view => view.VersionId == projectId ).ToListAsync();
   }
 
   public async Task DeleteView( long viewId, bool isDeleteView )

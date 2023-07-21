@@ -19,7 +19,7 @@ public class BackgroundRepository : GenericRepository<ProjectBackground>, IBackg
 
   public async Task<IEnumerable<ProjectBackground>> GetBackgroundsByProjectId( long projectId )
   {
-    return await _context.ProjectBackgrounds.Where( bg => bg.ProjectId == projectId ).ToListAsync();
+    return await _context.ProjectBackgrounds.Where( bg => bg.VersionId == projectId ).ToListAsync();
   }
 
   public async Task BatchCreate( long projectId, int numberOfMonths )

@@ -27,7 +27,7 @@ public class ColorsController : ControllerBase
   [Authorize]
   public async Task<IActionResult> GetBackgroundColorDefs( long projectId )
   {
-    var colors = await _colorDefService.GetBackgroundColorDefsByProjectId( projectId );
+    var colors = await _colorDefService.GetBackgroundColorDefsByVersionId( projectId );
     if ( !colors.Any() ) {
       return BadRequest( ColorDefNotification.NonExisted );
     }
@@ -39,7 +39,7 @@ public class ColorsController : ControllerBase
   [Authorize]
   public async Task<IActionResult> GetStepworkColorDefs( long projectId )
   {
-    var colors = await _colorDefService.GetStepworkColorDefsByProjectId( projectId );
+    var colors = await _colorDefService.GetStepworkColorDefsByVersionId( projectId );
     if ( !colors.Any() ) {
       return BadRequest( ColorDefNotification.NonExisted );
     }
@@ -59,7 +59,7 @@ public class ColorsController : ControllerBase
       Name = formData.Name,
       Code = formData.Code,
       Type = formData.Type,
-      ProjectId = projectId
+      VersionId = projectId
     };
     var result = await _colorDefService.CreateColorDef( newColor );
     if ( !result.Success ) {

@@ -1,15 +1,14 @@
 ﻿using SchedulingTool.Api.Domain.Models;
 using SchedulingTool.Api.Domain.Services.Communication;
-using Task = System.Threading.Tasks.Task;
+using SchedulingTool.Api.Resources;
+using Version = SchedulingTool.Api.Domain.Models.Version;
 
 namespace SchedulingTool.Api.Domain.Services;
 
 public interface IProjectService
 {
-  Task<ServiceResponse<Project>> CreateProject( Project project );
-  Task<IEnumerable<Project>> GetActiveProjects( long userId );
-  Task<Project?> GetProject( long userId, long projectId );
-  Task BatchDeactiveProjects( long userId, ICollection<long> projectIds );
+  Task<Project?> GetProjectById( long projectId );
   Task<ServiceResponse<Project>> UpdateProject( Project project );
-  Task BatchDeleteProjectDetails( long projectId );
+  Task<IEnumerable<ProjectListResource>> GetProjectListByUserId( long userId );
+  Task<ServiceResponse<ProjectListResource>> CreateProject( Project project, Version defaultVersion );
 }

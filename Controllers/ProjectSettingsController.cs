@@ -18,42 +18,42 @@ public class ProjectSettingsController : ControllerBase
   private readonly IProjectSettingService _projectSettingService;
   private readonly IColorDefService _colorDefService;
   private readonly IBackgroundService _backgroundService;
-  private readonly IProjectService _projectService;
+  private readonly IVersionService _versionService;
 
   public ProjectSettingsController(
     IMapper mapper,
     IProjectSettingService projectSettingService,
     IColorDefService colorDefService,
     IBackgroundService backgroundService,
-    IProjectService projectService )
+    IVersionService versionService )
   {
     _mapper = mapper;
     _projectSettingService = projectSettingService;
     _colorDefService = colorDefService;
     _backgroundService = backgroundService;
-    _projectService = projectService;
+    _versionService = versionService;
   }
 
-  [HttpGet( "projects/{projectId}/settings" )]
+  [HttpGet( "versions/{versionId}/settings" )]
   [Authorize]
-  public async Task<IActionResult> GetProjectSetting( long projectId )
+  public async Task<IActionResult> GetVersionSetting( long versionId )
   {
     var userId = long.Parse( HttpContext.User.Claims.FirstOrDefault( x => x.Type.ToLower() == "sid" )?.Value! );
-    var project = await _projectService.GetProject( userId, projectId );
-    if ( project == null ) {
+    var version = await _versionService.GetVersionById( versionId );
+    if ( version == null ) {
       return BadRequest( ProjectSettingNotification.NonExisted );
     }
-    var setting = await _projectSettingService.GetProjectSetting( projectId );
+    var setting = await _projectSettingService.GetProjectSetting( versionId );
     var resource = _mapper.Map<ProjectSettingResource>( setting );
-    resource.NumberOfMonths = project.NumberOfMonths;
+    resource.NumberOfMonths = version.NumberOfMonths;
 
-    var stepworkColors = await _colorDefService.GetStepworkColorDefsByProjectId( projectId );
+    var stepworkColors = await _colorDefService.GetStepworkColorDefsByVersionId( versionId );
     resource.StepworkColors = _mapper.Map<IEnumerable<ColorDefResource>>( stepworkColors ).ToList();
 
-    var backgroundColors = await _colorDefService.GetBackgroundColorDefsByProjectId( projectId );
+    var backgroundColors = await _colorDefService.GetBackgroundColorDefsByVersionId( versionId );
     resource.BackgroundColors = _mapper.Map<IEnumerable<BackgroundColorResource>>( backgroundColors ).ToList();
 
-    var backgrounds = await _backgroundService.GetBackgroundsByProjectId( projectId );
+    var backgrounds = await _backgroundService.GetBackgroundsByVersionId( versionId );
     var backgroundsGroupBy = backgrounds.Where( bg => bg.ColorId != null ).GroupBy( bg => bg.ColorId )?.ToDictionary( g => g.Key, g => g );
     foreach ( var backgroundColor in resource.BackgroundColors ) {
       if ( backgroundsGroupBy.ContainsKey( backgroundColor.ColorId ) ) {
@@ -65,9 +65,9 @@ public class ProjectSettingsController : ControllerBase
     return Ok( resource );
   }
 
-  [HttpPut( "projects/{projectId}/settings" )]
+  [HttpPut( "versions/{versionId}/settings" )]
   [Authorize]
-  public async Task<IActionResult> UpdateProjectSetting( long projectId, [FromBody] ProjectSettingFormData formData )
+  public async Task<IActionResult> UpdateProjectSetting( long versionId, [FromBody] ProjectSettingFormData formData )
   {
     if ( !ModelState.IsValid ) {
       return BadRequest( ModelState.GetErrorMessages() );
@@ -79,20 +79,20 @@ public class ProjectSettingsController : ControllerBase
 
     #region Save number of months
     var userId = long.Parse( HttpContext.User.Claims.FirstOrDefault( x => x.Type.ToLower() == "sid" )?.Value! );
-    var project = await _projectService.GetProject( userId, projectId );
-    if ( project == null ) {
+    var version = await _versionService.GetVersionById(versionId);
+    if ( version == null ) {
       return BadRequest( ProjectSettingNotification.NonExisted );
     }
-    if ( project.NumberOfMonths > formData.NumberOfMonths ) {
-      await _backgroundService.BatchDelete( projectId, formData.NumberOfMonths + 1 );
+    if ( version.NumberOfMonths > formData.NumberOfMonths ) {
+      await _backgroundService.BatchDelete( versionId, formData.NumberOfMonths + 1 );
     }
-    else if ( project.NumberOfMonths < formData.NumberOfMonths ) {
-      await _backgroundService.AddMonth( projectId, formData.NumberOfMonths - project.NumberOfMonths );
+    else if ( version.NumberOfMonths < formData.NumberOfMonths ) {
+      await _backgroundService.AddMonth( versionId, formData.NumberOfMonths - version.NumberOfMonths );
     }
     #endregion
 
     #region 
-    var setting = await _projectSettingService.GetProjectSetting( projectId );
+    var setting = await _projectSettingService.GetProjectSetting( versionId );
     if ( setting is null )
       return BadRequest( ProjectSettingNotification.NonExisted );
 
@@ -108,7 +108,7 @@ public class ProjectSettingsController : ControllerBase
     #endregion
 
     #region Save stepwork color
-    var stepworkColors = await _colorDefService.GetStepworkColorDefsByProjectId( projectId );
+    var stepworkColors = await _colorDefService.GetStepworkColorDefsByVersionId( versionId );
     foreach ( var stepworkColorData in formData.StepworkColors ) {
       if ( stepworkColorData.ColorId == null ) {
         var newColor = new ColorDef()
@@ -116,7 +116,7 @@ public class ProjectSettingsController : ControllerBase
           Name = stepworkColorData.Name,
           Code = stepworkColorData.Code,
           Type = 2,
-          ProjectId = projectId
+          VersionId = versionId
         };
         await _colorDefService.CreateColorDef( newColor );
       }
@@ -139,7 +139,7 @@ public class ProjectSettingsController : ControllerBase
     #endregion
 
     #region Save background color
-    var backgroundColors = await _colorDefService.GetBackgroundColorDefsByProjectId( projectId );
+    var backgroundColors = await _colorDefService.GetBackgroundColorDefsByVersionId( versionId );
     foreach ( var backgroundColorData in formData.BackgroundColors ) {
       if ( backgroundColorData.ColorId == null ) {
         var newColor = new ColorDef()
@@ -147,7 +147,7 @@ public class ProjectSettingsController : ControllerBase
           Name = backgroundColorData.Name,
           Code = backgroundColorData.Code,
           Type = 1,
-          ProjectId = projectId
+          VersionId = versionId
         };
         var bgResult = await _colorDefService.CreateColorDef( newColor );
         if ( bgResult.Success ) {
@@ -165,7 +165,7 @@ public class ProjectSettingsController : ControllerBase
       }
     }
 
-    var backgrounds = await _backgroundService.GetBackgroundsByProjectId( projectId );
+    var backgrounds = await _backgroundService.GetBackgroundsByVersionId( versionId );
     foreach ( var bg in backgrounds ) {
       var bgData = formData.BackgroundColors.FirstOrDefault( color => color.DisplayMonths.ToNumberArray().Any( x => x == bg.Month ) );
       if ( bgData == null ) {

@@ -39,55 +39,6 @@ public class ViewService : IViewService
     return await _viewRepository.GetById( viewId );
   }
 
-  public async Task<IEnumerable<object>> GetViewDetailById( View view, IEnumerable<GroupTask> groupTasks, List<ModelTask> tasks )
-  {
-    var result = new List<KeyValuePair<int, object>>();
-    // get group task
-    var groupTaskResources = _mapper.Map<List<GroupTaskResource>>( groupTasks );
-    groupTaskResources.ForEach( g => result.Add( new KeyValuePair<int, object>( g.DisplayOrder, g ) ) );
-    // get project setting
-    var projectSetting = await _projectSettingRepository.GetByProjectId( view.ProjectId );
-
-    // get task
-    IEnumerable<IGrouping<int?, ModelTask>> groupViewTasks = tasks.GroupBy( s => s.Group );
-    foreach ( IGrouping<int?, ModelTask> group in groupViewTasks ) {
-      if ( group.Count() == 1 || group.Key is null || group.Key == 0 ) {
-        foreach ( var task in group ) {
-          var stepworks = await _stepworkService.GetStepworksByTaskLocalId( group.First().LocalId );
-          var taskResource = _mapper.Map<TaskResource>( group.First() );
-          if ( stepworks.Count() == 1 ) {
-            taskResource.Predecessors = null;
-            taskResource.ColorId = stepworks.First().ColorId;
-            taskResource.Start = stepworks.First().Start;
-          }
-          else {
-            taskResource.Predecessors = null;
-            taskResource.ColorId = stepworks.First().ColorId;
-            taskResource.Start = stepworks.Min( s => s.Start );
-            taskResource.Duration = ( float ) ( stepworks.Max( s => s.Start + s.Duration * projectSetting!.ColumnWidth / 30 ) - taskResource.Start ) * 30 / projectSetting!.ColumnWidth;
-          }
-          result.Add( new KeyValuePair<int, object>( taskResource.DisplayOrder, taskResource ) );
-        }
-      }
-      else {
-        List<Stepwork> stepworkGroup = new();
-        List<TaskResource> taskGroup = new();
-        foreach ( var task in group ) {
-          var stepworks = await _stepworkService.GetStepworksByTaskLocalId( task.LocalId );
-          stepworkGroup.AddRange( stepworks );
-          var _ = _mapper.Map<TaskResource>( task );
-          _.ColorId = stepworks.First().ColorId;
-          taskGroup.Add( _mapper.Map<TaskResource>( task ) );
-        }
-        var start = stepworkGroup.Count() == 1 ? stepworkGroup.First().Start : stepworkGroup.Min( x => x.Start );
-        var duration = stepworkGroup.Count() == 1 ? stepworkGroup.First().Duration : ( float ) ( stepworkGroup.Max( s => s.Start + s.Duration * projectSetting!.ColumnWidth / 30 ) - start ) * 30 / projectSetting!.ColumnWidth;
-        taskGroup.ForEach( s => { s.Start = start; s.Duration = duration; } );
-        result.AddRange( taskGroup.Select( s => new KeyValuePair<int, object>( s.DisplayOrder, s ) ) );
-      }
-    }
-    return result.OrderBy( o => o.Key ).Select( o => o.Value );
-  }
-
   public async Task<IEnumerable<object>> GetViewDetailById( long projectId, IEnumerable<ViewTaskDetail> tasks )
   {
     var setting = await _projectSettingRepository.GetByProjectId( projectId );

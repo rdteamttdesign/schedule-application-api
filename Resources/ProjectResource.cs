@@ -6,7 +6,5 @@ public class ProjectResource
   public string ProjectName { get; set; } = null!;
   public long UserId { get; set; }
   public DateTime CreatedDate { get; set; }
-  public DateTime? ModifiedDate { get; set; }
-  public bool IsActivated { get; set; }
-  public int NumberOfMonths { get; set; }
+  public DateTime ModifiedDate { get; set; }
 }

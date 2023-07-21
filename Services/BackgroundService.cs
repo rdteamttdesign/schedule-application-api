@@ -19,7 +19,7 @@ public class BackgroundService : IBackgroundService
     _unitOfWork = unitOfWork;
   }
 
-  public async Task<IEnumerable<ProjectBackground>> GetBackgroundsByProjectId( long projectId )
+  public async Task<IEnumerable<ProjectBackground>> GetBackgroundsByVersionId( long projectId )
   {
     return await _backgroundRepository.GetBackgroundsByProjectId( projectId );
   }
