@@ -50,7 +50,7 @@ public class ProjectService : IProjectService
       return new ServiceResponse<ProjectListResource>( result );
     }
     catch ( Exception ex ) {
-      return new ServiceResponse<ProjectListResource>( $"{ex.Message}: {ex.StackTrace}" );
+      return new ServiceResponse<ProjectListResource>( $"{ex.Message}. {ex.InnerException?.Message}: {ex.StackTrace}" );
     }
   }
 
@@ -67,7 +67,7 @@ public class ProjectService : IProjectService
       return new ServiceResponse<Project>( project );
     }
     catch ( Exception ex ) {
-      return new ServiceResponse<Project>( $"{ProjectNotification.ErrorSaving} {ex.Message}" );
+      return new ServiceResponse<Project>( $"{ProjectNotification.ErrorSaving} {ex.Message}. {ex.InnerException?.Message}" );
     }
   }
 

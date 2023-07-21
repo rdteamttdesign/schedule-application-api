@@ -71,7 +71,7 @@ public class VersionsController : ControllerBase
       return NoContent();
     }
     catch ( Exception ex ) {
-      return BadRequest( $"{ProjectNotification.ErrorSaving} {ex.Message}" );
+      return BadRequest( $"{ProjectNotification.ErrorSaving} {ex.Message}. {ex.InnerException?.Message}" );
     }
   }
 
@@ -111,7 +111,7 @@ public class VersionsController : ControllerBase
       return Ok( groupTaskResources );
     }
     catch ( Exception ex ) {
-      return BadRequest( $"Something went wrong: {ex.Message}" );
+      return BadRequest( $"Something went wrong: {ex.Message}. {ex.InnerException?.Message}" );
     }
   }
 
@@ -204,7 +204,7 @@ public class VersionsController : ControllerBase
       await _versionService.BatchDeleteVersionDetails( versionId );
     }
     catch ( Exception ex ) {
-      return BadRequest( ex.Message );
+      return BadRequest( $"Something went wrong: {ex.Message}. {ex.InnerException?.Message}" );
     }
 
     await SaveProjectTasks( versionId, formData );
@@ -532,7 +532,7 @@ public class VersionsController : ControllerBase
       return Ok( resource );
     }
     catch ( Exception ex ) {
-      return BadRequest( ex.Message );
+      return BadRequest( $"Something went wrong: {ex.Message}. {ex.InnerException?.Message}" );
     }
   }
 }
