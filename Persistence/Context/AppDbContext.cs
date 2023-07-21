@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using SchedulingTool.Api.Domain.Models;
+using SchedulingTool.Api.Domain.Models.Extended;
 using Task = SchedulingTool.Api.Domain.Models.Task;
 using Version = SchedulingTool.Api.Domain.Models.Version;
 
@@ -194,8 +195,6 @@ namespace SchedulingTool.Api.Persistence.Context
             {
                 entity.ToTable("project");
 
-                entity.HasIndex(e => e.UserId, "fk_project_user_idx");
-
                 entity.HasIndex(e => e.ProjectId, "project_id_UNIQUE")
                     .IsUnique();
 
@@ -214,12 +213,6 @@ namespace SchedulingTool.Api.Persistence.Context
                     .HasColumnName("project_name");
 
                 entity.Property(e => e.UserId).HasColumnName("user_id");
-
-                entity.HasOne(d => d.User)
-                    .WithMany(p => p.Projects)
-                    .HasForeignKey(d => d.UserId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("fk_project_user");
             });
 
             modelBuilder.Entity<ProjectBackground>(entity =>
@@ -553,7 +546,30 @@ namespace SchedulingTool.Api.Persistence.Context
                     .HasConstraintName("fk_view_task_view");
             });
 
-            OnModelCreatingPartial(modelBuilder);
+      modelBuilder.Entity<ProjectVersionDetails>( entity =>
+      {
+        entity.HasNoKey();
+
+        entity.Property( e => e.ProjectId ).HasColumnName( "project_id" );
+
+        entity.Property( e => e.ProjectName ).HasColumnName( "project_name" );
+
+        entity.Property( e => e.VersionId ).HasColumnName( "version_id" );
+
+        entity.Property( e => e.VersionName ).HasColumnName( "version_name" );
+
+        entity.Property( e => e.UserId ).HasColumnName( "user_id" );
+
+        entity.Property( e => e.CreatedDate ).HasColumnName( "created_date" );
+
+        entity.Property( e => e.ModifiedDate ).HasColumnName( "modified_date" );
+
+        entity.Property( e => e.IsActivated ).HasColumnName( "is_activated" );
+
+        entity.Property( e => e.NumberOfMonths ).HasColumnName( "number_of_months" );
+      } );
+
+      OnModelCreatingPartial(modelBuilder);
         }
 
         partial void OnModelCreatingPartial(ModelBuilder modelBuilder);

@@ -28,10 +28,10 @@ public class VersionService : IVersionService
     await _versionRepository.BatchDeleteVersionDetails( versionId );
   }
 
-  public async Task<Version?> GetVersion( long userId, long versionId )
+  public async Task<Version?> GetVersionById( long versionId )
   {
     var version = await _versionRepository.GetById( versionId );
-    return ( ( version?.IsActivated ?? false ) && version?.UserId == userId ) ? version : null;
+    return ( version?.IsActivated ?? false ) ? version : null;
   }
 
   public async Task<ServiceResponse<Version>> CreateVersion( Version version )

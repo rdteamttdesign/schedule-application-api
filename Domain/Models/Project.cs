@@ -11,7 +11,6 @@ namespace SchedulingTool.Api.Domain.Models
         public DateTime CreatedDate { get; set; }
         public DateTime ModifiedDate { get; set; }
 
-        public virtual User User { get; set; } = null!;
         public virtual ProjectVersion? ProjectVersion { get; set; }
     }
 }

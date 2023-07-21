@@ -39,7 +39,7 @@ public class ProjectSettingsController : ControllerBase
   public async Task<IActionResult> GetVersionSetting( long versionId )
   {
     var userId = long.Parse( HttpContext.User.Claims.FirstOrDefault( x => x.Type.ToLower() == "sid" )?.Value! );
-    var version = await _versionService.GetVersion( userId, versionId );
+    var version = await _versionService.GetVersionById( versionId );
     if ( version == null ) {
       return BadRequest( ProjectSettingNotification.NonExisted );
     }
@@ -79,7 +79,7 @@ public class ProjectSettingsController : ControllerBase
 
     #region Save number of months
     var userId = long.Parse( HttpContext.User.Claims.FirstOrDefault( x => x.Type.ToLower() == "sid" )?.Value! );
-    var version = await _versionService.GetVersion( userId, versionId );
+    var version = await _versionService.GetVersionById(versionId);
     if ( version == null ) {
       return BadRequest( ProjectSettingNotification.NonExisted );
     }

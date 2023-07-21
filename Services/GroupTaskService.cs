@@ -17,9 +17,9 @@ public class GroupTaskService : IGroupTaskService
     _unitOfWork = unitOfWork;
   }
 
-  public async Task<IEnumerable<GroupTask>> GetGroupTasksByProjectId( long projectId )
+  public async Task<IEnumerable<GroupTask>> GetGroupTasksByVersionId( long versionId )
   {
-    return await _groupTaskRepository.GetGroupTasksByProjectId( projectId );
+    return await _groupTaskRepository.GetGroupTasksByVersionId( versionId );
   }
 
   public async Task<GroupTask?> GetGroupTaskById( long groupTaskId )

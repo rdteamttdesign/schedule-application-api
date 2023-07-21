@@ -4,5 +4,5 @@ namespace SchedulingTool.Api.Domain.Repositories;
 
 public interface IGroupTaskRepository : IGenericRepository<GroupTask>
 {
-  Task<IEnumerable<GroupTask>> GetGroupTasksByProjectId( long projectId );
+  Task<IEnumerable<GroupTask>> GetGroupTasksByVersionId( long versionId );
 }

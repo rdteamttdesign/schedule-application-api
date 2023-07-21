@@ -31,7 +31,7 @@ public class ProjectBackgroundsController : ControllerBase
   public async Task<IActionResult> GetProjectBackgrounds( long versionId )
   {
     var userId = long.Parse( HttpContext.User.Claims.FirstOrDefault( x => x.Type.ToLower() == "sid" )?.Value! );
-    var version = await _versionService.GetVersion( userId, versionId );
+    var version = await _versionService.GetVersionById( versionId );
     if ( version == null ) {
       return BadRequest( ProjectNotification.NonExisted );
     }
@@ -48,7 +48,7 @@ public class ProjectBackgroundsController : ControllerBase
   public async Task<IActionResult> DeleteProjectBackgroundsFromMonth( long versionId, [FromBody] DeleteBackgroundsFormBody formBody )
   {
     var userId = long.Parse( HttpContext.User.Claims.FirstOrDefault( x => x.Type.ToLower() == "sid" )?.Value! );
-    var version = await _versionService.GetVersion( userId, versionId );
+    var version = await _versionService.GetVersionById(versionId);
     if ( version == null ) {
       return BadRequest( ProjectNotification.NonExisted );
     }
@@ -66,7 +66,7 @@ public class ProjectBackgroundsController : ControllerBase
   public async Task<IActionResult> UpdateProjectBackgroundsFromMonth( long versionId, [FromBody] ICollection<BackgroundFormBody> formBody )
   {
     var userId = long.Parse( HttpContext.User.Claims.FirstOrDefault( x => x.Type.ToLower() == "sid" )?.Value! );
-    var project = await _versionService.GetVersion( userId, versionId );
+    var project = await _versionService.GetVersionById(versionId);
     if ( project == null ) {
       return BadRequest( ProjectNotification.NonExisted );
     }
