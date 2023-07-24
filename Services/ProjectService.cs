@@ -80,7 +80,8 @@ public class ProjectService : IProjectService
       var projectResource = new ProjectListResource()
       {
         ProjectId = group.Key.ProjectId,
-        ProjectName = group.Key.ProjectName
+        ProjectName = group.Key.ProjectName,
+        ModifiedDate = group.FirstOrDefault()?.ProjectModifiedDate ?? DateTime.MinValue
       };
       foreach ( var version in group.OrderBy( x => x.ModifiedDate ) ) {
         var versionResource = _mapper.Map<VersionResource>( version );
