@@ -23,12 +23,12 @@ public class ColorDefService : IColorDefService
     return await _colorDefRepository.GetById( colorId );
   }
 
-  public async Task<IEnumerable<ColorDef>> GetBackgroundColorDefsByProjectId( long projectId )
+  public async Task<IEnumerable<ColorDef>> GetBackgroundColorDefsByVersionId( long projectId )
   {
     return await _colorDefRepository.GetBackgroundColorDefsByProjectId( projectId );
   }
 
-  public async Task<IEnumerable<ColorDef>> GetStepworkColorDefsByProjectId( long projectId )
+  public async Task<IEnumerable<ColorDef>> GetStepworkColorDefsByVersionId( long projectId )
   {
     return await _colorDefRepository.GetStepworkColorDefsByProjectId( projectId );
   }

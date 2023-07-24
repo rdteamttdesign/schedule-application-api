@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using SchedulingTool.Api.Domain.Models;
-using SchedulingTool.Api.Resources;
+using SchedulingTool.Api.Domain.Models.Extended;
 using Task = SchedulingTool.Api.Domain.Models.Task;
+using Version = SchedulingTool.Api.Domain.Models.Version;
 
 namespace SchedulingTool.Api.Persistence.Context
 {
@@ -27,9 +28,11 @@ namespace SchedulingTool.Api.Persistence.Context
         public virtual DbSet<Project> Projects { get; set; } = null!;
         public virtual DbSet<ProjectBackground> ProjectBackgrounds { get; set; } = null!;
         public virtual DbSet<ProjectSetting> ProjectSettings { get; set; } = null!;
+        public virtual DbSet<ProjectVersion> ProjectVersions { get; set; } = null!;
         public virtual DbSet<Stepwork> Stepworks { get; set; } = null!;
         public virtual DbSet<Task> Tasks { get; set; } = null!;
         public virtual DbSet<User> Users { get; set; } = null!;
+        public virtual DbSet<Version> Versions { get; set; } = null!;
         public virtual DbSet<View> Views { get; set; } = null!;
         public virtual DbSet<ViewTask> ViewTasks { get; set; } = null!;
 
@@ -48,7 +51,7 @@ namespace SchedulingTool.Api.Persistence.Context
                 entity.HasIndex(e => e.ColorId, "chart_background_id_UNIQUE")
                     .IsUnique();
 
-                entity.HasIndex(e => e.ProjectId, "fk_color_def_project_idx");
+                entity.HasIndex(e => e.VersionId, "fk_color_def_project_idx");
 
                 entity.HasIndex(e => e.Type, "fk_color_def_type_idx");
 
@@ -71,21 +74,21 @@ namespace SchedulingTool.Api.Persistence.Context
                     .HasMaxLength(125)
                     .HasColumnName("name");
 
-                entity.Property(e => e.ProjectId).HasColumnName("project_id");
-
                 entity.Property(e => e.Type).HasColumnName("type");
 
-                entity.HasOne(d => d.Project)
-                    .WithMany(p => p.ColorDefs)
-                    .HasForeignKey(d => d.ProjectId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("fk_color_def_project");
+                entity.Property(e => e.VersionId).HasColumnName("version_id");
 
                 entity.HasOne(d => d.TypeNavigation)
                     .WithMany(p => p.ColorDefs)
                     .HasForeignKey(d => d.Type)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("fk_color_def_type");
+
+                entity.HasOne(d => d.Version)
+                    .WithMany(p => p.ColorDefs)
+                    .HasForeignKey(d => d.VersionId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("fk_color_def_project");
             });
 
             modelBuilder.Entity<ColorType>(entity =>
@@ -106,7 +109,7 @@ namespace SchedulingTool.Api.Persistence.Context
             {
                 entity.ToTable("group_task");
 
-                entity.HasIndex(e => e.ProjectId, "fk_group_task_project_idx");
+                entity.HasIndex(e => e.VersionId, "fk_group_task_project_idx");
 
                 entity.HasIndex(e => e.GroupTaskId, "group_task_id_UNIQUE")
                     .IsUnique();
@@ -128,11 +131,11 @@ namespace SchedulingTool.Api.Persistence.Context
                     .HasMaxLength(45)
                     .HasColumnName("local_id");
 
-                entity.Property(e => e.ProjectId).HasColumnName("project_id");
+                entity.Property(e => e.VersionId).HasColumnName("version_id");
 
-                entity.HasOne(d => d.Project)
+                entity.HasOne(d => d.Version)
                     .WithMany(p => p.GroupTasks)
-                    .HasForeignKey(d => d.ProjectId)
+                    .HasForeignKey(d => d.VersionId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("fk_group_task_project");
             });
@@ -192,7 +195,7 @@ namespace SchedulingTool.Api.Persistence.Context
             {
                 entity.ToTable("project");
 
-                entity.HasIndex(e => e.ProjectId, "sheet_id_UNIQUE")
+                entity.HasIndex(e => e.ProjectId, "project_id_UNIQUE")
                     .IsUnique();
 
                 entity.Property(e => e.ProjectId).HasColumnName("project_id");
@@ -201,18 +204,9 @@ namespace SchedulingTool.Api.Persistence.Context
                     .HasColumnType("datetime")
                     .HasColumnName("created_date");
 
-                entity.Property(e => e.IsActivated)
-                    .HasColumnType("bit(1)")
-                    .HasColumnName("is_activated")
-                    .HasDefaultValueSql("b'1'");
-
                 entity.Property(e => e.ModifiedDate)
                     .HasColumnType("datetime")
                     .HasColumnName("modified_date");
-
-                entity.Property(e => e.NumberOfMonths)
-                    .HasColumnName("number_of_months")
-                    .HasDefaultValueSql("'1'");
 
                 entity.Property(e => e.ProjectName)
                     .HasMaxLength(125)
@@ -223,7 +217,7 @@ namespace SchedulingTool.Api.Persistence.Context
 
             modelBuilder.Entity<ProjectBackground>(entity =>
             {
-                entity.HasKey(e => new { e.ProjectId, e.Month })
+                entity.HasKey(e => new { e.VersionId, e.Month })
                     .HasName("PRIMARY")
                     .HasAnnotation("MySql:IndexPrefixLength", new[] { 0, 0 });
 
@@ -231,9 +225,9 @@ namespace SchedulingTool.Api.Persistence.Context
 
                 entity.HasIndex(e => e.ColorId, "fk_proj_bg_bg_idx");
 
-                entity.HasIndex(e => e.ProjectId, "fk_proj_bg_proj_idx");
+                entity.HasIndex(e => e.VersionId, "fk_proj_bg_proj_idx");
 
-                entity.Property(e => e.ProjectId).HasColumnName("project_id");
+                entity.Property(e => e.VersionId).HasColumnName("version_id");
 
                 entity.Property(e => e.Month).HasColumnName("month");
 
@@ -244,24 +238,26 @@ namespace SchedulingTool.Api.Persistence.Context
                     .HasForeignKey(d => d.ColorId)
                     .HasConstraintName("fk_proj_bg_color");
 
-                entity.HasOne(d => d.Project)
+                entity.HasOne(d => d.Version)
                     .WithMany(p => p.ProjectBackgrounds)
-                    .HasForeignKey(d => d.ProjectId)
+                    .HasForeignKey(d => d.VersionId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("fk_proj_bg_proj");
             });
 
             modelBuilder.Entity<ProjectSetting>(entity =>
             {
+                entity.HasKey(e => e.VersionId)
+                    .HasName("PRIMARY");
+
                 entity.ToTable("project_setting");
 
-                entity.HasIndex(e => e.ProjectId, "fk_project_setting_project_idx")
+                entity.HasIndex(e => e.VersionId, "fk_project_setting_project_idx")
                     .IsUnique();
 
-                entity.HasIndex(e => e.ProjectSettingId, "project_setting_id_UNIQUE")
-                    .IsUnique();
-
-                entity.Property(e => e.ProjectSettingId).HasColumnName("project_setting_id");
+                entity.Property(e => e.VersionId)
+                    .ValueGeneratedNever()
+                    .HasColumnName("version_id");
 
                 entity.Property(e => e.AmplifiedFactor)
                     .HasColumnName("amplified_factor")
@@ -275,8 +271,6 @@ namespace SchedulingTool.Api.Persistence.Context
                     .HasColumnName("column_width")
                     .HasDefaultValueSql("'70'");
 
-                entity.Property(e => e.ProjectId).HasColumnName("project_id");
-
                 entity.Property(e => e.RemovalDurationRatio)
                     .HasColumnName("removal_duration_ratio")
                     .HasDefaultValueSql("'0.6'");
@@ -286,11 +280,39 @@ namespace SchedulingTool.Api.Persistence.Context
                     .HasColumnName("separate_group_task")
                     .HasDefaultValueSql("b'0'");
 
-                entity.HasOne(d => d.Project)
+                entity.HasOne(d => d.Version)
                     .WithOne(p => p.ProjectSetting)
-                    .HasForeignKey<ProjectSetting>(d => d.ProjectId)
+                    .HasForeignKey<ProjectSetting>(d => d.VersionId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("fk_project_setting_project");
+            });
+
+            modelBuilder.Entity<ProjectVersion>(entity =>
+            {
+                entity.HasKey(e => new { e.ProjectId, e.VersionId })
+                    .HasName("PRIMARY")
+                    .HasAnnotation("MySql:IndexPrefixLength", new[] { 0, 0 });
+
+                entity.ToTable("project_version");
+
+                entity.HasIndex(e => e.VersionId, "fk_project_version_version_idx")
+                    .IsUnique();
+
+                entity.Property(e => e.ProjectId).HasColumnName("project_id");
+
+                entity.Property(e => e.VersionId).HasColumnName("version_id");
+
+                entity.HasOne(d => d.Project)
+                    .WithMany(p => p.ProjectVersions)
+                    .HasForeignKey(d => d.ProjectId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("fk_project_version_project");
+
+                entity.HasOne(d => d.Version)
+                    .WithOne(p => p.ProjectVersion)
+                    .HasForeignKey<ProjectVersion>(d => d.VersionId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("fk_project_version_version");
             });
 
             modelBuilder.Entity<Stepwork>(entity =>
@@ -384,9 +406,7 @@ namespace SchedulingTool.Api.Persistence.Context
                     .HasMaxLength(125)
                     .HasColumnName("note");
 
-                entity.Property(e => e.NumberOfTeam)
-                    .HasColumnName("number_of_team")
-                    .HasDefaultValueSql("'1'");
+                entity.Property(e => e.NumberOfTeam).HasColumnName("number_of_team");
 
                 entity.Property(e => e.TaskName)
                     .HasMaxLength(125)
@@ -440,23 +460,56 @@ namespace SchedulingTool.Api.Persistence.Context
                     .HasColumnName("user_name");
             });
 
+            modelBuilder.Entity<Version>(entity =>
+            {
+                entity.ToTable("version");
+
+                entity.HasIndex(e => e.VersionId, "sheet_id_UNIQUE")
+                    .IsUnique();
+
+                entity.Property(e => e.VersionId).HasColumnName("version_id");
+
+                entity.Property(e => e.CreatedDate)
+                    .HasColumnType("datetime")
+                    .HasColumnName("created_date");
+
+                entity.Property(e => e.IsActivated)
+                    .HasColumnType("bit(1)")
+                    .HasColumnName("is_activated")
+                    .HasDefaultValueSql("b'1'");
+
+                entity.Property(e => e.ModifiedDate)
+                    .HasColumnType("datetime")
+                    .HasColumnName("modified_date");
+
+                entity.Property(e => e.NumberOfMonths)
+                    .HasColumnName("number_of_months")
+                    .HasDefaultValueSql("'1'");
+
+                entity.Property(e => e.UserId).HasColumnName("user_id");
+
+                entity.Property(e => e.VersionName)
+                    .HasMaxLength(125)
+                    .HasColumnName("version_name");
+            });
+
             modelBuilder.Entity<View>(entity =>
             {
                 entity.ToTable("view");
 
-                entity.HasIndex(e => e.ProjectId, "fk_view_project_idx");
+                entity.HasIndex(e => e.VersionId, "fk_view_project_idx");
 
                 entity.Property(e => e.ViewId).HasColumnName("view_id");
 
-                entity.Property(e => e.ProjectId).HasColumnName("project_id");
+                entity.Property(e => e.VersionId).HasColumnName("version_id");
 
                 entity.Property(e => e.ViewName)
                     .HasMaxLength(125)
                     .HasColumnName("view_name");
 
-                entity.HasOne(d => d.Project)
+                entity.HasOne(d => d.Version)
                     .WithMany(p => p.Views)
-                    .HasForeignKey(d => d.ProjectId)
+                    .HasForeignKey(d => d.VersionId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("fk_view_project");
             });
@@ -490,40 +543,21 @@ namespace SchedulingTool.Api.Persistence.Context
                     .HasConstraintName("fk_view_task_view");
             });
 
-      modelBuilder.Entity<ViewTaskDetail>( entity =>
+      modelBuilder.Entity<ProjectVersionDetails>( entity =>
       {
         entity.HasNoKey();
-
-        entity.Property( e => e.TaskId ).HasColumnName( "task_id" );
-
-        entity.Property( e => e.TaskLocalId ).HasColumnName( "local_id" );
-
-        entity.Property( e => e.Group ).HasColumnName( "group" );
-
-        entity.Property( e => e.TaskName ).HasColumnName( "task_name" );
-
-        entity.Property( e => e.Index ).HasColumnName( "index" );
-
-        entity.Property( e => e.NumberOfTeam ).HasColumnName( "number_of_team" );
-
-        entity.Property( e => e.Duration ).HasColumnName( "duration" );
-
-        entity.Property( e => e.AmplifiedDuration ).HasColumnName( "amplified_duration" );
-
-        entity.Property( e => e.GroupTaskId ).HasColumnName( "group_task_id" );
-
-        entity.Property( e => e.GroupTaskLocalId ).HasColumnName( "group_task_local_id" );
-
-        entity.Property( e => e.GroupTaskName ).HasColumnName( "group_task_name" );
-
-        entity.Property( e => e.Description ).HasColumnName( "description" );
-
-        entity.Property( e => e.Note ).HasColumnName( "note" );
-
-        entity.Property( e => e.DisplayOrder ).HasColumnName( "display_order" );
+        entity.Property( e => e.ProjectId ).HasColumnName( "project_id" );
+        entity.Property( e => e.ProjectName ).HasColumnName( "project_name" );
+        entity.Property( e => e.VersionId ).HasColumnName( "version_id" );
+        entity.Property( e => e.VersionName ).HasColumnName( "version_name" );
+        entity.Property( e => e.UserId ).HasColumnName( "user_id" );
+        entity.Property( e => e.CreatedDate ).HasColumnName( "created_date" );
+        entity.Property( e => e.ModifiedDate ).HasColumnName( "modified_date" );
+        entity.Property( e => e.IsActivated ).HasColumnName( "is_activated" );
+        entity.Property( e => e.NumberOfMonths ).HasColumnName( "number_of_months" );
       } );
 
-            OnModelCreatingPartial(modelBuilder);
+      OnModelCreatingPartial(modelBuilder);
         }
 
         partial void OnModelCreatingPartial(ModelBuilder modelBuilder);

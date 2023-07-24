@@ -14,6 +14,7 @@ public class ModelConverter
   public ModelConverter(
     long projectId,
     ProjectSetting setting,
+    ColorDef defaultColor,
     ICollection<GroupTaskFormData> grouptaskFormDataList )
   {
     foreach ( GroupTaskFormData grouptaskFormData in grouptaskFormDataList ) {
@@ -24,7 +25,7 @@ public class ModelConverter
           {
             LocalId = grouptaskFormData.Id,
             GroupTaskName = grouptaskFormData.Name!,
-            ProjectId = projectId,
+            VersionId = projectId,
             Index = grouptaskFormData.DisplayOrder,
             HideChidren = grouptaskFormData.HideChildren ?? false
           } );
@@ -94,7 +95,7 @@ public class ModelConverter
               Index = stepworkFormData.DisplayOrder,
               Portion = stepworkFormData.PercentStepWork / 100,
               TaskLocalId = grouptaskFormData.Id,
-              ColorId = stepworkFormData.ColorId ?? 1,
+              ColorId = stepworkFormData.ColorId ?? defaultColor.ColorId,
               Duration = stepworkFormData.PercentStepWork * stepworkFormData.Duration / 100,
               Name = stepworkFormData.Name ?? string.Empty,
               Start = stepworkFormData.Start,
@@ -123,7 +124,7 @@ public class ModelConverter
             Index = grouptaskFormData.DisplayOrder,
             Portion = 1,
             TaskLocalId = grouptaskFormData.Id,
-            ColorId = grouptaskFormData.ColorId ?? 1,
+            ColorId = grouptaskFormData.ColorId ?? defaultColor.ColorId,
             Duration = grouptaskFormData.Duration,
             Name = grouptaskFormData.Name ?? string.Empty,
             Start = grouptaskFormData.Start.ColumnWidthToDays( setting.ColumnWidth )
