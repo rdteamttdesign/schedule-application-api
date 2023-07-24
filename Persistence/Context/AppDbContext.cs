@@ -548,6 +548,7 @@ namespace SchedulingTool.Api.Persistence.Context
         entity.HasNoKey();
         entity.Property( e => e.ProjectId ).HasColumnName( "project_id" );
         entity.Property( e => e.ProjectName ).HasColumnName( "project_name" );
+        entity.Property( e => e.ProjectModifiedDate ).HasColumnName( "project_modified_date" );
         entity.Property( e => e.VersionId ).HasColumnName( "version_id" );
         entity.Property( e => e.VersionName ).HasColumnName( "version_name" );
         entity.Property( e => e.UserId ).HasColumnName( "user_id" );
@@ -557,7 +558,7 @@ namespace SchedulingTool.Api.Persistence.Context
         entity.Property( e => e.NumberOfMonths ).HasColumnName( "number_of_months" );
       } );
 
-      OnModelCreatingPartial(modelBuilder);
+      OnModelCreatingPartial( modelBuilder);
         }
 
         partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
