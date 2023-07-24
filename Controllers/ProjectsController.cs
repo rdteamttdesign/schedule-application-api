@@ -42,21 +42,24 @@ public class ProjectsController : ControllerBase
     _predecessorService = predecessorService;
     _colorService = colorService;
     _projectSettingService = projectSettingService;
+    _versionService = versionService;
     _backgroundService = backgroundService;
     _viewService = viewService;
-    _versionService = versionService;
   }
 
   [HttpGet( "{versionId}/download" )]
   public async Task<IActionResult> DownloadFile( long versionId )
   {
-    var version = await _versionService.GetVersionById( versionId );
-    var groupTaskResources = await GetGroupTaskResources( versionId );
+    var projectName = await _versionService.GetProjectNameOfVersion( versionId );
+    if ( projectName == null ) {
+      return BadRequest( "Project not found." );
+    }
+    var groupTaskResources = await GetGroupTaskResourcesByProjectId( versionId );
     var bgResources = await GetBackgrounds( versionId );
     var usedColor = await GetUsedColor( versionId, groupTaskResources, bgResources );
     var setting = await _projectSettingService.GetProjectSetting( versionId );
     var viewResources = await GetViewTasks( versionId );
-    if ( ExportExcel.ExportExcel.GetFile( version!.VersionName, setting!, usedColor, viewResources, groupTaskResources, bgResources, out var result ) ) {
+    if ( ExportExcel.ExportExcel.GetFile( projectName, setting!, usedColor, viewResources, groupTaskResources, bgResources, out var result ) ) {
       var fileBytes = System.IO.File.ReadAllBytes( result );
       return File( fileBytes, System.Net.Mime.MediaTypeNames.Application.Octet, $"{Guid.NewGuid()}.xlsx" );
     }
@@ -65,9 +68,9 @@ public class ProjectsController : ControllerBase
     }
   }
 
-  private async Task<IEnumerable<ColorDef>> GetUsedColor( long versionId, IEnumerable<GroupTaskDetailResource> tasks, IEnumerable<ProjectBackgroundResource> background )
+  private async Task<IEnumerable<ColorDef>> GetUsedColor( long projectId, IEnumerable<GroupTaskDetailResource> tasks, IEnumerable<ProjectBackgroundResource> background )
   {
-    var colorSetting = await _colorService.GetAllColorDefsByProjectId( versionId );
+    var colorSetting = await _colorService.GetAllColorDefsByProjectId( projectId );
     var usedStepworkColorIds = tasks.SelectMany( x => x.Tasks ).SelectMany( x => x.Stepworks ).Select( x => x.ColorId );
     var usedBgColorIds = background.Select( x => x.ColorId );
 
@@ -85,7 +88,7 @@ public class ProjectsController : ControllerBase
     return result;
   }
 
-  private async Task<List<GroupTaskDetailResource>> GetGroupTaskResources( long versionId )
+  private async Task<List<GroupTaskDetailResource>> GetGroupTaskResourcesByProjectId( long versionId )
   {
     var groupTasks = await _groupTaskService.GetGroupTasksByVersionId( versionId );
     var groupTaskResources = _mapper.Map<List<GroupTaskDetailResource>>( groupTasks );

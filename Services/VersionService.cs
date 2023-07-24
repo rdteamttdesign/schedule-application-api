@@ -10,15 +10,18 @@ namespace SchedulingTool.Api.Services;
 
 public class VersionService : IVersionService
 {
+  private readonly IProjectRepository _projectRepository;
   private readonly IProjectVersionRepository _projectVersionRepository;
   private readonly IVersionRepository _versionRepository;
   private readonly IUnitOfWork _unitOfWork;
 
   public VersionService( 
+    IProjectRepository projectRepository,
     IProjectVersionRepository projectVersionRepository,
     IVersionRepository versionRepository, 
     IUnitOfWork unitOfWork )
   {
+    _projectRepository = projectRepository;
     _projectVersionRepository = projectVersionRepository;
     _versionRepository = versionRepository;
     _unitOfWork = unitOfWork;
@@ -27,6 +30,16 @@ public class VersionService : IVersionService
   public async Task<IEnumerable<Version>> GetActiveVersions( long userId)
   {
     return await _versionRepository.GetActiveVersions( userId );
+  }
+
+  public async Task<string?> GetProjectNameOfVersion( long versionId )
+  {
+    var projectVersion = await _projectVersionRepository.GetProjectVersionByVersionId( versionId );
+    if ( projectVersion==null ) {
+      return null;
+    }
+    var project = await _projectRepository.GetById( projectVersion.ProjectId );
+    return project?.ProjectName;
   }
 
   public async Task BatchDeleteVersionDetails( long versionId )

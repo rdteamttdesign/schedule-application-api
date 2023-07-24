@@ -6,6 +6,7 @@ namespace SchedulingTool.Api.Domain.Services;
 
 public interface IVersionService
 {
+  Task<string?> GetProjectNameOfVersion( long versionId );
   Task<ServiceResponse<Version>> CreateVersion( long projectId, Version version );
   Task<IEnumerable<Version>> GetActiveVersions( long userId );
   Task<Version?> GetVersionById( long versionId );
