@@ -11,4 +11,5 @@ public interface IProjectService
   Task<ServiceResponse<Project>> UpdateProject( Project project );
   Task<IEnumerable<ProjectListResource>> GetProjectListByUserId( long userId );
   Task<ServiceResponse<ProjectListResource>> CreateProject( Project project, Version defaultVersion );
+  Task<IEnumerable<Project>> GetActiveProjects( long userId );
 }
