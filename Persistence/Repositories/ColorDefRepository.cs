@@ -20,7 +20,7 @@ public class ColorDefRepository : GenericRepository<ColorDef>, IColorDefReposito
 
   public async Task<IEnumerable<ColorDef>> GeAllColorDefsByProjectId( long projectId )
   {
-    return await _context.ColorDefs.Where( c => c.ProjectId == projectId ).ToListAsync();
+    return await _context.ColorDefs.Where( c => c.VersionId == projectId ).ToListAsync();
   }
 
   public async Task<IEnumerable<ColorDef>> GetStepworkColorDefsByProjectId( long projectId )

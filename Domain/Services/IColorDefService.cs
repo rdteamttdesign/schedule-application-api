@@ -13,4 +13,5 @@ public interface IColorDefService
   Task<IEnumerable<ColorDef>> GetStepworkColorDefsByVersionId( long projectId );
   Task<ServiceResponse<ColorDef>> UpdateColorDef( ColorDef colorDef );
   Task DuplicateColorDefs( long fromProjectId, long toProjectId );
+  Task<IEnumerable<ColorDef>> GetAllColorDefsByProjectId( long projectId );
 }
