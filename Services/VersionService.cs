@@ -50,7 +50,7 @@ public class VersionService : IVersionService
       return new ServiceResponse<Version>( newVersion );
     }
     catch ( Exception ex ) {
-      return new ServiceResponse<Version>( $"{ProjectNotification.ErrorSaving} {ex.Message}" );
+      return new ServiceResponse<Version>( $"{ProjectNotification.ErrorSaving} {ex.Message}. {ex.InnerException?.Message}" );
     }
   }
 
@@ -75,7 +75,7 @@ public class VersionService : IVersionService
       return new ServiceResponse<Version>( version );
     }
     catch ( Exception ex ) {
-      return new ServiceResponse<Version>( $"{ProjectNotification.ErrorSaving} {ex.Message}" );
+      return new ServiceResponse<Version>( $"{ProjectNotification.ErrorSaving} {ex.Message}. {ex.InnerException?.Message}" );
     }
   }
 }
