@@ -33,11 +33,11 @@ public class ViewsController : ControllerBase
     _stepworkService = stepworkService;
   }
 
-  [HttpGet( "projects/{projectId}/views" )]
+  [HttpGet( "versions/{versionId}/views" )]
   [Authorize]
-  public async Task<IActionResult> GetViewsInProject( long projectId )
+  public async Task<IActionResult> GetViewsInProject( long versionId )
   {
-    var views = await _viewService.GetViewsByProjectId( projectId );
+    var views = await _viewService.GetViewsByProjectId( versionId );
     var viewResources = _mapper.Map<IEnumerable<ViewResource>>( views );
     foreach ( var viewResource in viewResources ) {
       var viewTasks = await _viewTaskService.GetViewTasksByViewId( viewResource.ViewId );
@@ -46,9 +46,9 @@ public class ViewsController : ControllerBase
     return Ok( viewResources );
   }
 
-  [HttpPost( "projects/{projectId}/views" )]
+  [HttpPost( "versions/{versionId}/views" )]
   [Authorize]
-  public async Task<IActionResult> CreateView( long projectId, [FromBody] ViewFormData formData )
+  public async Task<IActionResult> CreateView( long versionId, [FromBody] ViewFormData formData )
   {
     // checking
     if ( !ModelState.IsValid ) {
@@ -58,7 +58,7 @@ public class ViewsController : ControllerBase
     var view = new View()
     {
       ViewName = formData.ViewName,
-      VersionId = projectId
+      VersionId = versionId
     };
     var result = await _viewService.CreateView( view );
     if ( !result.Success ) {
@@ -109,9 +109,9 @@ public class ViewsController : ControllerBase
     return NoContent();
   }
 
-  [HttpGet( "projects/{projectId}/views/{viewId}" )]
+  [HttpGet( "versions/{versionId}/views/{viewId}" )]
   [Authorize]
-  public async Task<IActionResult> GetViewDetail( long projectId, long viewId )
+  public async Task<IActionResult> GetViewDetail( long versionId, long viewId )
   {
     // checking
     var view = await _viewService.GetViewById( viewId );
@@ -119,7 +119,7 @@ public class ViewsController : ControllerBase
       return BadRequest( ViewNotification.NonExisted );
     }
     // get tasks in view
-    var viewTasks = await _viewService.GetViewTasks( projectId, viewId );
+    var viewTasks = await _viewService.GetViewTasks( versionId, viewId );
 
     if ( !viewTasks.Any() ) {
       return BadRequest( "View has no task." );
@@ -130,7 +130,7 @@ public class ViewsController : ControllerBase
       viewTask.Stepworks = stepworks.ToList();
     }
 
-    var viewDetail = await _viewService.GetViewDetailById( projectId, viewTasks.OrderBy( t => t.DisplayOrder ) );
+    var viewDetail = await _viewService.GetViewDetailById( versionId, viewTasks.OrderBy( t => t.DisplayOrder ) );
     return Ok( viewDetail );
   }
 }
