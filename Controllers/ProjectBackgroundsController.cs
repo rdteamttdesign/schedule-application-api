@@ -43,7 +43,7 @@ public class ProjectBackgroundsController : ControllerBase
     return Ok( resource );
   }
 
-  [HttpDelete( "versions/{projectId}/backgrounds" )]
+  [HttpDelete( "versions/{versionId}/backgrounds" )]
   [Authorize]
   public async Task<IActionResult> DeleteProjectBackgroundsFromMonth( long versionId, [FromBody] DeleteBackgroundsFormBody formBody )
   {

@@ -23,11 +23,11 @@ public class ColorsController : ControllerBase
     _colorDefService = colorDefService;
   }
 
-  [HttpGet( "project/{projectId}/background-colors" )]
+  [HttpGet( "versions/{versionId}/background-colors" )]
   [Authorize]
-  public async Task<IActionResult> GetBackgroundColorDefs( long projectId )
+  public async Task<IActionResult> GetBackgroundColorDefs( long versionId )
   {
-    var colors = await _colorDefService.GetBackgroundColorDefsByVersionId( projectId );
+    var colors = await _colorDefService.GetBackgroundColorDefsByVersionId( versionId );
     if ( !colors.Any() ) {
       return BadRequest( ColorDefNotification.NonExisted );
     }
@@ -35,11 +35,11 @@ public class ColorsController : ControllerBase
     return Ok( resource );
   }
 
-  [HttpGet( "project/{projectId}/stepwork-colors" )]
+  [HttpGet( "versions/{versionId}/stepwork-colors" )]
   [Authorize]
-  public async Task<IActionResult> GetStepworkColorDefs( long projectId )
+  public async Task<IActionResult> GetStepworkColorDefs( long versionId )
   {
-    var colors = await _colorDefService.GetStepworkColorDefsByVersionId( projectId );
+    var colors = await _colorDefService.GetStepworkColorDefsByVersionId( versionId );
     if ( !colors.Any() ) {
       return BadRequest( ColorDefNotification.NonExisted );
     }
@@ -47,9 +47,9 @@ public class ColorsController : ControllerBase
     return Ok( resource );
   }
 
-  [HttpPost( "project/{projectId}/colors" )]
+  [HttpPost( "versions/{versionId}/colors" )]
   [Authorize]
-  public async Task<IActionResult> CreateColor( long projectId, [FromBody] ColorFormData formData )
+  public async Task<IActionResult> CreateColor( long versionId, [FromBody] ColorFormData formData )
   {
     if ( !ModelState.IsValid ) {
       return BadRequest( ModelState.GetErrorMessages() );
@@ -59,7 +59,7 @@ public class ColorsController : ControllerBase
       Name = formData.Name,
       Code = formData.Code,
       Type = formData.Type,
-      VersionId = projectId
+      VersionId = versionId
     };
     var result = await _colorDefService.CreateColorDef( newColor );
     if ( !result.Success ) {
