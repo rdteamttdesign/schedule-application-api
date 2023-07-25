@@ -3,7 +3,7 @@
 public class ProjectSettingResource
 {
   public long ProjectSettingId { get; set; }
-  public long ProjectId { get; set; }
+  public long VersionId { get; set; }
   public bool SeparateGroupTask { get; set; }
   public float AssemblyDurationRatio { get; set; }
   public float RemovalDurationRatio { get; set; }
@@ -20,7 +20,7 @@ public class BackgroundColorResource
   public string Name { get; set; } = null!;
   public string Code { get; set; } = null!;
   public long Type { get; set; }
-  public long ProjectId { get; set; }
+  public long VersionId { get; set; }
   public string? DisplayMonths { get; set; }
   public ICollection<int> Months { get; set; } = null!;
 }
