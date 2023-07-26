@@ -44,9 +44,12 @@ public class ProjectService : IProjectService
       {
         ProjectName = newProject.ProjectName,
         ProjectId = newProject.ProjectId,
-        ModifiedDate = newVersion.ModifiedDate
+        ModifiedDate = newVersion.ModifiedDate.ToLocalTime()
       };
-      result.Versions.Add( _mapper.Map<VersionResource>( newVersion ) );
+      var versionResource = _mapper.Map<VersionResource>( newVersion );
+      versionResource.CreatedDate = versionResource.CreatedDate.ToLocalTime();
+      versionResource.ModifiedDate = versionResource.ModifiedDate.ToLocalTime();
+      result.Versions.Add( versionResource );
       return new ServiceResponse<ProjectListResource>( result );
     }
     catch ( Exception ex ) {
@@ -81,7 +84,7 @@ public class ProjectService : IProjectService
       {
         ProjectId = group.Key.ProjectId,
         ProjectName = group.Key.ProjectName,
-        ModifiedDate = group.FirstOrDefault()?.ProjectModifiedDate ?? DateTime.MinValue
+        ModifiedDate = ( group.FirstOrDefault()?.ProjectModifiedDate ?? DateTime.MinValue ).ToLocalTime(),
       };
       foreach ( var version in group.OrderBy( x => x.ModifiedDate ) ) {
         var versionResource = _mapper.Map<VersionResource>( version );
