@@ -94,6 +94,9 @@ public class VersionsController : ControllerBase
       return BadRequest( result.Message );
 
     var resource = _mapper.Map<VersionResource>( result.Content );
+    resource.CreatedDate = resource.CreatedDate.ToLocalTime();
+    resource.ModifiedDate = resource.ModifiedDate.ToLocalTime();
+
     return Ok( resource );
   }
 
@@ -350,6 +353,8 @@ public class VersionsController : ControllerBase
         return BadRequest( ProjectNotification.ErrorDuplicating );
       }
       var resource = _mapper.Map<VersionResource>( result.Content );
+      resource.CreatedDate = resource.CreatedDate.ToLocalTime();
+      resource.ModifiedDate = resource.ModifiedDate.ToLocalTime();
 
       var setting = await _projectSettingService.GetProjectSetting( versionId );
       var newSetting = await _projectSettingService.GetProjectSetting( result.Content.VersionId );
