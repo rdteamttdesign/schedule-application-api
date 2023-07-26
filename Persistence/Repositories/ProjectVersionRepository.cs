@@ -11,6 +11,11 @@ public class ProjectVersionRepository : GenericRepository<ProjectVersion>, IProj
   {
   }
 
+  public async Task<IEnumerable<ProjectVersion>> GetAll()
+  {
+    return await _context.ProjectVersions.ToListAsync();
+  }
+
   public async Task<IEnumerable<ProjectVersion>> GetByProjectId( long projectId )
   {
     return await _context.ProjectVersions.Where( x => x.ProjectId == projectId ).ToListAsync();
