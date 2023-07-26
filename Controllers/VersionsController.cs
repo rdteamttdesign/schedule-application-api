@@ -87,7 +87,7 @@ public class VersionsController : ControllerBase
       return BadRequest( ProjectNotification.NonExisted );
 
     existingVersion.VersionName = formData.VersionName;
-    existingVersion.ModifiedDate = DateTime.Now;
+    existingVersion.ModifiedDate = DateTime.UtcNow;
 
     var result = await _versionService.UpdateVersion( existingVersion );
     if ( !result.Success )
@@ -212,7 +212,7 @@ public class VersionsController : ControllerBase
 
     await SaveProjectTasks( versionId, formData );
 
-    version.ModifiedDate = DateTime.Now;
+    version.ModifiedDate = DateTime.UtcNow;
     await _versionService.UpdateVersion( version );
 
     return NoContent();
@@ -342,8 +342,8 @@ public class VersionsController : ControllerBase
       {
         VersionName = versionName,
         UserId = version.UserId,
-        CreatedDate = DateTime.Now,
-        ModifiedDate = DateTime.Now,
+        CreatedDate = DateTime.UtcNow,
+        ModifiedDate = DateTime.UtcNow,
         IsActivated = version.IsActivated,
         NumberOfMonths = version.NumberOfMonths
       };
