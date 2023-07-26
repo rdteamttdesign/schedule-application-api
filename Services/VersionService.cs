@@ -24,9 +24,12 @@ public class VersionService : IVersionService
     _unitOfWork = unitOfWork;
   }
 
-  public async Task<IEnumerable<Version>> GetActiveVersions( long userId)
+  public async Task<IEnumerable<Version>> GetActiveVersions( long userId, long projectId )
   {
-    return await _versionRepository.GetActiveVersions( userId );
+    var versions = await _versionRepository.GetActiveVersions( userId );
+    var projectVersions = await _projectVersionRepository.GetByProjectId( projectId );
+    var versionIdList = projectVersions.Select( v => v.VersionId );
+    return versions.Where( x => versionIdList.Contains( x.VersionId ) );
   }
 
   public async Task BatchDeleteVersionDetails( long versionId )

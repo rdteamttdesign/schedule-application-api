@@ -318,11 +318,11 @@ public class VersionsController : ControllerBase
       if ( version == null ) {
         return BadRequest( ProjectNotification.NonExisted );
       }
-      var versions = await _versionService.GetActiveVersions( userId );
+      var versions = await _versionService.GetActiveVersions( userId, projectId );
 
       var versionName = $"Copy of {version.VersionName}";
 
-      var latestName = versions.Select( p => p.VersionName )
+      var latestName = versions.Select( version => version.VersionName )
         .Where( name => Regex.IsMatch( name, $"{versionName} \\([1-9]\\)" ) )
         .OrderByDescending( x => x ).FirstOrDefault();
 
@@ -339,8 +339,8 @@ public class VersionsController : ControllerBase
       {
         VersionName = versionName,
         UserId = version.UserId,
-        CreatedDate = version.CreatedDate,
-        ModifiedDate = version.ModifiedDate,
+        CreatedDate = DateTime.Now,
+        ModifiedDate = DateTime.Now,
         IsActivated = version.IsActivated,
         NumberOfMonths = version.NumberOfMonths
       };

@@ -4,4 +4,5 @@ namespace SchedulingTool.Api.Domain.Repositories;
 
 public interface IProjectVersionRepository : IGenericRepository<ProjectVersion>
 {
+  Task<IEnumerable<ProjectVersion>> GetByProjectId( long projectId );
 }
