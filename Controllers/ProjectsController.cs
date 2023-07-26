@@ -81,8 +81,8 @@ public class ProjectsController : ControllerBase
     {
       VersionName = formData.VersionName,
       UserId = userId,
-      CreatedDate = DateTime.Now,
-      ModifiedDate = DateTime.Now,
+      CreatedDate = DateTime.UtcNow,
+      ModifiedDate = DateTime.UtcNow,
       IsActivated = true,
       NumberOfMonths = formData.NumberOfMonths
     };
@@ -90,8 +90,8 @@ public class ProjectsController : ControllerBase
     {
       ProjectName = formData.ProjectName,
       UserId = userId,
-      CreatedDate = DateTime.Now,
-      ModifiedDate = DateTime.Now
+      CreatedDate = DateTime.UtcNow,
+      ModifiedDate = DateTime.UtcNow
     };
     var result = await _projectService.CreateProject( project, version );
 
@@ -115,7 +115,7 @@ public class ProjectsController : ControllerBase
       return BadRequest( ProjectNotification.NonExisted );
 
     existingProject.ProjectName = formData.ProjectName;
-    existingProject.ModifiedDate = DateTime.Now;
+    existingProject.ModifiedDate = DateTime.UtcNow;
 
     var result = await _projectService.UpdateProject( existingProject );
     if ( !result.Success )
