@@ -122,8 +122,6 @@ public class ProjectsController : ControllerBase
       return BadRequest( result.Message );
 
     var resource = _mapper.Map<ProjectResource>( result.Content );
-    resource.CreatedDate = resource.CreatedDate.ToLocalTime();
-    resource.ModifiedDate = resource.ModifiedDate.ToLocalTime();
 
     return Ok( resource );
   }
