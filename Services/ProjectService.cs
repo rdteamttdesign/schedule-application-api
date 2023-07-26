@@ -95,6 +95,13 @@ public class ProjectService : IProjectService
 
   public async Task<IEnumerable<Project>> GetActiveProjects( long userId )
   {
-    return await _projectRepository.GetActiveProjects( userId );
+    var activeVersions = await _versionRepository.GetActiveVersions( userId );
+    var projects = await _projectRepository.GetActiveProjects( userId );
+    var projectVersions = await _projectVersionRepository.GetAll();
+    var activeProjectVersions = from pv in projectVersions
+                                from version in activeVersions
+                                where pv.VersionId == version.VersionId && version.IsActivated
+                                select pv;
+    return projects.Where( project => activeProjectVersions.Where( pv => pv.ProjectId == project.ProjectId ).Count() > 0 );  
   }
 }
