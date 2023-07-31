@@ -99,11 +99,12 @@ public class VersionService : IVersionService
     var projectVersions = await _projectVersionRepository.GetAll();
     var activatedProjectVersions = projectVersions.Where( x => activatedVersionIds.Contains( x.VersionId ) );
     var projectIdList = projectVersions.Where( x => versionIds.Contains( x.VersionId ) ).Select( x => x.ProjectId );
-    var projectToActivate = projectIdList.Where( x => !activatedProjectVersions.Any( pv => pv.ProjectId == x ) ).Distinct();
+    var projectIdsToActivate = projectIdList.Where( x => !activatedProjectVersions.Any( pv => pv.ProjectId == x ) ).Distinct();
 
-    foreach ( var projectId in projectIdList ) {
+    foreach ( var projectId in projectIdsToActivate ) {
       var project = await _projectRepository.GetById( projectId );
-      project.ProjectName += $" restored at {DateTime.UtcNow:hh:mm:ss - dd/MM/yyyy}";
+      project.ProjectName += $" (restored at {( int ) DateTime.UtcNow.Subtract( new DateTime( 1970, 1, 1 ) ).TotalSeconds})";
+      project.ModifiedDate = DateTime.UtcNow;
       await _projectRepository.Update( project );
     }
 
@@ -112,7 +113,8 @@ public class VersionService : IVersionService
       return;
 
     foreach ( var version in versionsToActivate ) {
-      version.VersionName += $" restored at {DateTime.UtcNow:hh:mm:ss - dd/MM/yyyy}";
+      version.VersionName += $" (restored at {( int ) DateTime.UtcNow.Subtract( new DateTime( 1970, 1, 1 ) ).TotalSeconds})";
+      version.ModifiedDate = DateTime.UtcNow;
       version.IsActivated = true;
       await _versionRepository.Update( version );
     }
