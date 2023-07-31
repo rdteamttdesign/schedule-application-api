@@ -7,7 +7,6 @@ using SchedulingTool.Api.Domain.Services.Communication;
 using SchedulingTool.Api.Extension;
 using SchedulingTool.Api.Notification;
 using SchedulingTool.Api.Resources.projectdetail;
-using ModelTask = SchedulingTool.Api.Domain.Models.Task;
 using Task = System.Threading.Tasks.Task;
 
 namespace SchedulingTool.Api.Services;
