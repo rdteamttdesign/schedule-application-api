@@ -536,4 +536,38 @@ public class VersionsController : ControllerBase
       return BadRequest( $"Something went wrong: {ex.Message}. {ex.InnerException?.Message}" );
     }
   }
+
+  [HttpDelete( "versions/delete-versions" )]
+  [Authorize]
+  public async Task<IActionResult> DeleteVersions( [FromBody] ICollection<long> versionIds )
+  {
+    if ( !ModelState.IsValid ) {
+      return BadRequest( ModelState.GetErrorMessages() );
+    }
+    var userId = long.Parse( HttpContext.User.Claims.FirstOrDefault( x => x.Type.ToLower() == "sid" )?.Value! );
+    try {
+      await _versionService.BatchDeleteVersions( versionIds );
+      return NoContent();
+    }
+    catch ( Exception ex ) {
+      return BadRequest( $"{ProjectNotification.ErrorSaving} {ex.Message}. {ex.InnerException?.Message}" );
+    }
+  }
+
+  [HttpPut( "versions/activate-versions" )]
+  [Authorize]
+  public async Task<IActionResult> ActivateVersions( [FromBody] ICollection<long> versionIds )
+  {
+    if ( !ModelState.IsValid ) {
+      return BadRequest( ModelState.GetErrorMessages() );
+    }
+    var userId = long.Parse( HttpContext.User.Claims.FirstOrDefault( x => x.Type.ToLower() == "sid" )?.Value! );
+    try {
+      await _versionService.BatchActivateVersions( userId, versionIds );
+      return NoContent();
+    }
+    catch ( Exception ex ) {
+      return BadRequest( $"{ProjectNotification.ErrorSaving} {ex.Message}. {ex.InnerException?.Message}" );
+    }
+  }
 }

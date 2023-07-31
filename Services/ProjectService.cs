@@ -93,6 +93,27 @@ public class ProjectService : IProjectService
     return projectResources;
   }
 
+  public async Task<IEnumerable<ProjectListResource>> GetDeactiveProjectListByUserId( long userId )
+  {
+    var projectVersions = await _projectRepository.GetProjectVersionDetails( userId );
+    var groupByProject = projectVersions.Where( version => !version.IsActivated ).GroupBy( x => new { ProjectId = x.ProjectId, ProjectName = x.ProjectName } );
+    var projectResources = new List<ProjectListResource>();
+    foreach ( var group in groupByProject ) {
+      var projectResource = new ProjectListResource()
+      {
+        ProjectId = group.Key.ProjectId,
+        ProjectName = group.Key.ProjectName,
+        ModifiedDate = group.FirstOrDefault()?.ProjectModifiedDate ?? DateTime.MinValue
+      };
+      foreach ( var version in group.OrderByDescending( x => x.ModifiedDate ) ) {
+        var versionResource = _mapper.Map<VersionResource>( version );
+        projectResource.Versions.Add( versionResource );
+      }
+      projectResources.Add( projectResource );
+    }
+    return projectResources;
+  }
+
   public async Task<IEnumerable<Project>> GetActiveProjects( long userId )
   {
     var activeVersions = await _versionRepository.GetActiveVersions( userId );
@@ -102,6 +123,6 @@ public class ProjectService : IProjectService
                                 from version in activeVersions
                                 where pv.VersionId == version.VersionId && version.IsActivated
                                 select pv;
-    return projects.Where( project => activeProjectVersions.Where( pv => pv.ProjectId == project.ProjectId ).Count() > 0 );  
+    return projects.Where( project => activeProjectVersions.Where( pv => pv.ProjectId == project.ProjectId ).Any() );
   }
 }
