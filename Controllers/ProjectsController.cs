@@ -125,4 +125,36 @@ public class ProjectsController : ControllerBase
 
     return Ok( resource );
   }
+
+  [HttpGet("deactive-projects")]
+  [Authorize]
+  public async Task<IActionResult> GetDeactiveProjects( [FromQuery] QueryProjectFormData formData )
+  {
+    var userId = long.Parse( HttpContext.User.Claims.FirstOrDefault( x => x.Type.ToLower() == "sid" )?.Value! );
+    var projects = await _projectService.GetDeactiveProjectListByUserId( userId );
+    if ( !projects.Any() ) {
+      return Ok( new
+      {
+        Data = new object [] { },
+        CurrentPage = 0,
+        PageSize = 0,
+        PageCount = 0,
+        HasNext = false,
+        HasPrevious = false
+      } );
+    }
+
+    var pagedListprojects = PagedList<ProjectListResource>.ToPagedList( projects.OrderByDescending( project => project.ModifiedDate ), formData.PageNumber, formData.PageSize );
+
+    //var resources = _mapper.Map<IEnumerable<ProjectListResource>>( pagedListprojects );
+    return Ok( new
+    {
+      Data = pagedListprojects,
+      CurrentPage = pagedListprojects.CurrentPage,
+      PageSize = pagedListprojects.PageSize,
+      PageCount = pagedListprojects.TotalPages,
+      HasNext = pagedListprojects.HasNext,
+      HasPrevious = pagedListprojects.HasPrevious
+    } );
+  }
 }

@@ -12,4 +12,6 @@ public interface IVersionService
   Task BatchDeactiveVersions( long userId, ICollection<long> versionIds );
   Task<ServiceResponse<Version>> UpdateVersion( Version version );
   Task BatchDeleteVersionDetails( long versionId );
+  Task BatchDeleteVersions( ICollection<long> versionIds );
+  Task BatchActivateVersions( long userId, ICollection<long> versionIds );
 }

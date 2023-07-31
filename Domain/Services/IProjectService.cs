@@ -12,4 +12,5 @@ public interface IProjectService
   Task<IEnumerable<ProjectListResource>> GetProjectListByUserId( long userId );
   Task<ServiceResponse<ProjectListResource>> CreateProject( Project project, Version defaultVersion );
   Task<IEnumerable<Project>> GetActiveProjects( long userId );
+  Task<IEnumerable<ProjectListResource>> GetDeactiveProjectListByUserId( long userId );
 }

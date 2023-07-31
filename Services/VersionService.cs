@@ -10,15 +10,18 @@ namespace SchedulingTool.Api.Services;
 
 public class VersionService : IVersionService
 {
+  private readonly IProjectRepository _projectRepository;
   private readonly IProjectVersionRepository _projectVersionRepository;
   private readonly IVersionRepository _versionRepository;
   private readonly IUnitOfWork _unitOfWork;
 
-  public VersionService( 
+  public VersionService(
+    IProjectRepository projectRepository,
     IProjectVersionRepository projectVersionRepository,
-    IVersionRepository versionRepository, 
+    IVersionRepository versionRepository,
     IUnitOfWork unitOfWork )
   {
+    _projectRepository = projectRepository;
     _projectVersionRepository = projectVersionRepository;
     _versionRepository = versionRepository;
     _unitOfWork = unitOfWork;
@@ -59,7 +62,7 @@ public class VersionService : IVersionService
 
   public async Task BatchDeactiveVersions( long userId, ICollection<long> versionIds )
   {
-    var versionsToDeactive = await _versionRepository.GetActiveVersions( userId, versionIds );
+    var versionsToDeactive = await _versionRepository.GetVersionsById( userId, versionIds );
     if ( !versionsToDeactive.Any() )
       return;
 
@@ -80,5 +83,39 @@ public class VersionService : IVersionService
     catch ( Exception ex ) {
       return new ServiceResponse<Version>( $"{ProjectNotification.ErrorSaving} {ex.Message}. {ex.InnerException?.Message}" );
     }
+  }
+
+  public async Task BatchDeleteVersions( ICollection<long> versionIds )
+  {
+    var projectIdList = ( await _projectVersionRepository.GetAll() ).Where( x => versionIds.Contains( x.VersionId ) ).Select( x => x.ProjectId ).Distinct();
+    foreach ( var versionId in versionIds ) {
+      await _versionRepository.BatchDeleteVersion( versionId );
+    }
+  }
+
+  public async Task BatchActivateVersions( long userId, ICollection<long> versionIds )
+  {
+    var activatedVersionIds = ( await _versionRepository.GetActiveVersions( userId ) ).Select( x => x.VersionId );
+    var projectVersions = await _projectVersionRepository.GetAll();
+    var activatedProjectVersions = projectVersions.Where( x => activatedVersionIds.Contains( x.VersionId ) );
+    var projectIdList = projectVersions.Where( x => versionIds.Contains( x.VersionId ) ).Select( x => x.ProjectId );
+    var projectToActivate = projectIdList.Where( x => !activatedProjectVersions.Any( pv => pv.ProjectId == x ) ).Distinct();
+
+    foreach ( var projectId in projectIdList ) {
+      var project = await _projectRepository.GetById( projectId );
+      project.ProjectName += $" restored at {DateTime.UtcNow:hh:mm:ss - dd/MM/yyyy}";
+      await _projectRepository.Update( project );
+    }
+
+    var versionsToActivate = await _versionRepository.GetVersionsById( userId, versionIds );
+    if ( !versionsToActivate.Any() )
+      return;
+
+    foreach ( var version in versionsToActivate ) {
+      version.VersionName += $" restored at {DateTime.UtcNow:hh:mm:ss - dd/MM/yyyy}";
+      version.IsActivated = true;
+      await _versionRepository.Update( version );
+    }
+    await _unitOfWork.CompleteAsync();
   }
 }
