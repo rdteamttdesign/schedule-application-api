@@ -40,7 +40,7 @@ public static class ExportExcel
             var chartSw = new ChartStepwork()
             {
               StepWorkId = sw.StepworkId,
-              Color = WorksheetFormater.GetColor( sw.ColorCode ),
+              Color = WorksheetFormater.GetColor( sw.ColorDetail.Code ),
               Start = sw.Start,
               Duration = sw.Portion * task.Duration * ( task.NumberOfTeam == 0 ? 1 : ( setting.AmplifiedFactor / task.NumberOfTeam ) ),
               RowIndex = i

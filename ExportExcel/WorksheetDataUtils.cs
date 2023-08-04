@@ -2,6 +2,7 @@
 using Microsoft.Office.Interop.Excel;
 using OfficeOpenXml;
 using SchedulingTool.Api.Domain.Models;
+using SchedulingTool.Api.Domain.Models.Enum;
 using SchedulingTool.Api.Resources;
 using System.Drawing;
 using Range = Microsoft.Office.Interop.Excel.Range;
@@ -41,10 +42,12 @@ public static class WorksheetContentUtils
         ws.Cells [ startRow, 7 ].Value = task.AmplifiedDuration;
         ws.Cells [ startRow, 7 ].Style.Numberformat.Format = "#,###0.0 日";
 
-        if ( task.Stepworks.Count == 2 ) {
-          ws.Cells [ startRow, 8 ].Value = task.Stepworks.ElementAt( 0 ).Portion * task.AmplifiedDuration;
+        var installStepWork = task.Stepworks.FirstOrDefault( sw => sw.ColorDetail.ColorMode == ColorMode.Install );
+        var removalStepWork = task.Stepworks.FirstOrDefault( sw => sw.ColorDetail.ColorMode == ColorMode.Removal );
+        if ( installStepWork != null && removalStepWork != null ) {
+          ws.Cells [ startRow, 8 ].Value = installStepWork.Portion * task.AmplifiedDuration;
           ws.Cells [ startRow, 8 ].Style.Numberformat.Format = "#,###0.0 日";
-          ws.Cells [ startRow, 9 ].Value = task.Stepworks.ElementAt( 1 ).Portion * task.AmplifiedDuration;
+          ws.Cells [ startRow, 9 ].Value = removalStepWork.Portion * task.AmplifiedDuration;
           ws.Cells [ startRow, 9 ].Style.Numberformat.Format = "#,###0.0 日";
         }
 

@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.CodeAnalysis;
 using SchedulingTool.Api.Domain.Models;
+using SchedulingTool.Api.Domain.Models.Enum;
 using SchedulingTool.Api.Domain.Services;
 using SchedulingTool.Api.Resources;
 using System.Collections;
@@ -93,7 +94,15 @@ public class VersionsController : ControllerBase
     var groupTasks = await _groupTaskService.GetGroupTasksByVersionId( versionId );
     var groupTaskResources = _mapper.Map<List<GroupTaskDetailResource>>( groupTasks );
 
-    var stepworkColors = ( await _colorService.GetStepworkColorDefsByVersionId( versionId ) ).ToDictionary( x => x.ColorId, x => x.Code );
+    var stepworkColors = ( await _colorService.GetStepworkColorDefsByVersionId( versionId ) )
+      .ToDictionary( x => x.ColorId, x =>
+      new ColorDetailResource()
+      {
+        Name = x.Name,
+        Code = x.Code,
+        ColorId = x.ColorId,
+        ColorMode =  x.IsInstall == 0 ? ColorMode.Install : ( x.IsInstall == 1 ? ColorMode.Removal : ColorMode.Custom ) 
+      } );
 
     foreach ( var groupTaskResource in groupTaskResources ) {
       var tasks = await _taskService.GetTasksByGroupTaskId( groupTaskResource.GroupTaskId );
@@ -105,7 +114,7 @@ public class VersionsController : ControllerBase
           var predecessor = await _predecessorService.GetPredecessorsByStepworkId( stepworkResource.StepworkId );
           stepworkResource.Predecessors = _mapper.Map<List<PredecessorDetailResource>>( predecessor );
           if ( stepworkColors.ContainsKey( stepworkResource.ColorId ) ) {
-            stepworkResource.ColorCode = stepworkColors [ stepworkResource.ColorId ];
+            stepworkResource.ColorDetail = stepworkColors [ stepworkResource.ColorId ];
           }
         }
       }
