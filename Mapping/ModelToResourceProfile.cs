@@ -4,8 +4,7 @@ using SchedulingTool.Api.Domain.Models.Extended;
 using SchedulingTool.Api.Domain.Security.Tokens;
 using SchedulingTool.Api.Resources;
 using SchedulingTool.Api.Resources.Extended;
-using SchedulingTool.Api.Resources.FormBody.projectdetail;
-using SchedulingTool.Api.Resources.projectdetail;
+using SchedulingTool.Api.Resources.Unused;
 using Task = SchedulingTool.Api.Domain.Models.Task;
 using Version = SchedulingTool.Api.Domain.Models.Version;
 

@@ -6,7 +6,7 @@ using SchedulingTool.Api.Domain.Services;
 using SchedulingTool.Api.Domain.Services.Communication;
 using SchedulingTool.Api.Extension;
 using SchedulingTool.Api.Notification;
-using SchedulingTool.Api.Resources.projectdetail;
+using SchedulingTool.Api.Resources;
 using Task = System.Threading.Tasks.Task;
 
 namespace SchedulingTool.Api.Services;
@@ -19,7 +19,12 @@ public class ViewService : IViewService
   private readonly IUnitOfWork _unitOfWork;
   private readonly IMapper _mapper;
 
-  public ViewService( IViewRepository viewRepository, IUnitOfWork unitOfWork, IMapper mapper, IStepworkRepository stepworkService, IProjectSettingRepository projectSettingRepository )
+  public ViewService( 
+    IViewRepository viewRepository, 
+    IUnitOfWork unitOfWork, 
+    IMapper mapper, 
+    IStepworkRepository stepworkService, 
+    IProjectSettingRepository projectSettingRepository )
   {
     _viewRepository = viewRepository;
     _unitOfWork = unitOfWork;
@@ -28,9 +33,9 @@ public class ViewService : IViewService
     _projectSettingRepository = projectSettingRepository;
   }
 
-  public async Task<IEnumerable<View>> GetViewsByProjectId( long projectId )
+  public async Task<IEnumerable<View>> GetViewsByVersionId( long versionId )
   {
-    return await _viewRepository.GetViewsByProjectId( projectId );
+    return await _viewRepository.GetViewsByVersionId( versionId );
   }
 
   public async Task<View?> GetViewById( long viewId )
@@ -40,7 +45,7 @@ public class ViewService : IViewService
 
   public async Task<IEnumerable<object>> GetViewDetailById( long projectId, IEnumerable<ViewTaskDetail> tasks )
   {
-    var setting = await _projectSettingRepository.GetByProjectId( projectId );
+    var setting = await _projectSettingRepository.GetByVersionId( projectId );
     CalculateDuration( tasks, setting! );
     var result = new List<KeyValuePair<int, object>>();
     var tasksByGroup = tasks.GroupBy( t => t.GroupTaskName );

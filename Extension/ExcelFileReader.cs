@@ -1,12 +1,11 @@
 ﻿using ClosedXML.Excel;
-using DocumentFormat.OpenXml.Spreadsheet;
 using SchedulingTool.Api.Domain.Models;
 using SchedulingTool.Api.Resources;
-using SchedulingTool.Api.Resources.projectdetail;
+using SchedulingTool.Api.Resources.Unused;
 
 namespace SchedulingTool.Api.Extension;
 
-public static class ImportFileUtils
+public static class ExcelFileReader
 {
   public static List<object> ReadFromFile(
     Stream fileStream,
@@ -218,17 +217,17 @@ public static class ImportFileUtils
   {
     return cellValue.IsNumber ? ( double ) cellValue.GetNumber() : 0;
   }
-}
 
-public class SheetImportMessage
-{
-  public string SheetName { get; set; } = null!;
-  public string Status { get; set; } = null!;
-
-  public static class SheetImportStatus
+  public class SheetImportMessage
   {
-    public static string Success = "Success";
-    public static string NotFound = "Not found";
-    public static string WrongFormat = "Wrong format";
+    public string SheetName { get; set; } = null!;
+    public string Status { get; set; } = null!;
+
+    public static class SheetImportStatus
+    {
+      public static string Success = "Success";
+      public static string NotFound = "Not found";
+      public static string WrongFormat = "Wrong format";
+    }
   }
 }

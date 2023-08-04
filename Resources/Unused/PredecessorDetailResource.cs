@@ -1,4 +1,4 @@
-﻿namespace SchedulingTool.Api.Resources;
+﻿namespace SchedulingTool.Api.Resources.Unused;
 
 public class PredecessorDetailResource
 {

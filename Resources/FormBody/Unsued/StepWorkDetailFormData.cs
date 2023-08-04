@@ -1,6 +1,4 @@
-﻿using SchedulingTool.Api.Domain.Models.Enum;
-
-namespace SchedulingTool.Api.Resources.FormBody;
+﻿namespace SchedulingTool.Api.Resources.FormBody.Unsued;
 
 public class StepworkDetailFormData
 {

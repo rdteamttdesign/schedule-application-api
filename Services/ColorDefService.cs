@@ -23,14 +23,14 @@ public class ColorDefService : IColorDefService
     return await _colorDefRepository.GetById( colorId );
   }
 
-  public async Task<IEnumerable<ColorDef>> GetBackgroundColorDefsByVersionId( long projectId )
+  public async Task<IEnumerable<ColorDef>> GetBackgroundColorDefsByVersionId( long versionId )
   {
-    return await _colorDefRepository.GetBackgroundColorDefsByProjectId( projectId );
+    return await _colorDefRepository.GetBackgroundColorDefsByVersionId( versionId );
   }
 
-  public async Task<IEnumerable<ColorDef>> GetStepworkColorDefsByVersionId( long projectId )
+  public async Task<IEnumerable<ColorDef>> GetStepworkColorDefsByVersionId( long versionId )
   {
-    return await _colorDefRepository.GetStepworkColorDefsByProjectId( projectId );
+    return await _colorDefRepository.GetStepworkColorDefsByVersionId( versionId );
   }
 
   public async Task<ServiceResponse<ColorDef>> CreateColorDef( ColorDef colorDef )
@@ -72,8 +72,8 @@ public class ColorDefService : IColorDefService
     }
   }
 
-  public async Task DuplicateColorDefs( long fromProjectId, long toProjectId )
+  public async Task DuplicateColorDefs( long fromVersionId, long toVersionId )
   {
-    await _colorDefRepository.DuplicateColorDefs( fromProjectId, toProjectId );
+    await _colorDefRepository.DuplicateColorDefs( fromVersionId, toVersionId );
   }
 }

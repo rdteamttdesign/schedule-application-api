@@ -37,7 +37,7 @@ public class ViewsController : ControllerBase
   [Authorize]
   public async Task<IActionResult> GetViewsInProject( long versionId )
   {
-    var views = await _viewService.GetViewsByProjectId( versionId );
+    var views = await _viewService.GetViewsByVersionId( versionId );
     var viewResources = _mapper.Map<IEnumerable<ViewResource>>( views );
     foreach ( var viewResource in viewResources ) {
       var viewTasks = await _viewTaskService.GetViewTasksByViewId( viewResource.ViewId );
