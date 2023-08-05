@@ -74,5 +74,19 @@ public class ModelToResourceProfile : Profile
       .ForMember( dest => dest.Type, opt => opt.MapFrom( src => src.Type == 1 ? "FS" : ( src.Type == 2 ? "SS" : "FF" ) ) )
       .ForMember( dest => dest.Id, opt => opt.MapFrom( src => src.RelatedStepworkLocalId ) )
       .ForMember( dest => dest.LagDays, opt => opt.MapFrom( src => src.Lag ) );
+
+    CreateMap<GroupTaskDetailResource, UpdateGrouptaskResource>()
+      .ForMember( dest => dest.Id, opt => opt.MapFrom( src => src.LocalId ) )
+      .ForMember( dest => dest.Name, opt => opt.MapFrom( src => src.GroupTaskName ) );
+    CreateMap<TaskDetailResource, UpdateTaskResource>()
+      .ForMember( dest => dest.Id, opt => opt.MapFrom( src => src.LocalId ) )
+      .ForMember( dest => dest.Name, opt => opt.MapFrom( src => src.TaskName ) )
+      .ForMember( dest => dest.Duration, opt => opt.MapFrom( src => src.Duration ) )
+      .ForMember( dest => dest.NumberOfTeams, opt => opt.MapFrom( src => src.NumberOfTeam ) )
+      .ForMember( dest => dest.Note, opt => opt.MapFrom( src => src.Note ) )
+      .ForMember( dest => dest.Detail, opt => opt.MapFrom( src => src.Description ) );
+    CreateMap<StepworkDetailResource, UpdateStepworkResource>()
+      .ForMember( dest => dest.ColorId, opt => opt.MapFrom( src => src.ColorId ) )
+      .ForMember( dest => dest.Percentage, opt => opt.MapFrom( src => src.Portion ) );
   }
 }

@@ -1,7 +1,7 @@
 ﻿using ClosedXML.Excel;
 using SchedulingTool.Api.Domain.Models;
 using SchedulingTool.Api.Resources;
-using SchedulingTool.Api.Resources.Unused;
+using SchedulingTool.Api.Resources.Extended;
 
 namespace SchedulingTool.Api.Extension;
 
@@ -152,6 +152,146 @@ public static class ExcelFileReader
     return groupTasks;
   }
 
+  public static List<GroupTaskDetailResource> ReadFromFile(
+   Stream fileStream,
+   ICollection<string> sheetNameList,
+   ProjectSetting setting,
+   long installColorId,
+   long removalColorId,
+   out List<SheetImportMessage> messages )
+  {
+    messages = new List<SheetImportMessage>();
+    using var workbook = new XLWorkbook( fileStream );
+    var groupTasks = new List<GroupTaskDetailResource>();
+    foreach ( var sheetName in sheetNameList ) {
+      if ( !workbook.Worksheets.Contains( sheetName ) ) {
+        messages.Add( new SheetImportMessage()
+        {
+          SheetName = sheetName,
+          Status = SheetImportMessage.SheetImportStatus.NotFound
+        } );
+        continue;
+      }
+      var worksheet = workbook.Worksheet( sheetName );
+      if ( !AssertFormat( worksheet ) ) {
+        messages.Add( new SheetImportMessage()
+        {
+          SheetName = sheetName,
+          Status = SheetImportMessage.SheetImportStatus.WrongFormat
+        } );
+        continue;
+      }
+      var usedRowCount = worksheet.RowsUsed().Count();
+      var groupName = string.Empty;
+      var groupId = string.Empty;
+      GroupTaskDetailResource? groupTask = null;
+      for ( int i = 2; i < usedRowCount + 1; i++ ) {
+        if ( worksheet.Row( i ).IsHidden ) {
+          continue;
+        }
+        groupName = GetText( worksheet.Cell( i, 1 ).Value );
+        if ( i == 2 && string.IsNullOrEmpty( groupName ) ) {
+          groupName = "<blank>";
+        }
+
+        if ( !string.IsNullOrEmpty( groupName ) ) {
+          groupId = Guid.NewGuid().ToString();
+          groupTask = new GroupTaskDetailResource()
+          {
+            GroupTaskName = groupName,
+            //HideChildren = false,
+            //DisplayOrder = index,
+            //ColorId = installColorId,
+            //Type = "project",
+            //Id = groupId
+            Tasks = new List<TaskDetailResource>()
+          };
+          groupTasks.Add( groupTask );
+        }
+        var taskName = GetText( worksheet.Cell( i, 2 ).Value );
+        var duration = GetFloat( worksheet.Cell( i, 4 ).Value );
+        if ( duration == 0 ) {
+          continue;
+        }
+        else if ( duration < 0 ) {
+          duration = Math.Abs( duration );
+        }
+        var numberOfGroups = GetInt( worksheet.Cell( i, 5 ).Value );
+        if ( numberOfGroups < 0 ) {
+          numberOfGroups = Math.Abs( numberOfGroups );
+        }
+        var taskId = Guid.NewGuid().ToString();
+        var task = new TaskDetailResource()
+        {
+          //Start = 0,
+          Duration = duration,
+          TaskName = GetText( worksheet.Cell( i, 2 ).Value ),
+          //Id = taskId,
+          //Type = "task",
+          Description = GetText( worksheet.Cell( i, 3 ).Value ),
+          //GroupId = groupId,
+          //DisplayOrder = index,
+          Note = GetText( worksheet.Cell( i, 6 ).Value ),
+          //ColorId = installColorId,
+          NumberOfTeam = numberOfGroups,
+          Stepworks = new List<StepworkDetailResource>()
+        };
+        groupTask?.Tasks.Add( task );
+        int numberOfStepworks = 0;
+        double totalStepworkPortion = 0;
+        for ( int j = 7; j < 17; j++ ) {
+          var value = GetFloat( worksheet.Cell( i, j ).Value );
+          if ( value == 0 ) {
+            continue;
+          }
+          totalStepworkPortion += Math.Abs( value );
+          numberOfStepworks++;
+        }
+        if ( numberOfStepworks == 0 || Math.Abs( totalStepworkPortion - 1 ) > 10e-7 ) {
+          task.Stepworks.Add( new StepworkDetailResource()
+          {
+            Portion = 1,
+            ColorId = installColorId
+          } );
+        }
+        else {
+          //var offset = 0f;
+          for ( int j = 7; j < 17; j++ ) {
+            var percentStepwork = GetFloat( worksheet.Cell( i, j ).Value );
+            if ( percentStepwork == 0 ) {
+              continue;
+            }
+            var stepwork = new StepworkDetailResource()
+            {
+              //Start = offset,
+              //Duration = task.Duration.DaysToColumnWidth( setting.ColumnWidth ),
+              Portion = Math.Abs( percentStepwork ),
+              //Name = Guid.NewGuid().ToString(),
+              //ParentTaskId = taskId,
+              //Id = Guid.NewGuid().ToString(),
+              //Type = "task",
+              //GroupId = groupId,
+              //DisplayOrder = index,
+              //Predecessors = new List<PredecessorResource>(),
+              ColorId = percentStepwork > 0 ? installColorId : removalColorId,
+              //GroupNumbers = task.GroupsNumber
+            };
+            //offset += stepwork.Duration;
+            task.Stepworks.Add( stepwork );
+          }
+        }
+        //groupTasks.Add( task );
+        //index++;
+      }
+      messages.Add( new SheetImportMessage()
+      {
+        SheetName = sheetName,
+        Status = SheetImportMessage.SheetImportStatus.Success
+      } );
+    }
+    return groupTasks;
+  }
+
   private static bool AssertFormat(IXLWorksheet sheet)
   {
     return GetText( sheet.Cell( 1, 1 ).Value ).Contains( "工種" )
@@ -185,7 +325,7 @@ public static class ExcelFileReader
         worksheet.Cell( rowIndex, 3 ).Value = task.Description;
         worksheet.Cell( rowIndex, 4 ).Value = task.Duration;
         worksheet.Cell( rowIndex, 5 ).Value = task.NumberOfTeam;
-        worksheet.Cell( rowIndex, 6 ).Value = task.AmplifiedDuration;
+        //worksheet.Cell( rowIndex, 6 ).Value = task.AmplifiedDuration;
         worksheet.Cell( rowIndex, 7 ).Value = task.Note;
         worksheet.Cell( rowIndex, 8 ).Value = task.Stepworks.Count;
         for ( int k = 0; k < task.Stepworks.Count; k++ ) {

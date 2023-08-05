@@ -230,36 +230,34 @@ public class VersionsController : ControllerBase
   }
 
   [HttpPut( "versions/{versionId}/update-from-excel" ), DisableRequestSizeLimit]
-  [Authorize]
+  //[Authorize]
   public async Task<IActionResult> UpdateFromExcelFile( long versionId )
   {
     if ( !ModelState.IsValid ) {
       return BadRequest( ModelState.GetErrorMessages() );
     }
 
-    var formCollection = await Request.ReadFormAsync();
-    var file = formCollection.Files.First();
+    try {
+      var formCollection = await Request.ReadFormAsync();
+      var file = formCollection.Files.First();
 
-    if ( file.Length <= 0 ) {
-      return BadRequest( "No file found." );
+      if ( file.Length <= 0 ) {
+        return BadRequest( "No file found." );
+      }
+
+      if ( !formCollection.ContainsKey( "SheetName" ) ) {
+        return BadRequest( "No sheet name found." );
+      }
+
+      var sheetNameList = formCollection [ "SheetName" ].ToString().Split( "," );
+
+      var result = await _versionService.GetUpdatedDataFromFile( versionId, file.OpenReadStream(), sheetNameList );
+
+      return Ok( result );
+
     }
-
-    if ( !formCollection.ContainsKey( "SheetName" ) ) {
-      return BadRequest( "No sheet name found." );
+    catch ( Exception ex ) {
+      return BadRequest( ex.Message );
     }
-
-    if ( !formCollection.ContainsKey( "DisplayOrder" ) ) {
-      return BadRequest( "Display Order field missing." );
-    }
-
-    if ( !int.TryParse( formCollection [ "DisplayOrder" ].ToString(), out var maxDisplayOrder ) ) {
-      return BadRequest( "Display Order is not a number." );
-    }
-
-    var sheetNameList = formCollection [ "SheetName" ].ToString().Split( "," );
-
-    var result = await _versionService.GetUpdatedDataFromFile( versionId, file.OpenReadStream(), sheetNameList );
-
-    return Ok( result );
   }
 }

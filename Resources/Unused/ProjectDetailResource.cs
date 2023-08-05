@@ -1,4 +1,6 @@
-﻿namespace SchedulingTool.Api.Resources.Unused;
+﻿using SchedulingTool.Api.Resources.Extended;
+
+namespace SchedulingTool.Api.Resources.Unused;
 
 public class ProjectDetailResource
 {

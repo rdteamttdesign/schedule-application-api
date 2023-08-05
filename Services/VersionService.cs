@@ -11,6 +11,10 @@ using System.Text.RegularExpressions;
 using ModelTask = SchedulingTool.Api.Domain.Models.Task;
 using Task = System.Threading.Tasks.Task;
 using Version = SchedulingTool.Api.Domain.Models.Version;
+using SchedulingTool.Api.Resources.Extended;
+using SchedulingTool.Api.Domain.Models.Enum;
+using System.Data;
+using DocumentFormat.OpenXml.Drawing.Charts;
 
 namespace SchedulingTool.Api.Services;
 
@@ -548,6 +552,193 @@ public class VersionService : IVersionService
 
   public async Task<dynamic> GetUpdatedDataFromFile( long versionId, Stream fileStream, string [] sheetNameList )
   {
-    return new { };
+    var colors = await _colorRepository.GetStepworkColorDefsByVersionId( versionId );
+    var installColor = colors.FirstOrDefault( c => c.IsInstall == 0 );
+    var removalColor = colors.FirstOrDefault( c => c.IsInstall == 1 );
+    var setting = await _projectSettingRepository.GetByVersionId( versionId );
+    var grouptasksFromFile = ExcelFileReader.ReadFromFile( fileStream, sheetNameList, setting!, installColor!.ColorId, removalColor!.ColorId, out _ );
+
+    var existingGrouptasks = await GetGroupTasksByVersionId( versionId );
+
+    return CompareGrouptasks( existingGrouptasks, grouptasksFromFile );
+  }
+
+  public async Task<List<GroupTaskDetailResource>> GetGroupTasksByVersionId( long versionId )
+  {
+    var groupTasks = await _groupTaskRepository.GetGroupTasksByVersionId( versionId );
+    var groupTaskResources = _mapper.Map<List<GroupTaskDetailResource>>( groupTasks );
+
+    foreach ( var groupTask in groupTaskResources ) {
+      var tasks = await _taskRepository.GetTasksByGroupTaskId( groupTask.GroupTaskId!.Value );
+      var taskResources = _mapper.Map<List<TaskDetailResource>>( tasks );
+      groupTask.Tasks = taskResources;
+      foreach ( var task in taskResources ) {
+        var stepworks = await _stepworkRepository.GetStepworksByTaskId( task.TaskId!.Value );
+        var stepworkResources = _mapper.Map<List<StepworkDetailResource>>( stepworks );
+        task.Stepworks = stepworkResources;
+      }
+    }
+    return groupTaskResources;
+  }
+
+  public IList<UpdateGrouptaskResource> CompareGrouptasks( IList<GroupTaskDetailResource> first, IList<GroupTaskDetailResource> second )
+  {
+    var result = new List<UpdateGrouptaskResource>();
+
+    var deletingGroups = first.Where( g => !second.Any( g2 => g2.GroupTaskName == g.GroupTaskName ) );
+    var newGroups = second.Where( g => !first.Any( g2 => g2.GroupTaskName == g.GroupTaskName ) );
+    var updatingGroups = second.Where( g => first.Any( g2 => g2.GroupTaskName == g.GroupTaskName ) );
+    //var preserveGroups = second.Where( g => first.Any( g2 => g2.Equals( g ) ) );
+
+
+    foreach ( var group in deletingGroups ) {
+      result.Add( new UpdateGrouptaskResource()
+      {
+        Change = DataChange.Delete,
+        Id = group.LocalId,
+        Name = group.GroupTaskName,
+        Tasks = null
+      } );
+    }
+
+    //foreach ( var group in preserveGroups ) {
+    //  result.Add( new UpdateGrouptaskResource()
+    //  {
+    //    Change = DataChange.None,
+    //    Id = group.LocalId,
+    //    Name = group.GroupTaskName,
+    //    Tasks = null
+    //  } );
+    //}
+
+    foreach ( var group in newGroups ) {
+      var newGroupResource = new UpdateGrouptaskResource()
+      {
+        Change = DataChange.New,
+        Id = group.LocalId,
+        Name = group.GroupTaskName
+      };
+
+      result.Add( newGroupResource );
+
+      if ( group.Tasks.Count == 0 ) {
+        continue;
+      }
+      newGroupResource.Tasks = new List<UpdateTaskResource>();
+      foreach ( var task in group.Tasks ) {
+        newGroupResource.Tasks.Add( CreateUpdateResource( task, DataChange.New ) );
+      }
+    }
+
+    foreach ( var group in updatingGroups ) {
+      var currentGroup = first.FirstOrDefault( g => g.GroupTaskName == group.GroupTaskName );
+      if ( currentGroup == null ) {
+        continue;
+      }
+
+      var changes = CompareTasksByOrder( currentGroup.Tasks, group.Tasks );
+
+      if ( changes.All( x => x.Change == DataChange.None ) ) {
+        result.Add( new UpdateGrouptaskResource()
+        {
+          Change = DataChange.None,
+          Id = group.LocalId,
+          Name = group.GroupTaskName,
+          Tasks = null
+        } );
+      }
+      else {
+        result.Add( new UpdateGrouptaskResource()
+        {
+          Change = DataChange.Update,
+          Id = group.LocalId,
+          Name = group.GroupTaskName,
+          Tasks = changes
+        } );
+      }
+    }
+
+    return result;
+  }
+
+  public IList<UpdateTaskResource> CompareTasks( IList<TaskDetailResource> first, IList<TaskDetailResource> second )
+  {
+    var result = new List<UpdateTaskResource>();
+
+    var deletingTasks = first.Where( t => !second.Any( t2 => t2.TaskName == t.TaskName ) );
+    var newTasks = second.Where( t => !first.Any( t2 => t2.TaskName == t.TaskName ) );
+    var updatingTasks = second.Where( t => first.Any( t2 => t2.TaskName == t.TaskName ) );
+
+    foreach ( var task in deletingTasks ) {
+      result.Add( CreateUpdateResource( task, DataChange.Delete ) );
+    }
+
+    foreach ( var task in newTasks ) {
+      result.Add( CreateUpdateResource( task, DataChange.New ) );
+    }
+
+    if ( !updatingTasks.Any() ) {
+      return result;
+    }
+
+    var cloneCurrentTasks = new List<TaskDetailResource>( first );
+    foreach ( var newtask in updatingTasks ) {
+      var existingTask = cloneCurrentTasks.FirstOrDefault( x => x.TaskName == newtask.TaskName );
+      if ( existingTask == null ) {
+        continue;
+      }
+      if ( newtask.Equals( existingTask ) ) {
+        result.Add( CreateUpdateResource( existingTask, DataChange.None ) );
+      }
+      else {
+        result.Add( CreateUpdateResource( newtask, DataChange.Update ) );
+      }
+      cloneCurrentTasks.Remove( existingTask );
+    }
+
+    return result;
+  }
+
+  public IList<UpdateTaskResource> CompareTasksByOrder( IList<TaskDetailResource> first, IList<TaskDetailResource> second )
+  {
+    var result = new List<UpdateTaskResource>();
+
+    for ( int i = 0; i < first.Count; i++ ) {
+      var existingTask = first [ i ];
+
+      if ( i < second.Count ) {
+        var newTask = second [ i ];
+        if ( existingTask.Equals( newTask ) ) {
+          result.Add( CreateUpdateResource( existingTask, DataChange.None ) );
+        }
+        else {
+          // add new
+          result.Add( CreateUpdateResource( newTask, DataChange.New ) );
+          // remove existing task
+          result.Add( CreateUpdateResource( existingTask, DataChange.Delete ) );
+        }
+      }
+      else {
+        result.Add( CreateUpdateResource( existingTask, DataChange.Delete ) );
+      }
+    }
+
+    if ( second.Count > first.Count ) {
+      for ( int i = first.Count; i < second.Count; i++ ) {
+        var newTask = second [ i ];
+        result.Add( CreateUpdateResource( newTask, DataChange.New ) );
+      }
+    }
+    return result;
+  }
+
+  private UpdateTaskResource CreateUpdateResource( TaskDetailResource resource, string change )
+  {
+    var result = _mapper.Map<UpdateTaskResource>( resource );
+    if ( resource.Stepworks.Count > 0 && ( change != DataChange.Delete || change != DataChange.None ) ) {
+      result.Stepworks = _mapper.Map<List<UpdateStepworkResource>>( resource.Stepworks );
+    }
+    result.Change = change;
+    return result;
   }
 }
