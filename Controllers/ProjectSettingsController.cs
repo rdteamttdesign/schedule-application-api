@@ -38,7 +38,6 @@ public class ProjectSettingsController : ControllerBase
   [Authorize]
   public async Task<IActionResult> GetVersionSetting( long versionId )
   {
-    var userId = long.Parse( HttpContext.User.Claims.FirstOrDefault( x => x.Type.ToLower() == "sid" )?.Value! );
     var version = await _versionService.GetVersionById( versionId );
     if ( version == null ) {
       return BadRequest( ProjectSettingNotification.NonExisted );
@@ -78,8 +77,7 @@ public class ProjectSettingsController : ControllerBase
     }
 
     #region Save number of months
-    var userId = long.Parse( HttpContext.User.Claims.FirstOrDefault( x => x.Type.ToLower() == "sid" )?.Value! );
-    var version = await _versionService.GetVersionById(versionId);
+    var version = await _versionService.GetVersionById( versionId );
     if ( version == null ) {
       return BadRequest( ProjectSettingNotification.NonExisted );
     }
@@ -101,6 +99,9 @@ public class ProjectSettingsController : ControllerBase
     setting.RemovalDurationRatio = formData.RemovalDurationRatio;
     setting.ColumnWidth = formData.ColumnWidth;
     setting.AmplifiedFactor = formData.AmplifiedFactor;
+    setting.IncludeYear = formData.IncludeYear;
+    setting.StartYear = formData.StartYear;
+    setting.StartMonth = formData.StartMonth;
 
     var result = await _projectSettingService.UpdateProjectSetting( setting );
     if ( !result.Success )
