@@ -30,6 +30,15 @@ public class ProjectSettingFormData
   public int ColumnWidth { get; set; }
 
   [Required]
+  public bool IncludeYear { get; set; }
+
+  [Required]
+  public int StartYear { get; set; }
+
+  [Required]
+  public int StartMonth { get; set; }
+
+  [Required]
   public float AmplifiedFactor { get; set; }
 }
 

@@ -12,6 +12,9 @@ public class ProjectSettingResource
   public int NumberOfMonths { get; set; }
   public int ColumnWidth { get; set; }
   public float AmplifiedFactor { get; set; }
+  public bool IncludeYear { get; set; }
+  public int StartYear { get; set; }
+  public int StartMonth { get; set; }
 }
 
 public class BackgroundColorResource
