@@ -19,7 +19,7 @@ public class ProjectSettingService : IProjectSettingService
 
   public async Task<ProjectSetting?> GetProjectSetting( long projectId )
   {
-    return await _projectSettingRepository.GetByProjectId( projectId );
+    return await _projectSettingRepository.GetByVersionId( projectId );
   }
 
   public async Task<ServiceResponse<ProjectSetting>> CreateProjectSetting( ProjectSetting setting )

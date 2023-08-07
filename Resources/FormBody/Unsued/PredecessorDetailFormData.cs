@@ -1,4 +1,4 @@
-﻿namespace SchedulingTool.Api.Resources.FormBody;
+﻿namespace SchedulingTool.Api.Resources.FormBody.Unsued;
 
 public class PredecessorDetailFormData
 {

@@ -6,12 +6,12 @@ namespace SchedulingTool.Api.Domain.Services;
 
 public interface IViewService
 {
-  Task<IEnumerable<View>> GetViewsByProjectId( long projectId );
+  Task<IEnumerable<View>> GetViewsByVersionId( long versionId );
   Task<ServiceResponse<View>> CreateView( View view );
   Task<ServiceResponse<View>> UpdateView( View view );
   Task<View?> GetViewById( long viewId );
   //Task<IEnumerable<object>> GetViewDetailById( View view, IEnumerable<GroupTask> groupTasks, List<ModelTask> tasks );
   Task<IEnumerable<object>> GetViewDetailById( long projectId, IEnumerable<ViewTaskDetail> tasks );
   System.Threading.Tasks.Task DeleteView( long viewId, bool isDeleteView );
-  Task<IEnumerable<ViewTaskDetail>> GetViewTasks( long projectId, long viewId );
+  Task<IEnumerable<ViewTaskDetail>> GetViewTasks( long versionId, long viewId );
 }

@@ -1,4 +1,4 @@
-﻿namespace SchedulingTool.Api.Resources.projectdetail;
+﻿namespace SchedulingTool.Api.Resources;
 
 public class GroupTaskResource
 {

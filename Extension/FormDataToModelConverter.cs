@@ -1,23 +1,24 @@
 ﻿using SchedulingTool.Api.Domain.Models;
-using SchedulingTool.Api.Extension;
+using SchedulingTool.Api.Domain.Models.Extended;
+using SchedulingTool.Api.Resources.FormBody;
 using Task = SchedulingTool.Api.Domain.Models.Task;
 
-namespace SchedulingTool.Api.Resources.FormBody.projectdetail;
+namespace SchedulingTool.Api.Extension;
 
-public class ModelConverter
+public class FormDataToModelConverter
 {
   public List<GroupTask> GroupTasks { get; private set; } = new List<GroupTask>();
   public List<Task> Tasks { get; private set; } = new List<Task>();
   public List<Stepwork> Stepworks { get; private set; } = new List<Stepwork>();
   public List<ExtendedPredecessor> Predecessors { get; private set; } = new List<ExtendedPredecessor>();
 
-  public ModelConverter(
+  public FormDataToModelConverter(
     long projectId,
     ProjectSetting setting,
     ColorDef defaultColor,
-    ICollection<GroupTaskFormData> grouptaskFormDataList )
+    ICollection<CommonGroupTaskFormData> grouptaskFormDataList )
   {
-    foreach ( GroupTaskFormData grouptaskFormData in grouptaskFormDataList ) {
+    foreach ( CommonGroupTaskFormData grouptaskFormData in grouptaskFormDataList ) {
       // case type project ~ group task
       if ( grouptaskFormData.Type == "project" ) {
         GroupTasks.Add(
@@ -110,7 +111,7 @@ public class ModelConverter
               {
                 StepworkId = stepworkFormData.Id,
                 RelatedStepworkId = predecessorFormData.Id,
-                Type = predecessorFormData.Type == "FS" ? 1 : ( predecessorFormData.Type == "SS" ? 2 : 3 ),
+                Type = predecessorFormData.Type == "FS" ? 1 :  predecessorFormData.Type == "SS" ? 2 : 3 ,
                 Lag = predecessorFormData.LagDays
               } );
             }
@@ -144,7 +145,7 @@ public class ModelConverter
             {
               StepworkId = grouptaskFormData.Id,
               RelatedStepworkId = predecessorFormData.Id,
-              Type = predecessorFormData.Type == "FS" ? 1 : ( predecessorFormData.Type == "SS" ? 2 : 3 ),
+              Type = predecessorFormData.Type == "FS" ? 1 :  predecessorFormData.Type == "SS" ? 2 : 3 ,
               Lag = predecessorFormData.LagDays
             } );
           }
@@ -152,12 +153,4 @@ public class ModelConverter
       }
     }
   }
-}
-
-public class ExtendedPredecessor
-{
-  public string StepworkId { get; set; } = null!;
-  public string RelatedStepworkId { get; set; } = null!;
-  public long Type { get; set; }
-  public float Lag { get; set; }
 }

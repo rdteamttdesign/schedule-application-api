@@ -1,8 +1,6 @@
-﻿using SchedulingTool.Api.Resources.projectdetail;
+﻿namespace SchedulingTool.Api.Resources.FormBody;
 
-namespace SchedulingTool.Api.Resources.FormBody.projectdetail;
-
-public class GroupTaskFormData
+public class CommonGroupTaskFormData
 {
   public float Start { get; set; }
   public float Duration { get; set; }
