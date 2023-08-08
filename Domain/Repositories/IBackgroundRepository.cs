@@ -8,5 +8,6 @@ public interface IBackgroundRepository : IGenericRepository<ProjectBackground>
   Task<ProjectBackground?> GetProjectBackground( long versionId, int month );
   Task<IEnumerable<ProjectBackground>> GetBackgroundsByVersionId( long versionId );
   Task BatchDelete( long versionId, int fromMonth );
+  Task BatchDelete( long versionId );
   Task AddMonth( long versionId, int numberOfMonth );
 }

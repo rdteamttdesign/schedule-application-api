@@ -70,13 +70,13 @@ public class ProjectsController : ControllerBase
   }
 
   [HttpPost()]
-  [Authorize]
+  //[Authorize]
   public async Task<IActionResult> CreateProject( [FromBody] NewProjectFormData formData )
   {
     if ( !ModelState.IsValid ) {
       return BadRequest( ModelState.GetErrorMessages() );
     }
-    var userId = long.Parse( HttpContext.User.Claims.FirstOrDefault( x => x.Type.ToLower() == "sid" )?.Value! );
+    var userId = 5;//long.Parse( HttpContext.User.Claims.FirstOrDefault( x => x.Type.ToLower() == "sid" )?.Value! );
     var version = new Version()
     {
       VersionName = formData.VersionName,
