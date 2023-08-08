@@ -18,7 +18,7 @@ public class ProjectSettingsController : ControllerBase
   }
 
   [HttpGet( "versions/{versionId}/settings" )]
-  //[Authorize]
+  [Authorize]
   public async Task<IActionResult> GetVersionSetting( long versionId )
   {
     var result = await _projectSettingService.GetProjectSettingByVersionId( versionId );
@@ -31,7 +31,7 @@ public class ProjectSettingsController : ControllerBase
   }
 
   [HttpPut( "versions/{versionId}/settings" )]
-  //[Authorize]
+  [Authorize]
   public async Task<IActionResult> UpdateProjectSetting( long versionId, [FromBody] ProjectSettingFormData formData )
   {
     if ( !ModelState.IsValid ) {
