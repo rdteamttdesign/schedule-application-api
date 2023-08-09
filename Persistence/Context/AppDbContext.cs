@@ -271,6 +271,11 @@ namespace SchedulingTool.Api.Persistence.Context
                     .HasColumnName("column_width")
                     .HasDefaultValueSql("'70'");
 
+                entity.Property(e => e.IncludeYear)
+                    .HasColumnType("bit(1)")
+                    .HasColumnName("include_year")
+                    .HasDefaultValueSql("b'0'");
+
                 entity.Property(e => e.RemovalDurationRatio)
                     .HasColumnName("removal_duration_ratio")
                     .HasDefaultValueSql("'0.6'");
@@ -279,6 +284,14 @@ namespace SchedulingTool.Api.Persistence.Context
                     .HasColumnType("bit(1)")
                     .HasColumnName("separate_group_task")
                     .HasDefaultValueSql("b'0'");
+
+                entity.Property(e => e.StartMonth)
+                    .HasColumnName("start_month")
+                    .HasDefaultValueSql("'1'");
+
+                entity.Property(e => e.StartYear)
+                    .HasColumnName("start_year")
+                    .HasDefaultValueSql("'1'");
 
                 entity.HasOne(d => d.Version)
                     .WithOne(p => p.ProjectSetting)
@@ -590,7 +603,7 @@ namespace SchedulingTool.Api.Persistence.Context
         entity.Property( e => e.DisplayOrder ).HasColumnName( "display_order" );
       } );
 
-      OnModelCreatingPartial(modelBuilder);
+            OnModelCreatingPartial(modelBuilder);
         }
 
         partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
