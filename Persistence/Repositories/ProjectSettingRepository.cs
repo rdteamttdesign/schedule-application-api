@@ -11,8 +11,8 @@ public class ProjectSettingRepository : GenericRepository<ProjectSetting>, IProj
   {
   }
 
-  public async Task<ProjectSetting?> GetByProjectId( long projectId )
+  public async Task<ProjectSetting?> GetByVersionId( long versionId )
   {
-    return ( await _context.ProjectSettings.FromSqlRaw( "CALL usp_ProjectSettings_GetByProjectId({0})", projectId ).ToListAsync() ).FirstOrDefault();
+    return ( await _context.ProjectSettings.FromSqlRaw( "CALL usp_ProjectSettings_GetByProjectId({0})", versionId ).ToListAsync() ).FirstOrDefault();
   }
 }

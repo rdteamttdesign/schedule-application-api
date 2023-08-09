@@ -1,16 +1,9 @@
 ﻿using SchedulingTool.Api.Domain.Services.Communication;
-using Task = System.Threading.Tasks.Task;
-using Version = SchedulingTool.Api.Domain.Models.Version;
+using SchedulingTool.Api.Resources.Extended;
 
 namespace SchedulingTool.Api.Domain.Services;
 
 public interface IVersionService
 {
-  Task<string?> GetProjectNameOfVersion( long versionId );
-  Task<ServiceResponse<Version>> CreateVersion( long projectId, Version version );
-  Task<IEnumerable<Version>> GetActiveVersions( long userId );
-  Task<Version?> GetVersionById( long versionId );
-  Task BatchDeactiveVersions( long userId, ICollection<long> versionIds );
-  Task<ServiceResponse<Version>> UpdateVersion( Version version );
-  Task BatchDeleteVersionDetails( long versionId );
+  Task<ServiceResponse<ExportExcelResource>> ExportToExcel( long versionId );
 }

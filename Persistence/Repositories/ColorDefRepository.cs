@@ -2,7 +2,6 @@
 using SchedulingTool.Api.Domain.Models;
 using SchedulingTool.Api.Domain.Repositories;
 using SchedulingTool.Api.Persistence.Context;
-using Task = System.Threading.Tasks.Task;
 
 namespace SchedulingTool.Api.Persistence.Repositories;
 
@@ -13,23 +12,18 @@ public class ColorDefRepository : GenericRepository<ColorDef>, IColorDefReposito
 
   }
 
-  public async Task<IEnumerable<ColorDef>> GetBackgroundColorDefsByProjectId( long projectId )
+  public async Task<IEnumerable<ColorDef>> GetBackgroundColorsByVersionId( long versionId )
   {
-    return await _context.ColorDefs.Where( c => c.VersionId == projectId && c.Type == ( int ) Domain.Models.Enum.ColorType.Background ).ToListAsync();
+    return await _context.ColorDefs.Where( c => c.VersionId == versionId && c.Type == ( int ) Domain.Models.Enum.ColorType.Background ).ToListAsync();
   }
 
-  public async Task<IEnumerable<ColorDef>> GeAllColorDefsByProjectId( long projectId )
+  public async Task<IEnumerable<ColorDef>> GeAllColorsByVersionId( long versionId )
   {
-    return await _context.ColorDefs.Where( c => c.VersionId == projectId ).ToListAsync();
+    return await _context.ColorDefs.Where( c => c.VersionId == versionId ).ToListAsync();
   }
 
-  public async Task<IEnumerable<ColorDef>> GetStepworkColorDefsByProjectId( long projectId )
+  public async Task<IEnumerable<ColorDef>> GetStepworkColorsByProjectId( long versionId )
   {
-    return await _context.ColorDefs.Where( c => c.VersionId == projectId && c.Type == ( int ) Domain.Models.Enum.ColorType.Stepwork ).ToListAsync();
-  }
-
-  public async Task DuplicateColorDefs( long fromProjectId, long toProjectId )
-  {
-    await _context.Database.ExecuteSqlRawAsync( "CALL usp_Color_DuplicateColor( {0} , {1} )", fromProjectId, toProjectId );
+    return await _context.ColorDefs.Where( c => c.VersionId == versionId && c.Type == ( int ) Domain.Models.Enum.ColorType.Stepwork ).ToListAsync();
   }
 }

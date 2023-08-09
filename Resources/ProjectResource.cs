@@ -1,10 +1,13 @@
-﻿namespace SchedulingTool.Api.Resources;
+﻿using SchedulingTool.Api.Domain.Models;
+
+namespace SchedulingTool.Api.Resources;
 
 public class ProjectResource
 {
-  public long ProjectId { get; set; }
   public string ProjectName { get; set; } = null!;
-  public long UserId { get; set; }
-  public DateTime CreatedDate { get; set; }
-  public DateTime ModifiedDate { get; set; }
+  public ProjectSetting Setting { get; set; } = null!;
+  public IList<ColorDef> UsedColors { get; set; } = null!;
+  public Dictionary<View, List<ViewTaskDetail>> ViewTasks { get; set; } = null!;
+  public IList<GroupTaskDetailResource> Grouptasks { get; set; } = null!;
+  public IList<ProjectBackgroundResource> Backgrounds { get; set; } = null!;
 }

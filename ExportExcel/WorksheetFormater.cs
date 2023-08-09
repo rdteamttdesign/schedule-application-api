@@ -1,8 +1,8 @@
 ﻿using OfficeOpenXml.Style;
 using OfficeOpenXml;
-using SchedulingTool.Api.Resources;
 using System.Drawing;
 using System.Text.RegularExpressions;
+using SchedulingTool.Api.Resources;
 
 namespace SchedulingTool.Api.ExportExcel;
 

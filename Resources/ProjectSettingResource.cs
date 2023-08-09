@@ -1,4 +1,6 @@
-﻿namespace SchedulingTool.Api.Resources;
+﻿using SchedulingTool.Api.Resources.Unused;
+
+namespace SchedulingTool.Api.Resources;
 
 public class ProjectSettingResource
 {

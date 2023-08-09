@@ -12,7 +12,6 @@ using SchedulingTool.Api.Security.Tokens;
 using SchedulingTool.Api.Services;
 using Serilog;
 using System.Text.Json.Serialization;
-using BackgroundService = SchedulingTool.Api.Services.BackgroundService;
 
 var builder = WebApplication.CreateBuilder( args );
 
@@ -145,34 +144,34 @@ builder.Services.AddScoped<IVersionService, VersionService>();
 builder.Services.AddScoped<IProjectVersionRepository, ProjectVersionRepository>();
 
 builder.Services.AddScoped<IProjectSettingRepository, ProjectSettingRepository>();
-builder.Services.AddScoped<IProjectSettingService, ProjectSettingService>();
+//builder.Services.AddScoped<IProjectSettingService, ProjectSettingService>();
 
 builder.Services.AddScoped<IBackgroundRepository, BackgroundRepository>();
-builder.Services.AddScoped<IBackgroundService, BackgroundService>();
+//builder.Services.AddScoped<IBackgroundService, BackgroundService>();
 
 builder.Services.AddScoped<IColorDefRepository, ColorDefRepository>();
-builder.Services.AddScoped<IColorDefService, ColorDefService>();
+//builder.Services.AddScoped<IColorDefService, ColorDefService>();
 
 builder.Services.AddScoped<IGroupTaskRepository, GroupTaskRepository>();
-builder.Services.AddScoped<IGroupTaskService, GroupTaskService>();
+//builder.Services.AddScoped<IGroupTaskService, GroupTaskService>();
 
 builder.Services.AddScoped<ITaskRepository, TaskRepository>();
-builder.Services.AddScoped<ITaskService, TaskService>();
+//builder.Services.AddScoped<ITaskService, TaskService>();
 
 builder.Services.AddScoped<IStepworkRepository, StepworkRepository>();
-builder.Services.AddScoped<IStepworkService, StepworkService>();
+//builder.Services.AddScoped<IStepworkService, StepworkService>();
 
 builder.Services.AddScoped<IPredecessorRepository, PredecessorRepository>();
-builder.Services.AddScoped<IPredecessorService, PredecessorService>();
+//builder.Services.AddScoped<IPredecessorService, PredecessorService>();
 
 builder.Services.AddScoped<IPredecessorTypeRepository, PredecessorTypeRepository>();
-builder.Services.AddScoped<IPredecessorTypeService, PredecessorTypeService>();
+//builder.Services.AddScoped<IPredecessorTypeService, PredecessorTypeService>();
 
 builder.Services.AddScoped<IViewRepository, ViewRepository>();
-builder.Services.AddScoped<IViewService, ViewService>();
+//builder.Services.AddScoped<IViewService, ViewService>();
 
 builder.Services.AddScoped<IViewTaskRepository, ViewTaskRepository>();
-builder.Services.AddScoped<IViewTaskService, ViewTaskService>();
+//builder.Services.AddScoped<IViewTaskService, ViewTaskService>();
 
 builder.Services.AddAutoMapper( AppDomain.CurrentDomain.GetAssemblies() );
 

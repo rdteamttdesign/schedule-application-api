@@ -1,10 +1,11 @@
-﻿using SchedulingTool.Api.Domain.Models;
+﻿using AutoMapper;
+using SchedulingTool.Api.Domain.Models;
+using SchedulingTool.Api.Domain.Models.Enum;
 using SchedulingTool.Api.Domain.Repositories;
 using SchedulingTool.Api.Domain.Services;
 using SchedulingTool.Api.Domain.Services.Communication;
-using SchedulingTool.Api.Notification;
-using Task = System.Threading.Tasks.Task;
-using Version = SchedulingTool.Api.Domain.Models.Version;
+using SchedulingTool.Api.Resources;
+using SchedulingTool.Api.Resources.Extended;
 
 namespace SchedulingTool.Api.Services;
 
@@ -12,83 +13,157 @@ public class VersionService : IVersionService
 {
   private readonly IProjectRepository _projectRepository;
   private readonly IProjectVersionRepository _projectVersionRepository;
-  private readonly IVersionRepository _versionRepository;
+  private readonly IProjectSettingRepository _projectSettingRepository;
+  private readonly IColorDefRepository _colorRepository;
+  private readonly IBackgroundRepository _backgroundRepository;
+  private readonly IGroupTaskRepository _groupTaskRepository;
+  private readonly ITaskRepository _taskRepository;
+  private readonly IStepworkRepository _stepworkRepository;
+  private readonly IPredecessorRepository _predecessorRepository;
+  private readonly IViewRepository _viewRepository;
   private readonly IUnitOfWork _unitOfWork;
+  private readonly IMapper _mapper;
 
-  public VersionService( 
+  public VersionService(
     IProjectRepository projectRepository,
     IProjectVersionRepository projectVersionRepository,
-    IVersionRepository versionRepository, 
-    IUnitOfWork unitOfWork )
+    IProjectSettingRepository projectSettingRepository,
+    IColorDefRepository colorRepository,
+    IBackgroundRepository backgroundRepository,
+    IGroupTaskRepository groupTaskRepository,
+    ITaskRepository taskRepository,
+    IStepworkRepository stepworkRepository,
+    IPredecessorRepository predecessorRepository,
+    IViewRepository viewRepository,
+    IUnitOfWork unitOfWork,
+    IMapper mapper )
   {
     _projectRepository = projectRepository;
     _projectVersionRepository = projectVersionRepository;
-    _versionRepository = versionRepository;
+    _projectSettingRepository = projectSettingRepository; 
+    _colorRepository = colorRepository;
+    _backgroundRepository = backgroundRepository;
+    _groupTaskRepository = groupTaskRepository;
+    _taskRepository = taskRepository;
+    _stepworkRepository = stepworkRepository;
+    _predecessorRepository = predecessorRepository;
+    _viewRepository = viewRepository;
     _unitOfWork = unitOfWork;
+    _mapper = mapper;
   }
 
-  public async Task<IEnumerable<Version>> GetActiveVersions( long userId)
-  {
-    return await _versionRepository.GetActiveVersions( userId );
-  }
-
-  public async Task<string?> GetProjectNameOfVersion( long versionId )
+  private async Task<string?> GetProjectNameOfVersion( long versionId )
   {
     var projectVersion = await _projectVersionRepository.GetProjectVersionByVersionId( versionId );
-    if ( projectVersion==null ) {
+    if ( projectVersion == null ) {
       return null;
     }
     var project = await _projectRepository.GetById( projectVersion.ProjectId );
     return project?.ProjectName;
   }
 
-  public async Task BatchDeleteVersionDetails( long versionId )
+  public async Task<ServiceResponse<ExportExcelResource>> ExportToExcel( long versionId )
   {
-    await _versionRepository.BatchDeleteVersionDetails( versionId );
+    var projectName = await GetProjectNameOfVersion( versionId );
+    if ( projectName == null ) {
+      return new ServiceResponse<ExportExcelResource>( "Project not found." );
+    }
+    var groupTaskResources = await GetGroupTaskResourcesByProjectId( versionId );
+    var bgResources = await GetBackgrounds( versionId );
+    var usedColor = await GetUsedColor( versionId, groupTaskResources, bgResources );
+    var setting = await _projectSettingRepository.GetByVersionId( versionId );
+    if ( setting == null ) {
+      return new ServiceResponse<ExportExcelResource>( "Project setting not found." );
+    }
+    var viewResources = await GetViewTasks( versionId );
+
+    var projectResource = new ProjectResource()
+    {
+      ProjectName = projectName,
+      Grouptasks = groupTaskResources,
+      Backgrounds = bgResources,
+      UsedColors = usedColor,
+      Setting = setting,
+      ViewTasks = viewResources
+    };
+
+    var success = ExportExcel.ExportExcel.GetFile( projectResource, out var result );
+
+    return success
+      ? new ServiceResponse<ExportExcelResource>( new ExportExcelResource() { FilePath = result } )
+      : new ServiceResponse<ExportExcelResource>( result );
   }
 
-  public async Task<Version?> GetVersionById( long versionId )
+  private async Task<IList<ColorDef>> GetUsedColor( long versiontId, IEnumerable<GroupTaskDetailResource> tasks, IEnumerable<ProjectBackgroundResource> background )
   {
-    var version = await _versionRepository.GetById( versionId );
-    return ( version?.IsActivated ?? false ) ? version : null;
+    var colorSetting = await _colorRepository.GeAllColorsByVersionId( versiontId );
+    var usedStepworkColorIds = tasks.SelectMany( x => x.Tasks ).SelectMany( x => x.Stepworks ).Select( x => x.ColorId ).Distinct();
+    var usedBgColorIds = background.Select( x => x.ColorId );
+
+    return colorSetting.Where( x => usedStepworkColorIds.Contains( x.ColorId ) || usedBgColorIds.Contains( x.ColorId ) ).ToList();
   }
 
-  public async Task<ServiceResponse<Version>> CreateVersion( long projectId, Version version )
+  private async Task<Dictionary<View, List<ViewTaskDetail>>> GetViewTasks( long versionId )
   {
-    try {
-      var newVersion = await _versionRepository.Create( version );
-      await _unitOfWork.CompleteAsync();
-      await _projectVersionRepository.Create( new ProjectVersion() { ProjectId = projectId, VersionId = version.VersionId } );
-      await _unitOfWork.CompleteAsync();
-      return new ServiceResponse<Version>( newVersion );
+    var result = new Dictionary<View, List<ViewTaskDetail>>();
+    var views = await _viewRepository.GetViewsByVersionId( versionId );
+    foreach ( var view in views ) {
+      var viewTasks = await _viewRepository.GetViewTasks( versionId, view.ViewId );
+      result.Add( view, viewTasks.ToList() );
     }
-    catch ( Exception ex ) {
-      return new ServiceResponse<Version>( $"{ProjectNotification.ErrorSaving} {ex.Message}. {ex.InnerException?.Message}" );
-    }
+    return result;
   }
 
-  public async Task BatchDeactiveVersions( long userId, ICollection<long> versionIds )
+  private async Task<List<GroupTaskDetailResource>> GetGroupTaskResourcesByProjectId( long versionId )
   {
-    var versionsToDeactive = await _versionRepository.GetActiveVersions( userId, versionIds );
-    if ( !versionsToDeactive.Any() )
-      return;
+    var groupTasks = await _groupTaskRepository.GetGroupTasksByVersionId( versionId );
+    var groupTaskResources = _mapper.Map<List<GroupTaskDetailResource>>( groupTasks );
 
-    foreach ( var version in versionsToDeactive ) {
-      version.IsActivated = false;
-      await _versionRepository.Update( version );
-      await _unitOfWork.CompleteAsync();
+    var stepworkColors = ( await _colorRepository.GetStepworkColorsByProjectId( versionId ) )
+      .ToDictionary( x => x.ColorId, x =>
+      new ColorDetailResource()
+      {
+        Name = x.Name,
+        Code = x.Code,
+        ColorId = x.ColorId,
+        ColorMode = x.IsInstall == 0 ? ColorMode.Install : ( x.IsInstall == 1 ? ColorMode.Removal : ColorMode.Custom )
+      } );
+
+    foreach ( var groupTaskResource in groupTaskResources ) {
+      var tasks = await _taskRepository.GetTasksByGroupTaskId( groupTaskResource.GroupTaskId );
+      groupTaskResource.Tasks = _mapper.Map<List<TaskDetailResource>>( tasks );
+      foreach ( var taskResource in groupTaskResource.Tasks ) {
+        var stepworks = await _stepworkRepository.GetStepworksByTaskId( taskResource.TaskId );
+        taskResource.Stepworks = _mapper.Map<List<StepworkDetailResource>>( stepworks );
+        foreach ( var stepworkResource in taskResource.Stepworks ) {
+          var predecessor = await _predecessorRepository.GetPredecessorsByStepworkId( stepworkResource.StepworkId );
+          stepworkResource.Predecessors = _mapper.Map<List<PredecessorDetailResource>>( predecessor );
+          if ( stepworkColors.ContainsKey( stepworkResource.ColorId ) ) {
+            stepworkResource.ColorDetail = stepworkColors [ stepworkResource.ColorId ];
+          }
+        }
+      }
     }
+    return groupTaskResources;
   }
 
-  public async Task<ServiceResponse<Version>> UpdateVersion( Version version )
+  private async Task<IList<ProjectBackgroundResource>> GetBackgrounds( long versionId )
   {
-    try {
-      await _versionRepository.Update( version );
-      await _unitOfWork.CompleteAsync();
-      return new ServiceResponse<Version>( version );
+    var colors = await _colorRepository.GetBackgroundColorsByVersionId( versionId );
+
+    var backgrounds = await _backgroundRepository.GetBackgroundsByVersionId( versionId );
+    var resources = _mapper.Map<IEnumerable<ProjectBackgroundResource>>( backgrounds );
+    foreach ( var background in resources ) {
+      if ( background.ColorId == null ) {
+        continue;
+      }
+      var color = colors.FirstOrDefault( c => c.ColorId == background.ColorId );
+      if ( color == null ) {
+        continue;
+      }
+      background.ColorCode = color.Code;
+      background.Name = color.Name;
     }
-    catch ( Exception ex ) {
-      return new ServiceResponse<Version>( $"{ProjectNotification.ErrorSaving} {ex.Message}. {ex.InnerException?.Message}" );
-    }
+    return resources.ToList();
   }
 }
