@@ -321,13 +321,15 @@ public class VersionService : IVersionService
     newSetting.RemovalDurationRatio = setting.RemovalDurationRatio;
     newSetting.ColumnWidth = setting.ColumnWidth;
     newSetting.AmplifiedFactor = setting.AmplifiedFactor;
+    newSetting.IncludeYear = setting.IncludeYear;
+    newSetting.StartMonth = setting.StartMonth;
+    newSetting.StartYear = setting.StartYear;
     if ( newSetting != null ) {
       await _projectSettingRepository.Update( newSetting );
       await _unitOfWork.CompleteAsync();
     }
 
     #region Duplicate color
-    //await _colorService.DuplicateColorDefs( projectId, result.Content.ProjectId );
     var bgColorList = new Dictionary<long, ColorDef>();
     var swColorList = new Dictionary<long, ColorDef>();
 
