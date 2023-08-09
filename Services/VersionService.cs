@@ -588,7 +588,6 @@ public class VersionService : IVersionService
     var deletingGroups = first.Where( g => !second.Any( g2 => g2.GroupTaskName == g.GroupTaskName ) );
     var newGroups = second.Where( g => !first.Any( g2 => g2.GroupTaskName == g.GroupTaskName ) );
     var updatingGroups = second.Where( g => first.Any( g2 => g2.GroupTaskName == g.GroupTaskName ) );
-    //var preserveGroups = second.Where( g => first.Any( g2 => g2.Equals( g ) ) );
 
 
     foreach ( var group in deletingGroups ) {
@@ -600,16 +599,6 @@ public class VersionService : IVersionService
         Tasks = null
       } );
     }
-
-    //foreach ( var group in preserveGroups ) {
-    //  result.Add( new UpdateGrouptaskResource()
-    //  {
-    //    Change = DataChange.None,
-    //    Id = group.LocalId,
-    //    Name = group.GroupTaskName,
-    //    Tasks = null
-    //  } );
-    //}
 
     foreach ( var group in newGroups ) {
       var newGroupResource = new UpdateGrouptaskResource()
