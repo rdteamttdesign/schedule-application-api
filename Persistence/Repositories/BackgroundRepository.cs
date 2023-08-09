@@ -36,4 +36,9 @@ public class BackgroundRepository : GenericRepository<ProjectBackground>, IBackg
   {
     await _context.Database.ExecuteSqlRawAsync( "CALL usp_Background_AddMonth({0} , {1})", versionId, numberOfMonth );
   }
+
+  public async Task BatchDelete( long versionId )
+  {
+    await _context.Database.ExecuteSqlRawAsync( "CALL usp_Background_DeleteAll({0})", versionId );
+  }
 }

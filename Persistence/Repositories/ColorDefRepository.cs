@@ -13,12 +13,12 @@ public class ColorDefRepository : GenericRepository<ColorDef>, IColorDefReposito
 
   }
 
-  public async Task<IEnumerable<ColorDef>> GetBackgroundColorDefsByVersionId( long versionId )
+  public async Task<IEnumerable<ColorDef>> GetBackgroundColorsByVersionId( long versionId )
   {
     return await _context.ColorDefs.Where( c => c.VersionId == versionId && c.Type == ( int ) Domain.Models.Enum.ColorType.Background ).ToListAsync();
   }
 
-  public async Task<IEnumerable<ColorDef>> GetStepworkColorDefsByVersionId( long versionId )
+  public async Task<IEnumerable<ColorDef>> GetStepworkColorsByVersionId( long versionId )
   {
     return await _context.ColorDefs.Where( c => c.VersionId == versionId && c.Type == ( int ) Domain.Models.Enum.ColorType.Stepwork ).ToListAsync();
   }

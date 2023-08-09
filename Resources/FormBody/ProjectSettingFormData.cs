@@ -57,5 +57,5 @@ public class BackgroundColorFormData
   public string Name { get; set; } = null!;
   public string Code { get; set; } = null!;
   public long Type { get; set; }
-  public string? DisplayMonths { get; set; } = null!;
+  public IList<string> DisplayDateRanges { get; set; } = null!;
 }

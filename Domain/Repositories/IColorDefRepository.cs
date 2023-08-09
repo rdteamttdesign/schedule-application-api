@@ -5,9 +5,9 @@ namespace SchedulingTool.Api.Domain.Repositories;
 
 public interface IColorDefRepository : IGenericRepository<ColorDef>
 {
-  Task<IEnumerable<ColorDef>> GetBackgroundColorDefsByVersionId( long versionId );
+  Task<IEnumerable<ColorDef>> GetBackgroundColorsByVersionId( long versionId );
 
-  Task<IEnumerable<ColorDef>> GetStepworkColorDefsByVersionId( long versionId );
+  Task<IEnumerable<ColorDef>> GetStepworkColorsByVersionId( long versionId );
 
   Task DuplicateColorDefs( long fromVersionId, long toVersionId );
 }

@@ -232,7 +232,7 @@ public class VersionService : IVersionService
   public async Task SaveProjectTasks( long versionId, ICollection<CommonGroupTaskFormData> formData )
   {
     var setting = await _projectSettingRepository.GetByVersionId( versionId );
-    var stepworkColor = await _colorRepository.GetStepworkColorDefsByVersionId( versionId );
+    var stepworkColor = await _colorRepository.GetStepworkColorsByVersionId( versionId );
     var installColor = stepworkColor.First( c => c.IsInstall == 0 );
     var converter = new FormDataToModelConverter( versionId, setting!, installColor!, formData );
 
@@ -333,8 +333,8 @@ public class VersionService : IVersionService
     var bgColorList = new Dictionary<long, ColorDef>();
     var swColorList = new Dictionary<long, ColorDef>();
 
-    var swColors = await _colorRepository.GetStepworkColorDefsByVersionId( oldVersion.VersionId );
-    var newSwColors = await _colorRepository.GetStepworkColorDefsByVersionId( result.Content.VersionId );
+    var swColors = await _colorRepository.GetStepworkColorsByVersionId( oldVersion.VersionId );
+    var newSwColors = await _colorRepository.GetStepworkColorsByVersionId( result.Content.VersionId );
     foreach ( var color in swColors ) {
       if ( color.IsDefault ) {
         if ( color.IsInstall == 0 || color.IsInstall == 1 ) {
@@ -359,7 +359,7 @@ public class VersionService : IVersionService
       var newColorResult = await CreateColorDef( newColor );
       swColorList.Add( color.ColorId, newColorResult.Content );
     }
-    var bgColors = await _colorRepository.GetBackgroundColorDefsByVersionId( oldVersion.VersionId );
+    var bgColors = await _colorRepository.GetBackgroundColorsByVersionId( oldVersion.VersionId );
     foreach ( var color in bgColors ) {
       var newColor = new ColorDef()
       {
@@ -536,7 +536,7 @@ public class VersionService : IVersionService
 
   public async Task<dynamic> GetDataFromFile( long versionId, Stream fileStream, int maxDisplayOrder, string [] sheetNameList )
   {
-    var colors = await _colorRepository.GetStepworkColorDefsByVersionId( versionId );
+    var colors = await _colorRepository.GetStepworkColorsByVersionId( versionId );
     var installColor = colors.FirstOrDefault( c => c.IsInstall == 0 );
     var removalColor = colors.FirstOrDefault( c => c.IsInstall == 1 );
     var setting = await _projectSettingRepository.GetByVersionId( versionId );
@@ -554,7 +554,7 @@ public class VersionService : IVersionService
 
   public async Task<dynamic> GetUpdatedDataFromFile( long versionId, Stream fileStream, string [] sheetNameList )
   {
-    var colors = await _colorRepository.GetStepworkColorDefsByVersionId( versionId );
+    var colors = await _colorRepository.GetStepworkColorsByVersionId( versionId );
     var installColor = colors.FirstOrDefault( c => c.IsInstall == 0 );
     var removalColor = colors.FirstOrDefault( c => c.IsInstall == 1 );
     var setting = await _projectSettingRepository.GetByVersionId( versionId );
