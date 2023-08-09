@@ -113,24 +113,30 @@ public class ViewsController : ControllerBase
   [Authorize]
   public async Task<IActionResult> GetViewDetail( long versionId, long viewId )
   {
-    // checking
-    var view = await _viewService.GetViewById( viewId );
-    if ( view == null ) {
-      return BadRequest( ViewNotification.NonExisted );
-    }
-    // get tasks in view
-    var viewTasks = await _viewService.GetViewTasks( versionId, viewId );
+    try {
+      // checking
+      var view = await _viewService.GetViewById( viewId );
+      if ( view == null ) {
+        return BadRequest( ViewNotification.NonExisted );
+      }
+      // get tasks in view
+      var viewTasks = await _viewService.GetViewTasks( versionId, viewId );
 
-    if ( !viewTasks.Any() ) {
-      return BadRequest( "View has no task." );
-    }
+      if ( !viewTasks.Any() ) {
+        return Ok( Array.Empty<object>() );
+      }
 
-    foreach ( var viewTask in viewTasks ) {
-      var stepworks = await _stepworkService.GetStepworksByTaskId( viewTask.TaskId );
-      viewTask.Stepworks = stepworks.ToList();
-    }
+      foreach ( var viewTask in viewTasks ) {
+        var stepworks = await _stepworkService.GetStepworksByTaskId( viewTask.TaskId );
+        viewTask.Stepworks = stepworks.ToList();
+      }
 
-    var viewDetail = await _viewService.GetViewDetailById( versionId, viewTasks.OrderBy( t => t.DisplayOrder ) );
-    return Ok( viewDetail );
+      var viewDetail = await _viewService.GetViewDetailById( versionId, viewTasks.OrderBy( t => t.DisplayOrder ) );
+      return Ok( viewDetail );
+
+    }
+    catch ( Exception ex ) {
+      return BadRequest( $"{ex.Message} {ex.StackTrace}" );
+    }
   }
 }
