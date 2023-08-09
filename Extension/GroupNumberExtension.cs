@@ -34,8 +34,8 @@ public static class DateRangeDisplayExtension
     }
 
     var dateStrings = value.Split( '-' );
-    var fromDate = DateTime.Parse( dateStrings [ 0 ] );
-    var toDate = DateTime.Parse( dateStrings [ 1 ] );
+    var fromDate = DateTime.Parse( dateStrings [ 0 ].Trim() );
+    var toDate = DateTime.Parse( dateStrings [ 1 ].Trim() );
 
     if ( fromDate.Equals( DateTime.NullValue ) || toDate.Equals( DateTime.NullValue ) ) {
       return Enumerable.Empty<DateTime>();
