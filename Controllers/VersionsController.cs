@@ -230,7 +230,7 @@ public class VersionsController : ControllerBase
   }
 
   [HttpPut( "versions/{versionId}/update-from-excel" ), DisableRequestSizeLimit]
-  //[Authorize]
+  [Authorize]
   public async Task<IActionResult> UpdateFromExcelFile( long versionId )
   {
     if ( !ModelState.IsValid ) {
