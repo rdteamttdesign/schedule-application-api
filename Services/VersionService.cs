@@ -558,6 +558,10 @@ public class VersionService : IVersionService
     var setting = await _projectSettingRepository.GetByVersionId( versionId );
     var grouptasksFromFile = ExcelFileReader.ReadFromFile( fileStream, sheetNameList, installColor!.ColorId, removalColor!.ColorId, out _ );
 
+    if ( grouptasksFromFile.Count == 0 ) {
+      return new List<UpdateGrouptaskResource>();
+    }
+
     var existingGrouptasks = await GetGroupTasksByVersionId( versionId );
 
     return CompareGrouptasksByOrder( existingGrouptasks, grouptasksFromFile );
