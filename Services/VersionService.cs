@@ -766,6 +766,7 @@ public class VersionService : IVersionService
     foreach ( var updatingTask in second ) {
       var existingTask = first.FirstOrDefault( x => x.TaskName == updatingTask.TaskName && x.Description == updatingTask.Description );
       if ( existingTask == null ) {
+        updatingTask.LocalId = Guid.NewGuid().ToString();
         result.Add( CreateUpdateResource( updatingTask, DataChange.New ) );
         continue;
       }
