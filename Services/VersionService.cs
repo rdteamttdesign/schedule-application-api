@@ -587,113 +587,6 @@ public class VersionService : IVersionService
     return groupTaskResources;
   }
 
-  public IList<UpdateGrouptaskResource> CompareGrouptasks( IList<GroupTaskDetailResource> first, IList<GroupTaskDetailResource> second )
-  {
-    var result = new List<UpdateGrouptaskResource>();
-
-    var deletingGroups = first.Where( g => !second.Any( g2 => g2.GroupTaskName == g.GroupTaskName ) );
-    var newGroups = second.Where( g => !first.Any( g2 => g2.GroupTaskName == g.GroupTaskName ) );
-    var updatingGroups = second.Where( g => first.Any( g2 => g2.GroupTaskName == g.GroupTaskName ) );
-
-
-    foreach ( var group in deletingGroups ) {
-      result.Add( new UpdateGrouptaskResource()
-      {
-        Change = DataChange.Delete,
-        Id = group.LocalId,
-        Name = group.GroupTaskName,
-        Tasks = null
-      } );
-    }
-
-    foreach ( var group in newGroups ) {
-      var newGroupResource = new UpdateGrouptaskResource()
-      {
-        Change = DataChange.New,
-        Id = group.LocalId,
-        Name = group.GroupTaskName
-      };
-
-      result.Add( newGroupResource );
-
-      if ( group.Tasks.Count == 0 ) {
-        continue;
-      }
-      newGroupResource.Tasks = new List<UpdateTaskResource>();
-      foreach ( var task in group.Tasks ) {
-        newGroupResource.Tasks.Add( CreateUpdateResource( task, DataChange.New ) );
-      }
-    }
-
-    foreach ( var group in updatingGroups ) {
-      var currentGroup = first.FirstOrDefault( g => g.GroupTaskName == group.GroupTaskName );
-      if ( currentGroup == null ) {
-        continue;
-      }
-
-      var changes = CompareTasksByOrder( currentGroup.Tasks, group.Tasks );
-
-      if ( changes.All( x => x.Change == DataChange.None ) ) {
-        result.Add( new UpdateGrouptaskResource()
-        {
-          Change = DataChange.None,
-          Id = group.LocalId,
-          Name = group.GroupTaskName,
-          Tasks = null
-        } );
-      }
-      else {
-        result.Add( new UpdateGrouptaskResource()
-        {
-          Change = DataChange.Update,
-          Id = group.LocalId,
-          Name = group.GroupTaskName,
-          Tasks = changes
-        } );
-      }
-    }
-
-    return result;
-  }
-
-  public IList<UpdateTaskResource> CompareTasks( IList<TaskDetailResource> first, IList<TaskDetailResource> second )
-  {                                                                                 
-    var result = new List<UpdateTaskResource>();
-
-    var deletingTasks = first.Where( t => !second.Any( t2 => t2.TaskName == t.TaskName && t2.Description == t.Description ) );
-    var newTasks = second.Where( t => !first.Any( t2 => t2.TaskName == t.TaskName && t2.Description == t.Description ) );
-    var updatingTasks = second.Where( t => first.Any( t2 => t2.TaskName == t.TaskName && t2.Description == t.Description ) );
-
-    foreach ( var task in deletingTasks ) {
-      result.Add( CreateUpdateResource( task, DataChange.Delete ) );
-    }
-
-    foreach ( var task in newTasks ) {
-      result.Add( CreateUpdateResource( task, DataChange.New ) );
-    }
-
-    if ( !updatingTasks.Any() ) {
-      return result;
-    }
-
-    var cloneCurrentTasks = new List<TaskDetailResource>( first );
-    foreach ( var newtask in updatingTasks ) {
-      var existingTask = cloneCurrentTasks.FirstOrDefault( x => x.TaskName == newtask.TaskName );
-      if ( existingTask == null ) {
-        continue;
-      }
-      if ( newtask.Equals( existingTask ) ) {
-        result.Add( CreateUpdateResource( existingTask, DataChange.None ) );
-      }
-      else {
-        result.Add( CreateUpdateResource( newtask, DataChange.Update ) );
-      }
-      cloneCurrentTasks.Remove( existingTask );
-    }
-
-    return result;
-  }
-
   public IList<UpdateGrouptaskResource> CompareGrouptasksByOrder( IList<GroupTaskDetailResource> first, IList<GroupTaskDetailResource> second )
   {
     var result = new List<UpdateGrouptaskResource>();
@@ -794,8 +687,14 @@ public class VersionService : IVersionService
   private UpdateTaskResource CreateUpdateResource( TaskDetailResource resource, string change )
   {
     var result = _mapper.Map<UpdateTaskResource>( resource );
-    if ( resource.Stepworks.Count > 0 && ( change != DataChange.Delete || change != DataChange.None ) ) {
+    if ( resource.Stepworks.Count > 1 && ( change != DataChange.Delete || change != DataChange.None ) ) {
       result.Stepworks = _mapper.Map<List<UpdateStepworkResource>>( resource.Stepworks );
+      foreach ( var stepwork in result.Stepworks ) {
+        stepwork.PercentStepWork *= 100;
+      }
+    }
+    else {
+      result.Stepworks = null;
     }
     result.Change = change;
     return result;
