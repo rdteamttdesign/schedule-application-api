@@ -155,7 +155,6 @@ public static class ExcelFileReader
   public static List<GroupTaskDetailResource> ReadFromFile(
    Stream fileStream,
    ICollection<string> sheetNameList,
-   ProjectSetting setting,
    long installColorId,
    long removalColorId,
    out List<SheetImportMessage> messages )
@@ -199,11 +198,6 @@ public static class ExcelFileReader
           groupTask = new GroupTaskDetailResource()
           {
             GroupTaskName = groupName,
-            //HideChildren = false,
-            //DisplayOrder = index,
-            //ColorId = installColorId,
-            //Type = "project",
-            //Id = groupId
             Tasks = new List<TaskDetailResource>()
           };
           groupTasks.Add( groupTask );
@@ -223,16 +217,10 @@ public static class ExcelFileReader
         var taskId = Guid.NewGuid().ToString();
         var task = new TaskDetailResource()
         {
-          //Start = 0,
           Duration = duration,
           TaskName = GetText( worksheet.Cell( i, 2 ).Value ),
-          //Id = taskId,
-          //Type = "task",
           Description = GetText( worksheet.Cell( i, 3 ).Value ),
-          //GroupId = groupId,
-          //DisplayOrder = index,
           Note = GetText( worksheet.Cell( i, 6 ).Value ),
-          //ColorId = installColorId,
           NumberOfTeam = numberOfGroups,
           Stepworks = new List<StepworkDetailResource>()
         };
@@ -255,7 +243,6 @@ public static class ExcelFileReader
           } );
         }
         else {
-          //var offset = 0f;
           for ( int j = 7; j < 17; j++ ) {
             var percentStepwork = GetFloat( worksheet.Cell( i, j ).Value );
             if ( percentStepwork == 0 ) {
@@ -263,25 +250,12 @@ public static class ExcelFileReader
             }
             var stepwork = new StepworkDetailResource()
             {
-              //Start = offset,
-              //Duration = task.Duration.DaysToColumnWidth( setting.ColumnWidth ),
               Portion = Math.Abs( percentStepwork ),
-              //Name = Guid.NewGuid().ToString(),
-              //ParentTaskId = taskId,
-              //Id = Guid.NewGuid().ToString(),
-              //Type = "task",
-              //GroupId = groupId,
-              //DisplayOrder = index,
-              //Predecessors = new List<PredecessorResource>(),
               ColorId = percentStepwork > 0 ? installColorId : removalColorId,
-              //GroupNumbers = task.GroupsNumber
             };
-            //offset += stepwork.Duration;
             task.Stepworks.Add( stepwork );
           }
         }
-        //groupTasks.Add( task );
-        //index++;
       }
       messages.Add( new SheetImportMessage()
       {
