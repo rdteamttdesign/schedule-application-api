@@ -558,7 +558,11 @@ public class VersionService : IVersionService
     var installColor = colors.FirstOrDefault( c => c.IsInstall == 0 );
     var removalColor = colors.FirstOrDefault( c => c.IsInstall == 1 );
     var setting = await _projectSettingRepository.GetByVersionId( versionId );
-    var grouptasksFromFile = ExcelFileReader.ReadFromFile( fileStream, sheetNameList, setting!, installColor!.ColorId, removalColor!.ColorId, out _ );
+    var grouptasksFromFile = ExcelFileReader.ReadFromFile( fileStream, sheetNameList, installColor!.ColorId, removalColor!.ColorId, out _ );
+
+    if ( grouptasksFromFile.Count == 0 ) {
+      return new List<UpdateGrouptaskResource>();
+    }
 
     var existingGrouptasks = await GetGroupTasksByVersionId( versionId );
 
