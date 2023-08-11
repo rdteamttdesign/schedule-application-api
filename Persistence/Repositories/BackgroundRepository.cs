@@ -12,9 +12,9 @@ public class BackgroundRepository : GenericRepository<ProjectBackground>, IBackg
   {
   }
 
-  public async Task<ProjectBackground?> GetProjectBackground( long versionId, int month )
+  public async Task<ProjectBackground?> GetProjectBackground( long versionId,int year, int month, int date )
   {
-    return await _context.ProjectBackgrounds.FindAsync( versionId, month );
+    return await _context.ProjectBackgrounds.FindAsync( versionId, year, month, date );
   }
 
   public async Task<IEnumerable<ProjectBackground>> GetBackgroundsByVersionId( long versionId )
