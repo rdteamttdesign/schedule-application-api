@@ -692,7 +692,7 @@ public class VersionService : IVersionService
   private UpdateTaskResource CreateUpdateResource( TaskDetailResource resource, string change )
   {
     var result = _mapper.Map<UpdateTaskResource>( resource );
-    if ( resource.Stepworks.Count > 1 && ( change != DataChange.Delete || change != DataChange.None ) ) {
+    if ( resource.Stepworks.Count > 1 && ( change != DataChange.Delete && change != DataChange.None ) ) {
       result.Stepworks = _mapper.Map<List<UpdateStepworkResource>>( resource.Stepworks );
       foreach ( var stepwork in result.Stepworks ) {
         stepwork.PercentStepWork *= 100;
