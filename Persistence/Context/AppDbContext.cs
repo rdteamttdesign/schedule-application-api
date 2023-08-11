@@ -217,9 +217,9 @@ namespace SchedulingTool.Api.Persistence.Context
 
             modelBuilder.Entity<ProjectBackground>(entity =>
             {
-                entity.HasKey(e => new { e.VersionId, e.Month })
+                entity.HasKey(e => new { e.VersionId, e.Year, e.Month, e.Date })
                     .HasName("PRIMARY")
-                    .HasAnnotation("MySql:IndexPrefixLength", new[] { 0, 0 });
+                    .HasAnnotation("MySql:IndexPrefixLength", new[] { 0, 0, 0, 0 });
 
                 entity.ToTable("project_background");
 
@@ -229,7 +229,11 @@ namespace SchedulingTool.Api.Persistence.Context
 
                 entity.Property(e => e.VersionId).HasColumnName("version_id");
 
+                entity.Property(e => e.Year).HasColumnName("year");
+
                 entity.Property(e => e.Month).HasColumnName("month");
+
+                entity.Property(e => e.Date).HasColumnName("date");
 
                 entity.Property(e => e.ColorId).HasColumnName("color_id");
 

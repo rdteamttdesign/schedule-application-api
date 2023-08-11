@@ -222,7 +222,7 @@ public static class WorksheetContentUtils
     for ( int i = 0; i < numberOfStack - 1; i++ ) {
       for ( int j = 0; j < 3; j++ ) {
         var color = colors [ iColor ];
-        if ( color.ColorId == 1 ) {
+        if ( color.Type == 1 ) {
           var shape = xlWorkSheet.Shapes.AddShape(
             MsoAutoShapeType.msoShapeRectangle,
             Convert.ToSingle( xlWorkSheet.Range [
@@ -230,8 +230,8 @@ public static class WorksheetContentUtils
               xlWorkSheet.Cells [ startRow + j, startColumn - i * space + 5 ] ].Left ),
             Convert.ToSingle( xlWorkSheet.Range [
               xlWorkSheet.Cells [ startRow + j, startColumn - i * space + 5 ],
-              xlWorkSheet.Cells [ startRow + j, startColumn - i * space + 5 ] ].Top ),
-            15 * 1.808f, 13.5f );
+              xlWorkSheet.Cells [ startRow + j, startColumn - i * space + 5 ] ].Top ) + 2f,
+            15 * 1.808f, 10.5f );
           shape.Fill.ForeColor.RGB = ColorTranslator.ToOle( WorksheetFormater.GetColor( color.Code ) );
           shape.Line.Visible = MsoTriState.msoFalse;
           xlWorkSheet.Cells [ startRow + j, startColumn - i * space ] = color.Name;
@@ -256,7 +256,7 @@ public static class WorksheetContentUtils
 
     for ( int j = 0; j < 3; j++ ) {
       var color = colors [ iColor ];
-      if ( color.ColorId == 1 ) {
+      if ( color.Type == 1 ) {
         var shape = xlWorkSheet.Shapes.AddShape(
           MsoAutoShapeType.msoShapeRectangle,
           Convert.ToSingle( xlWorkSheet.Range [
@@ -264,8 +264,8 @@ public static class WorksheetContentUtils
             xlWorkSheet.Cells [ startRow + j, endColumnIndex ] ].Left ),
           Convert.ToSingle( xlWorkSheet.Range [
             xlWorkSheet.Cells [ startRow + j, endColumnIndex ],
-            xlWorkSheet.Cells [ startRow + j, endColumnIndex ] ].Top ),
-          15 * 1.808f, 13.5f );
+            xlWorkSheet.Cells [ startRow + j, endColumnIndex ] ].Top ) + 2f,
+          15 * 1.808f, 10.5f );
         shape.Fill.ForeColor.RGB = ColorTranslator.ToOle( WorksheetFormater.GetColor( color.Code ) );
         shape.Line.Visible = MsoTriState.msoFalse;
         xlWorkSheet.Cells [ startRow + j, endColumnIndex - 4 ] = color.Name;

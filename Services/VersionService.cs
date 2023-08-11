@@ -4,6 +4,7 @@ using SchedulingTool.Api.Domain.Models.Enum;
 using SchedulingTool.Api.Domain.Repositories;
 using SchedulingTool.Api.Domain.Services;
 using SchedulingTool.Api.Domain.Services.Communication;
+using SchedulingTool.Api.ExportExcel;
 using SchedulingTool.Api.Resources;
 using SchedulingTool.Api.Resources.Extended;
 
@@ -40,7 +41,7 @@ public class VersionService : IVersionService
   {
     _projectRepository = projectRepository;
     _projectVersionRepository = projectVersionRepository;
-    _projectSettingRepository = projectSettingRepository; 
+    _projectSettingRepository = projectSettingRepository;
     _colorRepository = colorRepository;
     _backgroundRepository = backgroundRepository;
     _groupTaskRepository = groupTaskRepository;
@@ -80,10 +81,11 @@ public class VersionService : IVersionService
     var projectResource = new ProjectResource()
     {
       ProjectName = projectName,
-      Grouptasks = groupTaskResources,
       Backgrounds = bgResources,
       UsedColors = usedColor,
       Setting = setting,
+      Grouptasks = groupTaskResources,
+      ChartStepworks = GrouptaskResourcesToChartStepworks( groupTaskResources, setting.AmplifiedFactor, setting.IncludeYear ),
       ViewTasks = viewResources
     };
 
@@ -147,12 +149,53 @@ public class VersionService : IVersionService
     return groupTaskResources;
   }
 
+  private List<ChartStepwork> GrouptaskResourcesToChartStepworks( IList<GroupTaskDetailResource> grouptasks, float amplifiedFactor, bool includeYear )
+  {
+    var i = includeYear ? 11 : 10;
+    var data = new List<ChartStepwork>();
+    foreach ( var grouptask in grouptasks ) {
+      i++;
+      foreach ( var task in grouptask.Tasks ) {
+        if ( task.Stepworks.Count > 1 && task.NumberOfTeam > 0 ) {
+          var gap = task.Stepworks.First().Portion * task.Duration * ( task.NumberOfTeam == 0 ? 1 : ( ( amplifiedFactor - 1 ) / task.NumberOfTeam ) );
+          for ( int j = 1; j < task.Stepworks.Count; j++ ) {
+            task.Stepworks.ElementAt( j ).Start += gap;
+            gap += task.Stepworks.ElementAt( j ).Portion * task.Duration * ( task.NumberOfTeam == 0 ? 1 : ( ( amplifiedFactor - 1 ) / task.NumberOfTeam ) );
+          }
+        }
+        task.AmplifiedDuration = task.Duration * ( task.NumberOfTeam == 0 ? 1 : ( amplifiedFactor / task.NumberOfTeam ) );
+        foreach ( var sw in task.Stepworks ) {
+          var chartSw = new ChartStepwork()
+          {
+            StepWorkId = sw.StepworkId,
+            Color = WorksheetFormater.GetColor( sw.ColorDetail.Code ),
+            Start = sw.Start,
+            Duration = sw.Portion * task.Duration * ( task.NumberOfTeam == 0 ? 1 : ( amplifiedFactor / task.NumberOfTeam ) ),
+            RowIndex = i
+          };
+          foreach ( var predecessor in sw.Predecessors ) {
+            chartSw.Predecessors.Add(
+              new ChartPredecessor()
+              {
+                RelatedProcessorStepWork = predecessor.RelatedStepworkId,
+                Lag = predecessor.Lag,
+                Type = sw.Predecessors.Count != 0 ? ( ExportExcel.PredecessorType ) sw.Predecessors.First().Type : ExportExcel.PredecessorType.FinishToStart
+              } );
+          }
+          data.Add( chartSw );
+        }
+        i++;
+      }
+    }
+    return data;
+  }
+
   private async Task<IList<ProjectBackgroundResource>> GetBackgrounds( long versionId )
   {
     var colors = await _colorRepository.GetBackgroundColorsByVersionId( versionId );
-
     var backgrounds = await _backgroundRepository.GetBackgroundsByVersionId( versionId );
-    var resources = _mapper.Map<IEnumerable<ProjectBackgroundResource>>( backgrounds );
+    var orderedBackgrounds = backgrounds.OrderBy( x => x.Year ).ThenBy( x => x.Month ).ThenBy( x => x.Date );
+    var resources = _mapper.Map<IEnumerable<ProjectBackgroundResource>>( orderedBackgrounds );
     foreach ( var background in resources ) {
       if ( background.ColorId == null ) {
         continue;

@@ -1,129 +1,70 @@
 ﻿using OfficeOpenXml.Style;
 using OfficeOpenXml;
 using System.Drawing;
-using System.Text.RegularExpressions;
 using SchedulingTool.Api.Resources;
 
 namespace SchedulingTool.Api.ExportExcel;
 
 public static class WorksheetFormater
 {
-  public static void CreateTitle( this ExcelWorksheet ws, string title, int columnCount, int numberOfMonths )
-  {
-    ws.Cells [ 2, 2, 2, columnCount + 1 + numberOfMonths * 6 + 2 ].Merge = true;
-    ws.Cells [ 2, 2, 2, columnCount + 1 + numberOfMonths * 6 + 1 ].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
-    ws.Cells [ 2, 2, 2, columnCount + 1 + numberOfMonths * 6 + 1 ].Style.VerticalAlignment = ExcelVerticalAlignment.Bottom;
-    ws.Cells [ 2, 2 ].Value = $"【{title}】";
-    ws.Cells [ 2, 2 ].Style.Font.Size = 27;
+  private static int _tableStartRow = 7;
+  private static int _tableStartColumn = 2;
+  private static int _tableColumnCount = 8;
+  private static int _chartStartColumn = 11;
+  private static int _tableHeaderHeightSpan = 3;
 
-    //ws.Cells [ 5, 2 ].Value = "【○○○工法】";
-    ws.Cells [ 5, 2, 5, 2 ].Style.Font.Size = 14;
-    ws.Cells [ 5, 2 ].Style.HorizontalAlignment = ExcelHorizontalAlignment.Left;
-    ws.Cells [ 5, 2 ].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+  public static void CreateMainTableFrame( this ExcelWorksheet ws, ProjectResource resource )
+  {
+    ws.Cells.Style.Font.Name = "MS Gothic";
+    ws.View.ShowGridLines = false;
+    ws.Drawings.Clear();
+
+    if ( resource.Setting.IncludeYear ) {
+      _tableHeaderHeightSpan = 4;
+      ws.Row( _tableStartRow ).Height = 15;
+      ws.Row( _tableStartRow + 1 ).Height = 17;
+      ws.Row( _tableStartRow + 2 ).Height = 17;
+      ws.Row( _tableStartRow + 3 ).Height = 7;
+    }
+    else {
+      ws.Row( _tableStartRow ).Height = 25;
+      ws.Row( _tableStartRow + 1 ).Height = 17;
+      ws.Row( _tableStartRow + 2 ).Height = 7;
+    }
+
+    var numberOfMonths = resource.Backgrounds.Count / 3;
+    ws.CreateTitle( resource.ProjectName, usedColumnSpan: 1 + _tableColumnCount + 1 + numberOfMonths * 6 + 1 );
+    ws.CreateTaskListHeader();
+
+    if ( resource.Setting.IncludeYear )
+      ws.CreateChartHeaderIncludeYear( resource.Backgrounds );
+    else
+      ws.CreateChartHeader( numberOfMonths );
+
+    ws.DrawTaskTableRow( resource.ChartStepworks.Count );
+    ws.DrawChartBackground( resource.ChartStepworks.Count, numberOfMonths );
+
+    ws.PaintChart( resource.ChartStepworks.Count, resource.Backgrounds );
   }
 
-  public static void FormatChartTable( this ExcelWorksheet ws, int startRow, int startColumn, int rowCount, int columnCount )
+  private static void CreateTitle( this ExcelWorksheet ws, string title, int usedColumnSpan )
   {
-    ws.TabColor = Color.Black;
-    // Create Range and Set Default
-    ExcelRange range = ws.Cells [ startRow, startColumn, rowCount + 3, columnCount * 6 ];
-    ws.Row( startRow ).Height = 25;
-    ws.Row( startRow + 1 ).Height = 17;
-    ws.Row( startRow + 2 ).Height = 7;
+    var titleStartRow = 2;
+    var titleStartColumn = 2;
 
-    //Set Column for Note
-    range.Worksheet.Cells [ startRow + 1, startColumn + ( columnCount * 6 ), startRow + 2, startColumn + ( columnCount * 6 ) ].Merge = true;
-    ws.Cells [ startRow, startColumn + columnCount * 6 ].Value = "備 　考";
-    ws.Cells [ startRow, startColumn + columnCount * 6 ].Style.Font.Bold = true;
-    for ( int x = 0; x < rowCount + 3; x++ ) {
-      ws.Cells [ startRow + x, startColumn + columnCount * 6 ].Style.Border.Left.Style = ExcelBorderStyle.Thin;
-      ws.Cells [ startRow + x, startColumn + columnCount * 6 ].Style.Border.Right.Style = ExcelBorderStyle.Thin;
-      ws.Cells [ startRow + x, startColumn + columnCount * 6 ].Style.Border.Top.Style = ExcelBorderStyle.Thin;
-      ws.Cells [ startRow + x, startColumn + columnCount * 6 ].Style.Border.Bottom.Style = ExcelBorderStyle.Thin;
-      ws.Cells [ startRow + x, startColumn + columnCount * 6 ].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
-      ws.Cells [ startRow + x, startColumn + columnCount * 6 ].Style.HorizontalAlignment = ExcelHorizontalAlignment.Left;
-    }
-    ws.Cells [ startRow, startColumn + columnCount * 6 ].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
-    ws.Cells [ startRow, startColumn + columnCount * 6 ].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
-
-    for ( int i = 0; i < ( rowCount + 3 ); i++ ) {
-      // Set Row 3 Down
-      if ( i > 2 ) {
-        ws.Row( startRow + i ).Height = 19.5;
-      }
-
-      for ( int j = 0; j < ( columnCount * 6 ); j++ ) {
-        // Set Column
-        ws.Column( startColumn + j ).Width = 1 / 0.58;
-        // Merge Row1 & Add Text
-        if ( ( j + 1 ) % 6 == 0 & i == 0 ) {
-          range.Worksheet.Cells [ startRow, startColumn + ( j - 5 ), startRow, startColumn + j ].Merge = true;
-          range.Worksheet.Cells [ startRow, startColumn + ( j - 5 ), startRow, startColumn + j ].Value = ( j + 1 ) / 6 + "ヶ月目";
-          range.Worksheet.Cells [ startRow, startColumn + ( j - 5 ), startRow, startColumn + j ].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
-          range.Worksheet.Cells [ startRow, startColumn + ( j - 5 ), startRow, startColumn + j ].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
-          range.Worksheet.Cells [ startRow, startColumn + ( j - 5 ), startRow, startColumn + j ].Style.Border.Left.Style = ExcelBorderStyle.Thin;
-          range.Worksheet.Cells [ startRow, startColumn + ( j - 5 ), startRow, startColumn + j ].Style.Border.Right.Style = ExcelBorderStyle.Thin;
-          range.Worksheet.Cells [ startRow, startColumn + ( j - 5 ), startRow, startColumn + j ].Style.Border.Top.Style = ExcelBorderStyle.Thin;
-          range.Worksheet.Cells [ startRow, startColumn + ( j - 5 ), startRow, startColumn + j ].Style.Border.Bottom.Style = ExcelBorderStyle.Thin;
-        }
-
-        // Merge Row2 and Set Style Row2
-        if ( i == 1 ) {
-          for ( int k = 1; k < columnCount * 6; k = k + 6 ) {
-            range.Worksheet.Cells [ startRow + 1, startColumn + k, startRow + 1, startColumn + k + 1 ].Merge = true;
-            range.Worksheet.Cells [ startRow + 1, startColumn + k + 2, startRow + 1, startColumn + k + 3 ].Merge = true;
-            range.Worksheet.Cells [ startRow + 1, startColumn + k - 1 ].Style.Border.Left.Style = ExcelBorderStyle.Thin;
-            range.Worksheet.Cells [ startRow + 1, startColumn + k, startRow + 1, startColumn + k + 1 ].Value = 10;
-            range.Worksheet.Cells [ startRow + 1, startColumn + k + 2, startRow + 1, startColumn + k + 3 ].Value = 20;
-            range.Worksheet.Cells [ startRow + 1, startColumn + k, startRow + 1, startColumn + k + 1 ].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
-            range.Worksheet.Cells [ startRow + 1, startColumn + k, startRow + 1, startColumn + k + 1 ].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
-            range.Worksheet.Cells [ startRow + 1, startColumn + k + 2, startRow + 1, startColumn + k + 3 ].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
-            range.Worksheet.Cells [ startRow + 1, startColumn + k + 2, startRow + 1, startColumn + k + 3 ].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
-          }
-          // Set style row3                        
-        }
-
-        if ( i == 2 ) {
-          if ( j % 2 == 0 ) {
-            range [ startRow + 2, startColumn + j ].Style.Border.Left.Style = ExcelBorderStyle.Thin;
-          }
-        }
-
-        // Set Style
-        if ( ( j - 1 ) % 2 == 0 & i > 2 ) {
-          range [ startRow + i, startColumn + j ].Style.Border.Right.Style = ExcelBorderStyle.Hair;
-          range [ startRow + i, startColumn + j ].Style.Border.Left.Style = ExcelBorderStyle.Hair;
-          range [ startRow + i, startColumn + j ].Style.Border.Top.Style = ExcelBorderStyle.Thin;
-          range [ startRow + i, startColumn + j ].Style.Border.Bottom.Style = ExcelBorderStyle.Thin;
-        }
-
-        if ( ( j - 1 ) % 2 != 0 & i > 2 ) {
-          range [ startRow + i, startColumn + j ].Style.Border.Top.Style = ExcelBorderStyle.Thin;
-          range [ startRow + i, startColumn + j ].Style.Border.Bottom.Style = ExcelBorderStyle.Thin;
-        }
-
-        if ( j == ( columnCount * 6 ) - 1 ) {
-          range [ startRow + i, startColumn + j ].Style.Border.Right.Style = ExcelBorderStyle.Thin;
-        }
-
-        if ( j == 0 ) {
-          range [ startRow + i, startColumn + j ].Style.Border.Left.Style = ExcelBorderStyle.Thin;
-        }
-      }
-
-      for ( int j = 0; j < ( columnCount * 6 ); j = j + 6 ) {
-        range [ startRow + i, startColumn + j ].Style.Border.Left.Style = ExcelBorderStyle.Thin;
-      }
-    }
+    var cell = ws.Cells [ titleStartRow, titleStartColumn, titleStartRow, usedColumnSpan ];
+    cell.Merge = true;
+    cell.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+    cell.Style.VerticalAlignment = ExcelVerticalAlignment.Bottom;
+    cell.Value = $"【{title}】";
+    cell.Style.Font.Size = 27;
   }
 
-  public static void FormatTaskTable( this ExcelWorksheet ws, int startRow, int startColumn, int rowCount, int columnCount )
+  private static void CreateTaskListHeader( this ExcelWorksheet ws )
   {
-    #region Set BackGroundContent
     ws.TabColor = Color.Black;
-    // Create Range and Set Default
-    ExcelRange range = ws.Cells [ startRow, startColumn, rowCount + 3, columnCount ];
 
+    #region Set column width of task list
     ws.Column( 1 ).Width = GetTrueColumnWidth( 1.86 );
     ws.Column( 2 ).Width = GetTrueColumnWidth( 3.57 );
     ws.Column( 3 ).Width = GetTrueColumnWidth( 26.86 );
@@ -134,105 +75,253 @@ public static class WorksheetFormater
     ws.Column( 8 ).Width = GetTrueColumnWidth( 9.8 );
     ws.Column( 9 ).Width = GetTrueColumnWidth( 9.8 );
     ws.Column( 10 ).Width = 1 / 0.58;
-    ws.Row( 1 ).Height = 13.5;
-    ws.Row( 2 ).Height = 30;
-    ws.Row( 3 ).Height = 13.5;
-    ws.Row( 4 ).Height = 13.5;
-    ws.Row( 5 ).Height = 13.5;
-    ws.Row( 6 ).Height = 6.5;
+    #endregion
 
-    ws.Row( startRow ).Height = 27;
-    ws.Row( startRow + 1 ).Height = 19;
-    ws.Row( startRow + 2 ).Height = 8;
+    #region Set column name
+    ws.Cells [ _tableStartRow, 2, _tableStartRow, 2 ].Value = "No";
+    ws.Cells [ _tableStartRow, 3, _tableStartRow, 3 ].Value = "工       種";
+    ws.Cells [ _tableStartRow, 4, _tableStartRow, 4 ].Value = "細       目";
+    ws.Cells [ _tableStartRow, 5, _tableStartRow, 5 ].Value = "所要日数 (A)";
+    ws.Cells [ _tableStartRow, 6, _tableStartRow, 6 ].Value = "台数班数";
+    ws.Cells [ _tableStartRow, 7, _tableStartRow, 7 ].Value = "所要日数 (B) (Ax1.7/\n班数)";
+    ws.Cells [ _tableStartRow, 8, _tableStartRow, 8 ].Value = "設置日数 (C)\n(Bx0.6)";
+    ws.Cells [ _tableStartRow, 9, _tableStartRow, 9 ].Value = "撤去日数 (D)\n(Bx0.4)";
+    #endregion
 
-    //Set Tile
-    ws.Cells [ startRow, 2, startRow, 2 ].Value = "No";
-
-    ws.Cells [ startRow, 3, startRow, 3 ].Value = "工       種";
-
-    ws.Cells [ startRow, 4, startRow, 4 ].Value = "細       目";
-
-    ws.Cells [ startRow, 5, startRow, 5 ].Value = "所要日数 (A)";
-
-    ws.Cells [ startRow, 6, startRow, 6 ].Value = "台数班数";
-
-    ws.Cells [ startRow, 7, startRow, 7 ].Value = "所要日数 (B) (Ax1.7/\n班数)";
-
-    ws.Cells [ startRow, 8, startRow, 8 ].Value = "設置日数 (C)\n(Bx0.6)";
-
-    ws.Cells [ startRow, 9, startRow, 9 ].Value = "撤去日数 (D)\n(Bx0.4)";
-
-    for ( int i = 0; i < ( rowCount + 3 ); i++ ) {
-      // Set Row 3 Down
-      if ( i > 2 ) {
-        ws.Row( startRow + i ).Height = 19.5;
-      }
-
-      for ( int j = 0; j < columnCount; j++ ) {
-        // Merge Row1-3 
-        if ( i < 3 ) {
-          range.Worksheet.Cells [ startRow, startColumn + j, startRow + 2, startColumn + j ].Merge = true;
-          //range.Worksheet.Cells[roNumber, coNumber + (j - 5), roNumber, coNumber + j].Value = (j + 1) / 6 + "月";
-          range.Worksheet.Cells [ startRow, startColumn + j, startRow + 2, startColumn + j ].Style.Border.Left.Style = ExcelBorderStyle.Thin;
-          range.Worksheet.Cells [ startRow, startColumn + j, startRow + 2, startColumn + j ].Style.Border.Right.Style = ExcelBorderStyle.Thin;
-          range.Worksheet.Cells [ startRow, startColumn + j, startRow + 2, startColumn + j ].Style.Border.Top.Style = ExcelBorderStyle.Thin;
-          range.Worksheet.Cells [ startRow, startColumn + j, startRow + 2, startColumn + j ].Style.Border.Bottom.Style = ExcelBorderStyle.Thin;
-          range.Worksheet.Cells [ startRow, startColumn + j, startRow + 2, startColumn + j ].Style.Font.Bold = true;
-          range.Worksheet.Cells [ startRow, startColumn + j, startRow + 2, startColumn + j ].Style.WrapText = true;
-          range.Worksheet.Cells [ startRow, startColumn + j, startRow + 2, startColumn + j ].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
-          range.Worksheet.Cells [ startRow, startColumn + j, startRow + 2, startColumn + j ].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
-        }
-        // Set Style
-
-        range [ startRow + i, startColumn + j ].Style.Border.Right.Style = ExcelBorderStyle.Thin;
-        range [ startRow + i, startColumn + j ].Style.Border.Left.Style = ExcelBorderStyle.Thin;
-        range [ startRow + i, startColumn + j ].Style.Border.Top.Style = ExcelBorderStyle.Thin;
-        range [ startRow + i, startColumn + j ].Style.Border.Bottom.Style = ExcelBorderStyle.Thin;
-
-        if ( i > 2 ) {
-          range.Worksheet.Cells [ startRow + i, startColumn + j ].Style.WrapText = true;
-
-        }
-        if ( j == 1 || j == 2 ) {
-          range [ startRow + i, startColumn + j ].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
-          range [ startRow + i, startColumn + j ].Style.HorizontalAlignment = ExcelHorizontalAlignment.Left;
-        }
-
-        if ( j == 0 || j == 4 ) {
-          range [ startRow + i, startColumn + j ].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
-          range [ startRow + i, startColumn + j ].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
-        }
-
-        if ( j == 3 || j == 5 || j == 6 || j == 7 ) {
-          range [ startRow + i, startColumn + j ].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
-          range [ startRow + i, startColumn + j ].Style.HorizontalAlignment = ExcelHorizontalAlignment.Right;
-        }
-      }
+    #region Merge cell and styling for header
+    for ( int i = 0; i < _tableColumnCount; i++ ) {
+      var cell = ws.Cells [ _tableStartRow, _tableStartColumn + i, _tableStartRow + _tableHeaderHeightSpan - 1, _tableStartColumn + i ];
+      cell.Merge = true;
+      cell.Style.Border.Left.Style = ExcelBorderStyle.Thin;
+      cell.Style.Border.Right.Style = ExcelBorderStyle.Thin;
+      cell.Style.Border.Top.Style = ExcelBorderStyle.Thin;
+      cell.Style.Border.Bottom.Style = ExcelBorderStyle.Thin;
+      cell.Style.Font.Bold = true;
+      cell.Style.WrapText = true;
+      cell.Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+      cell.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
     }
     #endregion
   }
 
-  public static void PaintChart(
-    this ExcelWorksheet ws,
-    int startRow,
-    int startColumn,
-    int numberOfTasks,
-    IEnumerable<ProjectBackgroundResource> bgColors )
+  private static void CreateChartHeader( this ExcelWorksheet ws, int numberOfMonths )
   {
-    var unitCellCount = 6;
-    foreach ( var bg in bgColors ) {
-      if ( bg.ColorId == null ) {
+    ws.TabColor = Color.Black;
+
+    #region Set unit timeline column width
+    for ( int i = 0; i < numberOfMonths * 6; i++ ) {
+      ws.Column( _chartStartColumn + i ).Width = 1 / 0.58;
+    }
+    #endregion
+
+    #region Set month value
+    for ( int i = 0; i < numberOfMonths; i++ ) {
+      var range = ws.Cells [ _tableStartRow, _chartStartColumn + i * 6, _tableStartRow, _chartStartColumn + i * 6 + 5 ];
+      range.Merge = true;
+      range.Value = $"{i + 1}ヶ月目";
+      range.Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+      range.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+      range.Style.Border.Left.Style = ExcelBorderStyle.Thin;
+      range.Style.Border.Right.Style = ExcelBorderStyle.Thin;
+      range.Style.Border.Top.Style = ExcelBorderStyle.Thin;
+      range.Style.Border.Bottom.Style = ExcelBorderStyle.Thin;
+    }
+    #endregion
+
+    #region Set block date value
+    for ( int i = 0; i < numberOfMonths; i++ ) {
+      var cellBlock10Days = ws.Cells [ _tableStartRow + 1, _chartStartColumn + i * 6 + 1, _tableStartRow + 1, _chartStartColumn + i * 6 + 2 ];
+      cellBlock10Days.Merge = true;
+      cellBlock10Days.Value = 10;
+      cellBlock10Days.Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+      cellBlock10Days.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+
+      var cellBlock20Days = ws.Cells [ _tableStartRow + 1, _chartStartColumn + i * 6 + 3, _tableStartRow + 1, _chartStartColumn + i * 6 + 4 ];
+      cellBlock20Days.Merge = true;
+      cellBlock20Days.Value = 20;
+      cellBlock20Days.Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+      cellBlock20Days.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+
+      ws.Cells [ _tableStartRow + 1, _chartStartColumn + i * 6 ].Style.Border.Left.Style = ExcelBorderStyle.Thin;
+    }
+
+    for ( int i = 0; i < numberOfMonths * 6; i++ ) {
+      if ( i % 6 == 0 ) {
+        ws.Cells [ _tableStartRow + 2, _chartStartColumn + i ].Style.Border.Left.Style = ExcelBorderStyle.Thin;
+      }
+      if ( i % 6 == 5 ) {
+        ws.Cells [ _tableStartRow + 2, _chartStartColumn + i ].Style.Border.Right.Style = ExcelBorderStyle.Thin;
+      }
+    }
+    #endregion
+
+    #region Set bottom header style
+    // separate block day line
+    for ( int i = 0; i < numberOfMonths * 6 - 1; i += 2 ) {
+      ws.Cells [ _tableStartRow + 2, _chartStartColumn + i ].Style.Border.Left.Style = ExcelBorderStyle.Thin;
+      ws.Cells [ _tableStartRow + 2, _chartStartColumn + i + 1 ].Style.Border.Right.Style = ExcelBorderStyle.Thin;
+    }
+
+    // bottom line
+    for ( int i = 0; i < numberOfMonths * 6; i++ ) {
+      ws.Cells [ _tableStartRow + 2, _chartStartColumn + i ].Style.Border.Bottom.Style = ExcelBorderStyle.Thin;
+    }
+    #endregion
+  }
+
+  private static void CreateChartHeaderIncludeYear( this ExcelWorksheet ws, IList<ProjectBackgroundResource> backgrounds )
+  {
+    ws.TabColor = Color.Black;
+    var numberOfMonths = backgrounds.Count / 3;
+
+    #region Set unit timeline column width
+    for ( int i = 0; i < backgrounds.Count * 2; i++ ) {
+      ws.Column( _chartStartColumn + i ).Width = 1 / 0.58;
+    }
+    #endregion
+
+    #region Set year month in header
+    for ( int i = 0; i < numberOfMonths * 6; i++ ) {
+      ws.Cells [ _tableStartRow, _chartStartColumn + i ].Style.Border.Top.Style = ExcelBorderStyle.Thin;
+      if ( i % 6 == 0 ) {
+        ws.Cells [ _tableStartRow, _chartStartColumn + i ].Style.Border.Left.Style = ExcelBorderStyle.Thin;
+        ws.Cells [ _tableStartRow + 1, _chartStartColumn + i ].Style.Border.Left.Style = ExcelBorderStyle.Thin;
+      }
+      if ( i % 6 == 5 ) {
+        ws.Cells [ _tableStartRow, _chartStartColumn + i ].Style.Border.Right.Style = ExcelBorderStyle.Thin;
+        ws.Cells [ _tableStartRow + 1, _chartStartColumn + i ].Style.Border.Right.Style = ExcelBorderStyle.Thin;
+      }
+      ws.Cells [ _tableStartRow + 1, _chartStartColumn + i ].Style.Border.Bottom.Style = ExcelBorderStyle.Thin;
+    }
+
+    var year = int.MinValue;
+    var month = int.MinValue;
+    var monthCount = 0;
+    foreach ( var resource in backgrounds ) {
+      if ( resource.Year != year ) {
+        var yearCell = ws.Cells [ _tableStartRow, _chartStartColumn + monthCount * 6, _tableStartRow, _chartStartColumn + monthCount * 6 + 5 ];
+        yearCell.Merge = true;
+        yearCell.Value = $"{resource.Year}年";
+        yearCell.Style.VerticalAlignment = ExcelVerticalAlignment.Bottom;
+        yearCell.Style.HorizontalAlignment = ExcelHorizontalAlignment.Left;
+        year = resource.Year;
+      }
+
+      if ( resource.Month != month ) {
+        var monthCell = ws.Cells [ _tableStartRow + 1, _chartStartColumn + monthCount * 6, _tableStartRow + 1, _chartStartColumn + monthCount * 6 + 5 ];
+        monthCell.Merge = true;
+        monthCell.Value = $"{resource.Month}月";
+        monthCell.Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+        monthCell.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+
+        var yearCell = ws.Cells [ _tableStartRow, _chartStartColumn + monthCount * 6 ];
+        yearCell.Style.Border.Left.Style = ExcelBorderStyle.Thin;
+
+        month = resource.Month;
+        monthCount++;
+      }
+    }
+    #endregion
+
+    #region Set block date value
+    for ( int i = 0; i < numberOfMonths; i++ ) {
+
+      var cellBlock10Days = ws.Cells [ _tableStartRow + 2, _chartStartColumn + i * 6 + 1, _tableStartRow + 2, _chartStartColumn + i * 6 + 2 ];
+      cellBlock10Days.Merge = true;
+      cellBlock10Days.Value = 10;
+      cellBlock10Days.Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+      cellBlock10Days.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+
+      var cellBlock20Days = ws.Cells [ _tableStartRow + 2, _chartStartColumn + i * 6 + 3, _tableStartRow + 2, _chartStartColumn + i * 6 + 4 ];
+      cellBlock20Days.Merge = true;
+      cellBlock20Days.Value = 20;
+      cellBlock20Days.Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+      cellBlock20Days.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+
+      ws.Cells [ _tableStartRow + 1, _chartStartColumn + i * 6 ].Style.Border.Left.Style = ExcelBorderStyle.Thin;
+    }
+
+    for ( int i = 0; i < numberOfMonths * 6; i++ ) {
+      if ( i % 6 == 0 ) {
+        ws.Cells [ _tableStartRow + 2, _chartStartColumn + i ].Style.Border.Left.Style = ExcelBorderStyle.Thin;
+      }
+      if ( i % 6 == 5 ) {
+        ws.Cells [ _tableStartRow + 2, _chartStartColumn + i ].Style.Border.Right.Style = ExcelBorderStyle.Thin;
+      }
+    }
+    #endregion
+
+    #region Set bottom header style
+    // separate block day line
+    for ( int i = 0; i < numberOfMonths * 6 - 1; i += 2 ) {
+      ws.Cells [ _tableStartRow + 3, _chartStartColumn + i ].Style.Border.Left.Style = ExcelBorderStyle.Thin;
+      ws.Cells [ _tableStartRow + 3, _chartStartColumn + i + 1 ].Style.Border.Right.Style = ExcelBorderStyle.Thin;
+    }
+
+    // bottom line
+    for ( int i = 0; i < numberOfMonths * 6; i++ ) {
+      ws.Cells [ _tableStartRow + 3, _chartStartColumn + i ].Style.Border.Bottom.Style = ExcelBorderStyle.Thin;
+    }
+    #endregion
+  }
+
+  private static void DrawTaskTableRow( this ExcelWorksheet ws, int taskCount )
+  {
+    ExcelRange range = ws.Cells [ _tableStartRow + _tableHeaderHeightSpan, 2, _tableStartRow + _tableHeaderHeightSpan + taskCount, 9 ];
+    range.Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+    range.Style.HorizontalAlignment = ExcelHorizontalAlignment.Left;
+    range.Style.Border.Left.Style = ExcelBorderStyle.Thin;
+    range.Style.Border.Right.Style = ExcelBorderStyle.Thin;
+    range.Style.Border.Top.Style = ExcelBorderStyle.Thin;
+    range.Style.Border.Bottom.Style = ExcelBorderStyle.Thin;
+    for ( int i = 0; i < taskCount + 1; i++ ) {
+      ws.Row( _tableStartRow + _tableHeaderHeightSpan + i ).Height = 19.5;
+    }
+  }
+
+  private static void DrawChartBackground( this ExcelWorksheet ws, int taskCount, int numberOfMonths )
+  {
+    for ( int rowIndex = 0; rowIndex <= taskCount; rowIndex++ ) {
+      for ( int currentUnitDate = 0; currentUnitDate <= numberOfMonths * 6 - 1; currentUnitDate++ ) {
+        var cell = ws.Cells [ _tableStartRow + _tableHeaderHeightSpan + rowIndex, _chartStartColumn + currentUnitDate ];
+        if ( currentUnitDate % 6 == 0 ) {
+          cell.Style.Border.Left.Style = ExcelBorderStyle.Thin;
+          cell.Style.Border.Top.Style = ExcelBorderStyle.Thin;
+          cell.Style.Border.Right.Style = ExcelBorderStyle.Hair;
+          cell.Style.Border.Bottom.Style = ExcelBorderStyle.Thin;
+        }
+        else if ( currentUnitDate % 6 == 5 ) {
+          cell.Style.Border.Left.Style = ExcelBorderStyle.Hair;
+          cell.Style.Border.Top.Style = ExcelBorderStyle.Thin;
+          cell.Style.Border.Right.Style = ExcelBorderStyle.Thin;
+          cell.Style.Border.Bottom.Style = ExcelBorderStyle.Thin;
+        }
+        else {
+          cell.Style.Border.Left.Style = ExcelBorderStyle.Hair;
+          cell.Style.Border.Top.Style = ExcelBorderStyle.Thin;
+          cell.Style.Border.Right.Style = ExcelBorderStyle.Hair;
+          cell.Style.Border.Bottom.Style = ExcelBorderStyle.Thin;
+        }
+      }
+    }
+  }
+
+  private static void PaintChart( this ExcelWorksheet ws, int numberOfTasks, IList<ProjectBackgroundResource> backgrounds )
+  {
+    for ( int i = 0; i < backgrounds.Count; i++ ) {
+      if ( backgrounds [ i ].ColorId == null ) {
         continue;
       }
-      var color = GetColor( bg.ColorCode );
-      ws.Cells [ startRow, startColumn + ( bg.Month - 1 ) * unitCellCount, 
-        startRow + numberOfTasks - 1, startColumn + unitCellCount * bg.Month - 1 ].Style.Fill.PatternType = ExcelFillStyle.Solid;
-      ws.Cells [ startRow, startColumn + ( bg.Month - 1 ) * unitCellCount, 
-        startRow + numberOfTasks - 1, startColumn + unitCellCount * bg.Month - 1 ].Style.Fill.BackgroundColor.SetColor( color );
+      var color = GetColor( backgrounds [ i ].ColorCode );
+      var range = ws.Cells [
+        _tableStartRow + _tableHeaderHeightSpan, _chartStartColumn + i * 2,
+        _tableStartRow + _tableHeaderHeightSpan + numberOfTasks, _chartStartColumn + i * 2 + 1 ];
+      range.Style.Fill.PatternType = ExcelFillStyle.Solid;
+      range.Style.Fill.BackgroundColor.SetColor( color );
     }
-  } 
+  }
 
-  public static double GetTrueColumnWidth( double width )
+  private static double GetTrueColumnWidth( double width )
   {
     //DEDUCE WHAT THE COLUMN WIDTH WOULD REALLY GET SET TO
     double z = 1d;
@@ -266,17 +355,4 @@ public static class WorksheetFormater
   {
     return ColorTranslator.FromHtml( code );
   }
-
-  //public static Color GetColor( string code )
-  //{
-  //  var matches = Regex.Matches( code, "[0-9]+" );
-  //  if ( matches.Count == 3 ) {
-  //    if ( int.TryParse( matches [ 0 ].Value, out var red )
-  //      && int.TryParse( matches [ 1 ].Value, out var green )
-  //      && int.TryParse( matches [ 2 ].Value, out var blue ) ) {
-  //      return Color.FromArgb( red, green, blue );
-  //    }
-  //  }
-  //  return Color.White;
-  //}
 }
