@@ -21,8 +21,8 @@ public class TaskDetailResource : IEquatable<TaskDetailResource>
     if ( !TaskName.Equals( other.TaskName )
       || !NumberOfTeam.Equals( other.NumberOfTeam )
       || Math.Round( Duration, 6 ) != Math.Round( other.Duration, 6 )
-      || !Description.Equals( other.Description )
-      || !Note.Equals( other.Note )
+      || Description != other.Description
+      || Note != other.Note
       || Stepworks.Count != other.Stepworks.Count )
       return false;
 

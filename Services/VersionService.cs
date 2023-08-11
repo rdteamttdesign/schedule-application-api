@@ -672,6 +672,11 @@ public class VersionService : IVersionService
       }
       else {
         updatingTask.LocalId = existingTask.LocalId;
+        var preservedStepworkCount = Math.Min( updatingTask.Stepworks.Count, existingTask.Stepworks.Count );
+
+        for ( int i = 0; i < preservedStepworkCount; i++ )
+          updatingTask.Stepworks [ i ].LocalId = existingTask.Stepworks [ i ].LocalId;
+
         result.Add( CreateUpdateResource( updatingTask, DataChange.Update ) );
       }
       first.Remove( existingTask );
