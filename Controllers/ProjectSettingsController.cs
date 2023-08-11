@@ -21,13 +21,19 @@ public class ProjectSettingsController : ControllerBase
   [Authorize]
   public async Task<IActionResult> GetVersionSetting( long versionId )
   {
-    var result = await _projectSettingService.GetProjectSettingByVersionId( versionId );
-    if ( result.Success ) {
-      return Ok( result.Content );
+    try {
+      var result = await _projectSettingService.GetProjectSettingByVersionId( versionId );
+      if ( result.Success ) {
+        return Ok( result.Content );
+      }
+      else {
+        return BadRequest( result.Message );
+      }
     }
-    else {
-      return BadRequest( result.Message );
+    catch ( Exception ex) {
+      return BadRequest( $"Some thing went wrong.\n\n{ex.Message} {ex.StackTrace}" );
     }
+    
   }
 
   [HttpPut( "versions/{versionId}/settings" )]

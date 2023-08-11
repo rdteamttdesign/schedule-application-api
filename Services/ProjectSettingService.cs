@@ -1,5 +1,4 @@
 ﻿using AutoMapper;
-using DocumentFormat.OpenXml.Bibliography;
 using SchedulingTool.Api.Domain.Models;
 using SchedulingTool.Api.Domain.Repositories;
 using SchedulingTool.Api.Domain.Services;
@@ -8,7 +7,6 @@ using SchedulingTool.Api.Extension;
 using SchedulingTool.Api.Notification;
 using SchedulingTool.Api.Resources;
 using SchedulingTool.Api.Resources.FormBody;
-using System;
 using DateTimeExt = SchedulingTool.Api.Extension.DateRangeDisplayExtension.DateTime;
 using Task = System.Threading.Tasks.Task;
 
@@ -87,10 +85,23 @@ public class ProjectSettingService : IProjectSettingService
     var backgrounds = await _backgroundRepository.GetBackgroundsByVersionId( versionId );
     var backgroundsGroupBy = backgrounds.Where( bg => bg.ColorId != null ).GroupBy( bg => bg.ColorId )?.ToDictionary( g => g.Key, g => g );
     foreach ( var backgroundColor in resource.BackgroundColors ) {
-      if ( backgroundsGroupBy.ContainsKey( backgroundColor.ColorId ) ) {
-        var dates = backgroundsGroupBy [ backgroundColor.ColorId ].Select( bg => new DateTimeExt( bg.Year, bg.Month, bg.Date ) );
-        backgroundColor.Dates = dates.ToArray();
-        backgroundColor.DisplayDateRanges = dates.ToFormatString();
+      if ( !backgroundsGroupBy!.ContainsKey( backgroundColor.ColorId ) ) {
+        continue;
+      }
+      var dates = backgroundsGroupBy [ backgroundColor.ColorId ].Select( bg => new DateTimeExt( bg.Year, bg.Month, bg.Date ) );
+      foreach ( var diaplayDateRangeText in dates.ToFormatString() ) {
+        var fromDateText = diaplayDateRangeText.Split( "-" ) [ 0 ].Trim().Split( "/" );
+        var toDateText = diaplayDateRangeText.Split( "-" ) [ 1 ].Trim().Split( "/" );
+        backgroundColor.DateRanges.Add( new BackgroundDateRange()
+        {
+          DisplayText = diaplayDateRangeText,
+          StartYear = int.Parse( fromDateText [0] ),
+          StartMonth = int.Parse( fromDateText [ 1 ] ),
+          StartDate = int.Parse( fromDateText [ 2 ] ),
+          ToYear = int.Parse( toDateText [ 0 ] ),
+          ToMonth = int.Parse( toDateText [ 1 ] ),
+          ToDate = int.Parse( toDateText [ 2 ] )
+        } );
       }
     }
     return new ServiceResponse<ProjectSettingResource>( resource );
