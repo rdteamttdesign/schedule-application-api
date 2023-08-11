@@ -263,7 +263,14 @@ public static class ExcelFileReader
         Status = SheetImportMessage.SheetImportStatus.Success
       } );
     }
-    return groupTasks;
+
+    foreach ( var group in groupTasks ) {
+      if ( group.Tasks.Count == 0 && group.GroupTaskName == "<blank>" ) {
+
+      }
+    }
+
+    return groupTasks.Where( group => !( group.Tasks.Count == 0 && group.GroupTaskName == "<blank>" ) ).ToList();
   }
 
   private static bool AssertFormat(IXLWorksheet sheet)
