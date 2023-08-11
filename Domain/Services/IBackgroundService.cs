@@ -6,7 +6,7 @@ namespace SchedulingTool.Api.Domain.Services;
 
 public interface IBackgroundService
 {
-  Task<ProjectBackground?> GetProjectBackground( long versionId, int month );
+  Task<ProjectBackground?> GetProjectBackground( long versionId, int year, int month, int date );
   Task<IEnumerable<ProjectBackground>> GetBackgroundsByVersionId( long versionId );
   Task BatchDelete( long versionId, int fromMonth );
   Task<ServiceResponse<ProjectBackground>> UpdateProjectBackground( ProjectBackground projectBackground );

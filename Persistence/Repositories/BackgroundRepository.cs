@@ -12,9 +12,9 @@ public class BackgroundRepository : GenericRepository<ProjectBackground>, IBackg
   {
   }
 
-  public async Task<ProjectBackground?> GetProjectBackground( long versionId, int month )
+  public async Task<ProjectBackground?> GetProjectBackground( long versionId,int year, int month, int date )
   {
-    return await _context.ProjectBackgrounds.FindAsync( versionId, month );
+    return await _context.ProjectBackgrounds.FindAsync( versionId, year, month, date );
   }
 
   public async Task<IEnumerable<ProjectBackground>> GetBackgroundsByVersionId( long versionId )
@@ -35,5 +35,10 @@ public class BackgroundRepository : GenericRepository<ProjectBackground>, IBackg
   public async Task AddMonth( long versionId, int numberOfMonth )
   {
     await _context.Database.ExecuteSqlRawAsync( "CALL usp_Background_AddMonth({0} , {1})", versionId, numberOfMonth );
+  }
+
+  public async Task BatchDelete( long versionId )
+  {
+    await _context.Database.ExecuteSqlRawAsync( "CALL usp_Background_DeleteAll({0})", versionId );
   }
 }

@@ -1,4 +1,6 @@
-﻿namespace SchedulingTool.Api.Resources;
+﻿using SchedulingTool.Api.Extension;
+
+namespace SchedulingTool.Api.Resources;
 
 public class ProjectSettingResource
 {
@@ -24,6 +26,6 @@ public class BackgroundColorResource
   public string Code { get; set; } = null!;
   public long Type { get; set; }
   public long VersionId { get; set; }
-  public string? DisplayMonths { get; set; }
-  public ICollection<int> Months { get; set; } = null!;
+  public ICollection<string> DisplayDateRanges { get; set; } = null!;
+  public ICollection<DateRangeDisplayExtension.DateTime> Dates { get; set; } = null!;
 }

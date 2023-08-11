@@ -25,12 +25,12 @@ public class ColorDefService : IColorDefService
 
   public async Task<IEnumerable<ColorDef>> GetBackgroundColorDefsByVersionId( long versionId )
   {
-    return await _colorDefRepository.GetBackgroundColorDefsByVersionId( versionId );
+    return await _colorDefRepository.GetBackgroundColorsByVersionId( versionId );
   }
 
   public async Task<IEnumerable<ColorDef>> GetStepworkColorDefsByVersionId( long versionId )
   {
-    return await _colorDefRepository.GetStepworkColorDefsByVersionId( versionId );
+    return await _colorDefRepository.GetStepworkColorsByVersionId( versionId );
   }
 
   public async Task<ServiceResponse<ColorDef>> CreateColorDef( ColorDef colorDef )

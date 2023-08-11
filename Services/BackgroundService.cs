@@ -34,9 +34,9 @@ public class BackgroundService : IBackgroundService
     await _backgroundRepository.AddMonth( versionId, numberOfMonth );
   }
 
-  public async Task<ProjectBackground?> GetProjectBackground( long versionId, int month )
+  public async Task<ProjectBackground?> GetProjectBackground( long versionId, int year, int month, int date )
   {
-    return await _backgroundRepository.GetProjectBackground( versionId, month );
+    return await _backgroundRepository.GetProjectBackground( versionId, year, month, date );
   }
 
   public async Task<ServiceResponse<ProjectBackground>> UpdateProjectBackground( ProjectBackground projectBackground )
