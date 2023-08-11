@@ -61,27 +61,27 @@ public class ProjectBackgroundsController : ControllerBase
     return NoContent();
   }
 
-  [HttpPut( "versions/{versionId}/backgrounds" )]
-  [Authorize]
-  public async Task<IActionResult> UpdateProjectBackgroundsFromMonth( long versionId, [FromBody] ICollection<BackgroundFormBody> formBody )
-  {
-    var userId = long.Parse( HttpContext.User.Claims.FirstOrDefault( x => x.Type.ToLower() == "sid" )?.Value! );
-    var project = await _versionService.GetVersionById(versionId);
-    if ( project == null ) {
-      return BadRequest( ProjectNotification.NonExisted );
-    }
-    try {
-      foreach ( var item in formBody ) {
-        var projectBackground = await _backgroundService.GetProjectBackground( versionId, item.Month );
-        if ( projectBackground == null )
-          continue;
-        projectBackground.ColorId = item.ColorId;
-        await _backgroundService.UpdateProjectBackground( projectBackground );
-      }
-    }
-    catch ( Exception ex ) {
-      return BadRequest( $"{ex.Message}: {ex.StackTrace}" );
-    }
-    return NoContent();
-  }
+  //[HttpPut( "versions/{versionId}/backgrounds" )]
+  //[Authorize]
+  //public async Task<IActionResult> UpdateProjectBackgroundsFromMonth( long versionId, [FromBody] ICollection<BackgroundFormBody> formBody )
+  //{
+  //  var userId = long.Parse( HttpContext.User.Claims.FirstOrDefault( x => x.Type.ToLower() == "sid" )?.Value! );
+  //  var project = await _versionService.GetVersionById(versionId);
+  //  if ( project == null ) {
+  //    return BadRequest( ProjectNotification.NonExisted );
+  //  }
+  //  try {
+  //    foreach ( var item in formBody ) {
+  //      var projectBackground = await _backgroundService.GetProjectBackground( versionId, item.Month );
+  //      if ( projectBackground == null )
+  //        continue;
+  //      projectBackground.ColorId = item.ColorId;
+  //      await _backgroundService.UpdateProjectBackground( projectBackground );
+  //    }
+  //  }
+  //  catch ( Exception ex ) {
+  //    return BadRequest( $"{ex.Message}: {ex.StackTrace}" );
+  //  }
+  //  return NoContent();
+  //}
 }
