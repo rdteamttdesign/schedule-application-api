@@ -92,16 +92,30 @@ public class ProjectSettingService : IProjectSettingService
       foreach ( var diaplayDateRangeText in dates.ToFormatString() ) {
         var fromDateText = diaplayDateRangeText.Split( "-" ) [ 0 ].Trim().Split( "/" );
         var toDateText = diaplayDateRangeText.Split( "-" ) [ 1 ].Trim().Split( "/" );
-        backgroundColor.DateRanges.Add( new BackgroundDateRange()
-        {
-          DisplayText = diaplayDateRangeText,
-          StartYear = int.Parse( fromDateText [0] ),
-          StartMonth = int.Parse( fromDateText [ 1 ] ),
-          StartDate = int.Parse( fromDateText [ 2 ] ),
-          ToYear = int.Parse( toDateText [ 0 ] ),
-          ToMonth = int.Parse( toDateText [ 1 ] ),
-          ToDate = int.Parse( toDateText [ 2 ] )
-        } );
+        if ( setting!.IncludeYear ) {
+          backgroundColor.DateRanges.Add( new BackgroundDateRange()
+          {
+            DisplayText = diaplayDateRangeText,
+            StartYear = int.Parse( fromDateText [ 0 ] ),
+            StartMonth = int.Parse( fromDateText [ 1 ] ),
+            StartDate = int.Parse( fromDateText [ 2 ] ),
+            ToYear = int.Parse( toDateText [ 0 ] ),
+            ToMonth = int.Parse( toDateText [ 1 ] ),
+            ToDate = int.Parse( toDateText [ 2 ] )
+          } );
+        }
+        else {
+          backgroundColor.DateRanges.Add( new BackgroundDateRange()
+          {
+            DisplayText = diaplayDateRangeText,
+            StartYear = -1,
+            StartMonth = int.Parse( fromDateText [ 0 ] ),
+            StartDate = int.Parse( fromDateText [ 1 ] ),
+            ToYear = -1,
+            ToMonth = int.Parse( toDateText [ 0 ] ),
+            ToDate = int.Parse( toDateText [ 1 ] )
+          } );
+        }
       }
     }
     return new ServiceResponse<ProjectSettingResource>( resource );
