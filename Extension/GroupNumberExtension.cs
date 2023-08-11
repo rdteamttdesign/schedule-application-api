@@ -14,8 +14,8 @@ public static class DateRangeDisplayExtension
       .GroupAdjacentBy( ( x, y ) => x.GetNextDates() == y )
       .Select( g =>
       {
-        var fromDate = g.First();
-        var toDate = g.Last();
+        var fromDate = g.FirstOrDefault();
+        var toDate = g.LastOrDefault();
         if ( fromDate.Year == -1 ) {
           return $"{fromDate.Month}/{fromDate.Date} - {toDate.Month}/{toDate.Date}";
         }
