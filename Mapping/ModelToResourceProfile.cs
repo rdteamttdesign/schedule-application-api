@@ -86,6 +86,7 @@ public class ModelToResourceProfile : Profile
       .ForMember( dest => dest.Note, opt => opt.MapFrom( src => src.Note ) )
       .ForMember( dest => dest.Detail, opt => opt.MapFrom( src => src.Description ) );
     CreateMap<StepworkDetailResource, UpdateStepworkResource>()
+      .ForMember( dest => dest.Id, opt => opt.MapFrom( src => src.LocalId ) )
       .ForMember( dest => dest.ColorId, opt => opt.MapFrom( src => src.ColorId ) )
       .ForMember( dest => dest.PercentStepWork, opt => opt.MapFrom( src => src.Portion ) );
   }
