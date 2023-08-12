@@ -17,20 +17,15 @@ public class ViewsController : ControllerBase
   private readonly IMapper _mapper;
   private readonly IViewService _viewService;
   private readonly IViewTaskService _viewTaskService;
-  private readonly IStepworkService _stepworkService;
 
   public ViewsController(
     IMapper mapper,
     IViewService viewService,
-    IViewTaskService viewTaskService,
-    ITaskService taskService,
-    IGroupTaskService groupTaskService,
-    IStepworkService stepworkService )
+    IViewTaskService viewTaskService )
   {
     _mapper = mapper;
     _viewService = viewService;
     _viewTaskService = viewTaskService;
-    _stepworkService = stepworkService;
   }
 
   [HttpGet( "versions/{versionId}/views" )]
@@ -50,48 +45,23 @@ public class ViewsController : ControllerBase
   [Authorize]
   public async Task<IActionResult> CreateView( long versionId, [FromBody] ViewFormData formData )
   {
-    // checking
     if ( !ModelState.IsValid ) {
       return BadRequest( ModelState.GetErrorMessages() );
     }
-    // create view
-    var view = new View()
-    {
-      ViewName = formData.ViewName,
-      VersionId = versionId
-    };
-    var result = await _viewService.CreateView( view );
+    var result = await _viewService.CreateView( versionId, formData );
     if ( !result.Success ) {
       return BadRequest( result.Message );
     }
-    var resource = _mapper.Map<ViewResource>( result.Content );
-    // create tasks include view
-    var _ = await _viewTaskService.CreateViewTasks( result.Content.ViewId, formData.Tasks );
-    if ( _.Success )
-      resource.ViewTasks = _.Content;
-
-    return Ok( resource );
+    return Ok( result.Content );
   }
 
-  [HttpPut( "views/{viewId}" )]
+  [HttpPut( "versions/{versionId}/views/{viewId}" )]
   [Authorize]
-  public async Task<IActionResult> UpdateView( long viewId, [FromBody] ViewFormData formData )
+  public async Task<IActionResult> UpdateView( long versionId, long viewId, [FromBody] ViewFormData formData )
   {
-    try {
-      // checking
-      var view = await _viewService.GetViewById( viewId );
-      if ( view == null ) {
-        return BadRequest( ViewNotification.NonExisted );
-      }
-      view.ViewName = formData.ViewName;
-      await _viewService.UpdateView( view );
-      // clear tasks in view
-      await _viewService.DeleteView( viewId, false );
-      // create tasks include view
-      await _viewTaskService.CreateViewTasks( viewId, formData.Tasks );
-    }
-    catch ( Exception ex ) {
-      return BadRequest( $"{ViewNotification.ErrorSaving} {ex.Message}" );
+    var result = await _viewService.UpdateView( versionId, viewId, formData );
+    if ( !result.Success ) {
+      return BadRequest( result.Message );
     }
     return NoContent();
   }
@@ -114,26 +84,27 @@ public class ViewsController : ControllerBase
   public async Task<IActionResult> GetViewDetail( long versionId, long viewId )
   {
     try {
-      // checking
-      var view = await _viewService.GetViewById( viewId );
-      if ( view == null ) {
-        return BadRequest( ViewNotification.NonExisted );
+      var result = await _viewService.GetViewDetailById( versionId, viewId );
+      if ( !result.Success ) {
+        return BadRequest( result.Message );
       }
-      // get tasks in view
-      var viewTasks = await _viewService.GetViewTasks( versionId, viewId );
+      return Ok( result.Content );
+    }
+    catch ( Exception ex ) {
+      return BadRequest( $"{ex.Message} {ex.StackTrace}" );
+    }
+  }
 
-      if ( !viewTasks.Any() ) {
-        return Ok( Array.Empty<object>() );
+  [HttpPut( "versions/{versionId}/views/{viewId}" )]
+  [Authorize]
+  public async Task<IActionResult> SaveViewDetail( long versionId, long viewId, [FromBody] ICollection<ViewTaskDetailFormData> formData )
+  {
+    try {
+      var result = await _viewService.SaveViewDetail( viewId, formData );
+      if ( !result.Success ) {
+        return BadRequest( result.Message );
       }
-
-      foreach ( var viewTask in viewTasks ) {
-        var stepworks = await _stepworkService.GetStepworksByTaskId( viewTask.TaskId );
-        viewTask.Stepworks = stepworks.ToList();
-      }
-
-      var viewDetail = await _viewService.GetViewDetailById( versionId, viewTasks.OrderBy( t => t.DisplayOrder ) );
-      return Ok( viewDetail );
-
+      return Ok( result.Content );
     }
     catch ( Exception ex ) {
       return BadRequest( $"{ex.Message} {ex.StackTrace}" );

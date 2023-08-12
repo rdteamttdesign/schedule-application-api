@@ -618,11 +618,13 @@ namespace SchedulingTool.Api.Persistence.Context
 
         entity.Property( e => e.GroupTaskName ).HasColumnName( "group_task_name" );
 
-        entity.Property( e => e.Description ).HasColumnName( "description" );
+        entity.Property( e => e.Description ).HasColumnName( "task_description" );
 
-        entity.Property( e => e.Note ).HasColumnName( "note" );
+        entity.Property( e => e.Note ).HasColumnName( "task_note" );
 
         entity.Property( e => e.DisplayOrder ).HasColumnName( "display_order" );
+
+        entity.Property( e => e.IsHidden ).HasColumnName( "is_hidden" );
       } );
 
       OnModelCreatingPartial( modelBuilder);
