@@ -190,7 +190,6 @@ public class ViewService : IViewService
         var viewTaskResult = await _viewTaskRepository.Create( viewTask );
         result.Add( _mapper.Map<ViewTaskResource>( viewTaskResult ) );
       }
-
       await _unitOfWork.CompleteAsync();
       return new ServiceResponse<ICollection<ViewTaskResource>>( result );
     }
@@ -215,6 +214,7 @@ public class ViewService : IViewService
       if ( !viewTaskResult.Success ) {
         return new ServiceResponse<ViewResource>( viewTaskResult.Message );
       }
+      resource.ViewTasks = viewTaskResult.Content;
       return new ServiceResponse<ViewResource>( resource );
     }
     catch ( Exception ex ) {

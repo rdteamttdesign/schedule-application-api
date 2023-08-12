@@ -95,7 +95,7 @@ public class ViewsController : ControllerBase
     }
   }
 
-  [HttpPut( "versions/{versionId}/views/{viewId}" )]
+  [HttpPut( "versions/{versionId}/views/{viewId}/details" )]
   [Authorize]
   public async Task<IActionResult> SaveViewDetail( long versionId, long viewId, [FromBody] ICollection<ViewTaskDetailFormData> formData )
   {
@@ -104,7 +104,7 @@ public class ViewsController : ControllerBase
       if ( !result.Success ) {
         return BadRequest( result.Message );
       }
-      return Ok( result.Content );
+      return NoContent();
     }
     catch ( Exception ex ) {
       return BadRequest( $"{ex.Message} {ex.StackTrace}" );
