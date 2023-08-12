@@ -1,6 +1,4 @@
-﻿using SchedulingTool.Api.Extension;
-
-namespace SchedulingTool.Api.Resources;
+﻿namespace SchedulingTool.Api.Resources;
 
 public class ProjectSettingResource
 {

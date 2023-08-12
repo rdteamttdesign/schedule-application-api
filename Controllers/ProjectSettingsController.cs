@@ -30,10 +30,10 @@ public class ProjectSettingsController : ControllerBase
         return BadRequest( result.Message );
       }
     }
-    catch ( Exception ex) {
+    catch ( Exception ex ) {
       return BadRequest( $"Some thing went wrong.\n\n{ex.Message} {ex.StackTrace}" );
     }
-    
+
   }
 
   [HttpPut( "versions/{versionId}/settings" )]
@@ -52,6 +52,22 @@ public class ProjectSettingsController : ControllerBase
 
     if ( result.Success ) {
       return NoContent();
+    }
+    else {
+      return BadRequest( result.Message );
+    }
+  }
+
+  [HttpGet( "settings/calculate-date-ranges" )]
+  [Authorize]
+  public IActionResult CalculateDateRanges( [FromBody] CalculateDateRangesFormData formData )
+  {
+    if ( !ModelState.IsValid ) {
+      return BadRequest( ModelState.GetErrorMessages() );
+    }
+    var result = _projectSettingService.CalculateDateRanges( formData );
+    if ( result.Success ) {
+      return Ok( result.Content );
     }
     else {
       return BadRequest( result.Message );
