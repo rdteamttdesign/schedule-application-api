@@ -27,9 +27,9 @@ public static class WorksheetFormater
       ws.Row( _tableStartRow + 3 ).Height = 7;
     }
     else {
-      ws.Row( _tableStartRow ).Height = 25;
-      ws.Row( _tableStartRow + 1 ).Height = 17;
-      ws.Row( _tableStartRow + 2 ).Height = 7;
+      ws.Row( _tableStartRow ).Height = 27;
+      ws.Row( _tableStartRow + 1 ).Height = 19;
+      ws.Row( _tableStartRow + 2 ).Height = 8;
     }
 
     var numberOfMonths = resource.Backgrounds.Count / 3;
