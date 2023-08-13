@@ -129,12 +129,13 @@ public class VersionService : IVersionService
 
   public async Task BatchActivateVersions( long userId, ICollection<long> versionIds )
   {
-    var activatedProjects = await _projectRepository.GetActiveProjects( userId );
+    var projects = await _projectRepository.GetAllProjects( userId );
     var activatedVersionIds = ( await _versionRepository.GetActiveVersions( userId ) ).Select( x => x.VersionId );
     var projectVersions = await _projectVersionRepository.GetAll();
     var activatedProjectVersions = projectVersions.Where( x => activatedVersionIds.Contains( x.VersionId ) );
     var projectInTrashBinIdList = projectVersions.Where( x => versionIds.Contains( x.VersionId ) ).Select( x => x.ProjectId );
     var projectIdsToActivate = projectInTrashBinIdList.Where( x => !activatedProjectVersions.Any( pv => pv.ProjectId == x ) ).Distinct();
+    var activatedProjects = projects.Where( x => activatedProjectVersions.Any( pv => pv.ProjectId == x.ProjectId ) );
 
     foreach ( var projectId in projectIdsToActivate ) {
       var project = await _projectRepository.GetById( projectId );
