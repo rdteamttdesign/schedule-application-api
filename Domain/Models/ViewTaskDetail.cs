@@ -10,15 +10,15 @@ public class ViewTaskDetail
   public string TaskName { get; set; } = null!;
   public int Index { get; set; }
   public int NumberOfTeam { get; set; }
-  public float Duration { get; set; }
+  public decimal Duration { get; set; }
 
   [NotMapped]
-  public float MinStart { get; set; }
+  public decimal MinStart { get; set; }
 
   [NotMapped]
-  public float MaxEnd { get; set; }
+  public decimal MaxEnd { get; set; }
 
-  public float AmplifiedDuration { get; set; }
+  public decimal AmplifiedDuration { get; set; }
   public long GroupTaskId { get; set; }
   public string GroupTaskLocalId { get; set; } = null!;
   public string GroupTaskName { get; set; } = null!;

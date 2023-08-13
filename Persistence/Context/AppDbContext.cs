@@ -158,7 +158,9 @@ namespace SchedulingTool.Api.Persistence.Context
 
                 entity.Property(e => e.RelatedStepworkId).HasColumnName("related_stepwork_id");
 
-                entity.Property(e => e.Lag).HasColumnName("lag");
+                entity.Property(e => e.Lag)
+                    .HasPrecision(10)
+                    .HasColumnName("lag");
 
                 entity.Property(e => e.RelatedStepworkLocalId)
                     .HasMaxLength(45)
@@ -264,12 +266,13 @@ namespace SchedulingTool.Api.Persistence.Context
                     .HasColumnName("version_id");
 
                 entity.Property(e => e.AmplifiedFactor)
+                    .HasPrecision(10)
                     .HasColumnName("amplified_factor")
-                    .HasDefaultValueSql("'1.7'");
+                    .HasDefaultValueSql("'2'");
 
                 entity.Property(e => e.AssemblyDurationRatio)
-                    .HasColumnName("assembly_duration_ratio")
-                    .HasDefaultValueSql("'0.4'");
+                    .HasPrecision(10)
+                    .HasColumnName("assembly_duration_ratio");
 
                 entity.Property(e => e.ColumnWidth)
                     .HasColumnName("column_width")
@@ -281,8 +284,9 @@ namespace SchedulingTool.Api.Persistence.Context
                     .HasDefaultValueSql("b'0'");
 
                 entity.Property(e => e.RemovalDurationRatio)
+                    .HasPrecision(10)
                     .HasColumnName("removal_duration_ratio")
-                    .HasDefaultValueSql("'0.6'");
+                    .HasDefaultValueSql("'1'");
 
                 entity.Property(e => e.SeparateGroupTask)
                     .HasColumnType("bit(1)")
@@ -347,9 +351,13 @@ namespace SchedulingTool.Api.Persistence.Context
 
                 entity.Property(e => e.ColorId).HasColumnName("color_id");
 
-                entity.Property(e => e.Duration).HasColumnName("duration");
+                entity.Property(e => e.Duration)
+                    .HasPrecision(10)
+                    .HasColumnName("duration");
 
-                entity.Property(e => e.End).HasColumnName("end");
+                entity.Property(e => e.End)
+                    .HasPrecision(10)
+                    .HasColumnName("end");
 
                 entity.Property(e => e.Index).HasColumnName("index");
 
@@ -361,9 +369,13 @@ namespace SchedulingTool.Api.Persistence.Context
                     .HasMaxLength(45)
                     .HasColumnName("name");
 
-                entity.Property(e => e.Portion).HasColumnName("portion");
+                entity.Property(e => e.Portion)
+                    .HasPrecision(10)
+                    .HasColumnName("portion");
 
-                entity.Property(e => e.Start).HasColumnName("start");
+                entity.Property(e => e.Start)
+                    .HasPrecision(10)
+                    .HasColumnName("start");
 
                 entity.Property(e => e.TaskId).HasColumnName("task_id");
 
@@ -399,13 +411,17 @@ namespace SchedulingTool.Api.Persistence.Context
 
                 entity.Property(e => e.TaskId).HasColumnName("task_id");
 
-                entity.Property(e => e.AmplifiedDuration).HasColumnName("amplified_duration");
+                entity.Property(e => e.AmplifiedDuration)
+                    .HasPrecision(10)
+                    .HasColumnName("amplified_duration");
 
                 entity.Property(e => e.Description)
                     .HasMaxLength(125)
                     .HasColumnName("description");
 
-                entity.Property(e => e.Duration).HasColumnName("duration");
+                entity.Property(e => e.Duration)
+                    .HasPrecision(10)
+                    .HasColumnName("duration");
 
                 entity.Property(e => e.GroupTaskId).HasColumnName("group_task_id");
 

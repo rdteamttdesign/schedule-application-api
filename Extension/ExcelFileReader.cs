@@ -70,7 +70,7 @@ public static class ExcelFileReader
         //if ( string.IsNullOrEmpty( taskName ) ) {
         //  continue;
         //}
-        var duration = GetFloat( worksheet.Cell( i, 4 ).Value );
+        var duration = GetDecimal( worksheet.Cell( i, 4 ).Value );
         if ( duration == 0 ) {
           continue;
         }
@@ -101,23 +101,23 @@ public static class ExcelFileReader
         //  taskIndex++;
         //}
         int numberOfStepworks = 0;
-        var totalStepworkPortion = 0d;
+        decimal totalStepworkPortion = 0;
         for ( int j = 7; j < 17; j++ ) {
-          var value = GetFloat( worksheet.Cell( i, j ).Value );
+          var value = GetDecimal( worksheet.Cell( i, j ).Value );
           if ( value == 0 ) {
             continue;
           }
           totalStepworkPortion += Math.Abs( value );
           numberOfStepworks++;
         }
-        if ( numberOfStepworks == 0 || Math.Abs( totalStepworkPortion - 1 ) > 10e-7 ) {
+        if ( numberOfStepworks == 0 || Math.Abs( totalStepworkPortion - 1 ) > 10e-7m ) {
           task.Predecessors = new List<PredecessorResource>();
         }
         else {
           task.Stepworks = new List<StepworkResource>();
-          var offset = 0f;
+          var offset = 0m;
           for ( int j = 7; j < 17; j++ ) {
-            var percentStepwork = GetFloat( worksheet.Cell( i, j ).Value );
+            var percentStepwork = GetDecimal( worksheet.Cell( i, j ).Value );
             if ( percentStepwork == 0 ) {
               continue;
             }
@@ -203,7 +203,7 @@ public static class ExcelFileReader
           groupTasks.Add( groupTask );
         }
         var taskName = GetText( worksheet.Cell( i, 2 ).Value );
-        var duration = GetFloat( worksheet.Cell( i, 4 ).Value );
+        var duration = GetDecimal( worksheet.Cell( i, 4 ).Value );
         if ( duration == 0 ) {
           continue;
         }
@@ -226,16 +226,16 @@ public static class ExcelFileReader
         };
         groupTask?.Tasks.Add( task );
         int numberOfStepworks = 0;
-        double totalStepworkPortion = 0;
+        decimal totalStepworkPortion = 0;
         for ( int j = 7; j < 17; j++ ) {
-          var value = GetFloat( worksheet.Cell( i, j ).Value );
+          var value = GetDecimal( worksheet.Cell( i, j ).Value );
           if ( value == 0 ) {
             continue;
           }
           totalStepworkPortion += Math.Abs( value );
           numberOfStepworks++;
         }
-        if ( numberOfStepworks == 0 || Math.Abs( totalStepworkPortion - 1 ) > 10e-7 ) {
+        if ( numberOfStepworks == 0 || Math.Abs( totalStepworkPortion - 1 ) > 10e-7m ) {
           task.Stepworks.Add( new StepworkDetailResource()
           {
             Portion = 1,
@@ -244,7 +244,7 @@ public static class ExcelFileReader
         }
         else {
           for ( int j = 7; j < 17; j++ ) {
-            var percentStepwork = GetFloat( worksheet.Cell( i, j ).Value );
+            var percentStepwork = GetDecimal( worksheet.Cell( i, j ).Value );
             if ( percentStepwork == 0 ) {
               continue;
             }
@@ -337,6 +337,11 @@ public static class ExcelFileReader
   private static double GetDouble( XLCellValue cellValue )
   {
     return cellValue.IsNumber ? ( double ) cellValue.GetNumber() : 0;
+  }
+
+  private static decimal GetDecimal( XLCellValue cellValue )
+  {
+    return cellValue.IsNumber ? ( decimal ) cellValue.GetNumber() : 0;
   }
 
   public class SheetImportMessage

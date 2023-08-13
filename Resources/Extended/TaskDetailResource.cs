@@ -8,7 +8,7 @@ public class TaskDetailResource : IEquatable<TaskDetailResource>
   public string LocalId { get; set; } = null!;
   public string TaskName { get; set; } = null!;
   public int NumberOfTeam { get; set; }
-  public float Duration { get; set; }
+  public decimal Duration { get; set; }
   public string? Description { get; set; }
   public string? Note { get; set; }
   public IList<StepworkDetailResource> Stepworks { get; set; } = null!;

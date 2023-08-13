@@ -3,7 +3,7 @@
 public class StepworkDetailResource : IEquatable<StepworkDetailResource>
 {
   public string LocalId { get; set; } = null!;
-  public float Portion { get; set; }
+  public decimal Portion { get; set; }
   public long ColorId { get; set; }
 
   public bool Equals( StepworkDetailResource? other )
