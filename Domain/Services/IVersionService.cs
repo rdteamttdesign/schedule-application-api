@@ -16,7 +16,7 @@ public interface IVersionService
   Task BatchDeleteVersionDetails( long versionId );
   Task BatchDeleteVersions( ICollection<long> versionIds );
   Task BatchActivateVersions( long userId, ICollection<long> versionIds );
-  Task<IEnumerable<object>> GetGroupTasksByVersionId( long versionId, int columnWidth, float amplifiedFactor );
+  Task<IEnumerable<object>> GetGroupTasksByVersionId( long versionId, int columnWidth, decimal amplifiedFactor );
   Task SaveProjectTasks( long versionId, ICollection<CommonGroupTaskFormData> formData );
   Task<ServiceResponse<VersionResource>> DuplicateVersion( long projectId, Version oldVersion );
   Task<dynamic> GetDataFromFile( long versionId, Stream fileStream, int maxDisplayOrder, string [] sheetNameList );

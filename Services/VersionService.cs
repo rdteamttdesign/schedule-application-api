@@ -161,7 +161,7 @@ public class VersionService : IVersionService
     await _unitOfWork.CompleteAsync();
   }
 
-  public async Task<IEnumerable<object>> GetGroupTasksByVersionId( long versionId, int columnWidth, float amplifiedFactor )
+  public async Task<IEnumerable<object>> GetGroupTasksByVersionId( long versionId, int columnWidth, decimal amplifiedFactor )
   {
     var setting = await _projectSettingRepository.GetByVersionId( versionId );
     if ( columnWidth == -1 )

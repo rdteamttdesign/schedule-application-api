@@ -73,7 +73,7 @@ public class VersionsController : ControllerBase
 
   [HttpGet( "versions/{versionId}/details" )]
   [Authorize]
-  public async Task<IActionResult> GetProjectDetails( long versionId, int columnWidth, float amplifiedFactor )
+  public async Task<IActionResult> GetProjectDetails( long versionId, int columnWidth, decimal amplifiedFactor )
   {
     var userId = long.Parse( HttpContext.User.Claims.FirstOrDefault( x => x.Type.ToLower() == "sid" )?.Value! );
     var version = await _versionService.GetVersionById( versionId );

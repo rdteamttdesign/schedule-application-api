@@ -2,8 +2,8 @@
 
 public class GroupTaskResource
 {
-  public float Start { get; set; }
-  public float Duration { get; set; }
+  public decimal Start { get; set; }
+  public decimal Duration { get; set; }
   public string Name { set; get; } = null!;
   public string Id { set; get; } = null!;
   public string Type { set; get; } = null!;
