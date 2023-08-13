@@ -17,7 +17,7 @@ public class ProjectRepository : GenericRepository<Project>, IProjectRepository
     return await _context.Set<ProjectVersionDetails>().FromSqlRaw( "CALL usp_Project_GetProjectListByProjectId( {0} )", userId ).ToListAsync();
   }
 
-  public async Task<IEnumerable<Project>> GetActiveProjects( long userId )
+  public async Task<IEnumerable<Project>> GetAllProjects( long userId )
   {
     return await _context.Projects.Where( project => project.UserId == userId ).ToListAsync();
   }

@@ -7,5 +7,5 @@ public interface IProjectRepository : IGenericRepository<Project>
 {
   Task<List<ProjectVersionDetails>> GetProjectVersionDetails( long userId );
 
-  Task<IEnumerable<Project>> GetActiveProjects( long userId );
+  Task<IEnumerable<Project>> GetAllProjects( long userId );
 }

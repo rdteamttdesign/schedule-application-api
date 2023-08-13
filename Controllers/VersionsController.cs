@@ -160,34 +160,8 @@ public class VersionsController : ControllerBase
       if ( version == null ) {
         return BadRequest( ProjectNotification.NonExisted );
       }
-
       var result = await _versionService.DuplicateProject( projectId, version );
-
-      #region Duplicate view
-      var views = await _viewService.GetViewsByVersionId( versionId );
-      foreach ( var view in views ) {
-        var newView = new View()
-        {
-          ViewName = view.ViewName,
-          VersionId = result.Content.VersionId
-        };
-        var newViewResult = await _viewService.CreateView( newView );
-        if ( newViewResult == null ) {
-          continue;
-        }
-        var viewtasks = await _viewTaskService.GetViewTasksByViewId( view.ViewId );
-        foreach ( var task in viewtasks ) {
-          var viewtaskFormData = viewtasks.Select( vt => new ViewTaskFormData()
-          {
-            Id = task.LocalTaskId,
-            Group = task.Group,
-            DisplayOrder = task.DisplayOrder
-          } ).ToList();
-          await _viewTaskService.CreateViewTasks( newViewResult.Content.ViewId, viewtaskFormData );
-        }
-      }
-      #endregion
-
+      await _viewService.DuplicateView(versionId, result.Content.VersionId );
       return Ok( result.Content );
     }
     catch ( Exception ex ) {
@@ -250,7 +224,6 @@ public class VersionsController : ControllerBase
       }
 
       var sheetNameList = formCollection [ "SheetName" ].ToString().Split( "," );
-
       var result = await _versionService.GetUpdatedDataFromFile( versionId, file.OpenReadStream(), sheetNameList );
 
       return Ok( result );

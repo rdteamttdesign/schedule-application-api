@@ -117,7 +117,7 @@ public class ProjectService : IProjectService
   public async Task<IEnumerable<Project>> GetActiveProjects( long userId )
   {
     var activeVersions = await _versionRepository.GetActiveVersions( userId );
-    var projects = await _projectRepository.GetActiveProjects( userId );
+    var projects = await _projectRepository.GetAllProjects( userId );
     var projectVersions = await _projectVersionRepository.GetAll();
     var activeProjectVersions = from pv in projectVersions
                                 from version in activeVersions
