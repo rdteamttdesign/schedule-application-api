@@ -5,13 +5,13 @@ public class ProjectSettingResource
   public long ProjectSettingId { get; set; }
   public long VersionId { get; set; }
   public bool SeparateGroupTask { get; set; }
-  public decimal AssemblyDurationRatio { get; set; }
-  public decimal RemovalDurationRatio { get; set; }
+  public double AssemblyDurationRatio { get; set; }
+  public double RemovalDurationRatio { get; set; }
   public ICollection<ColorDefResource> StepworkColors { get; set; } = null!;
   public ICollection<BackgroundColorResource> BackgroundColors { get; set; } = null!;
   public int NumberOfMonths { get; set; }
   public int ColumnWidth { get; set; }
-  public decimal AmplifiedFactor { get; set; }
+  public double AmplifiedFactor { get; set; }
   public bool IncludeYear { get; set; }
   public int StartYear { get; set; }
   public int StartMonth { get; set; }

@@ -2,9 +2,9 @@
 
 public class ViewTaskDetailResource
 {
-  public decimal Start { get; set; }
-  public decimal End { get; set; }
-  public decimal Duration { get; set; }
+  public double Start { get; set; }
+  public double End { get; set; }
+  public double Duration { get; set; }
   public string Name { get; set; } = null!;
   public string Id { get; set; } = null!;
   public string Type { get; set; } = null!;

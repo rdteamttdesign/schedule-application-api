@@ -2,12 +2,12 @@
 
 public static class UnitExtensions
 {
-  public static decimal ColumnWidthToDays( this decimal value, decimal columnWidthUnit )
+  public static double ColumnWidthToDays( this double value, double columnWidthUnit )
   {
     return value / ( columnWidthUnit / 30 );
   }
 
-  public static decimal DaysToColumnWidth( this decimal value, decimal columnWidthUnit )
+  public static double DaysToColumnWidth( this double value, double columnWidthUnit )
   {
     return value * columnWidthUnit / 30;
   }
