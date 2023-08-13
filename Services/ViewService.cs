@@ -233,7 +233,19 @@ public class ViewService : IViewService
       await _viewRepository.Update( view );
       await _unitOfWork.CompleteAsync();
 
-      await DeleteView( viewId, false );
+      var viewTasks = ( await _viewTaskRepository.GetViewTasksByViewId( viewId ) ).ToList();
+
+      var deletedViewTasks = new List<ViewTask>();
+      for ( int i = 0; i < viewTasks.Count; i++ ) {
+        var updatingTask = formData.Tasks.FirstOrDefault( x => x.Id == viewTasks [ i ].LocalTaskId );
+        if ( updatingTask != null ) {
+          formData.Tasks.Remove( updatingTask );
+        }
+        else {
+          _viewTaskRepository.Delete( viewTasks [ i ] );
+        }
+      }
+      await _unitOfWork.CompleteAsync();
       await CreateViewTasks( versionId, viewId, formData.Tasks );
 
       var resource = _mapper.Map<ViewResource>( view );
