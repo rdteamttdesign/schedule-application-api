@@ -14,7 +14,6 @@ using Version = SchedulingTool.Api.Domain.Models.Version;
 using SchedulingTool.Api.Resources.Extended;
 using SchedulingTool.Api.Domain.Models.Enum;
 using System.Data;
-using DocumentFormat.OpenXml.Drawing.Charts;
 
 namespace SchedulingTool.Api.Services;
 
@@ -130,15 +129,20 @@ public class VersionService : IVersionService
 
   public async Task BatchActivateVersions( long userId, ICollection<long> versionIds )
   {
+    var activatedProjects = await _projectRepository.GetActiveProjects( userId );
     var activatedVersionIds = ( await _versionRepository.GetActiveVersions( userId ) ).Select( x => x.VersionId );
     var projectVersions = await _projectVersionRepository.GetAll();
     var activatedProjectVersions = projectVersions.Where( x => activatedVersionIds.Contains( x.VersionId ) );
-    var projectIdList = projectVersions.Where( x => versionIds.Contains( x.VersionId ) ).Select( x => x.ProjectId );
-    var projectIdsToActivate = projectIdList.Where( x => !activatedProjectVersions.Any( pv => pv.ProjectId == x ) ).Distinct();
+    var projectInTrashBinIdList = projectVersions.Where( x => versionIds.Contains( x.VersionId ) ).Select( x => x.ProjectId );
+    var projectIdsToActivate = projectInTrashBinIdList.Where( x => !activatedProjectVersions.Any( pv => pv.ProjectId == x ) ).Distinct();
 
     foreach ( var projectId in projectIdsToActivate ) {
       var project = await _projectRepository.GetById( projectId );
-      project.ProjectName += $" (restored at {( int ) DateTime.UtcNow.Subtract( new DateTime( 1970, 1, 1 ) ).TotalSeconds})";
+      if ( activatedProjects.All( p => p.ProjectId != projectId ) ) {
+        if ( activatedProjects.Any( p => p.ProjectName == project.ProjectName ) ) {
+          project.ProjectName += $" (restored at {( int ) DateTime.UtcNow.Subtract( new DateTime( 1970, 1, 1 ) ).TotalSeconds})";
+        }
+      }
       project.ModifiedDate = DateTime.UtcNow;
       await _projectRepository.Update( project );
     }
