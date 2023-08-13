@@ -19,6 +19,8 @@ public static class WorksheetFormater
     ws.View.ShowGridLines = false;
     ws.Drawings.Clear();
 
+    var taskCount = resource.Grouptasks.SelectMany( x => x.Tasks ).Count() + resource.Grouptasks.Count;
+
     if ( resource.Setting.IncludeYear ) {
       _tableHeaderHeightSpan = 4;
       ws.Row( _tableStartRow ).Height = 15;
@@ -41,10 +43,10 @@ public static class WorksheetFormater
     else
       ws.CreateChartHeader( numberOfMonths );
 
-    ws.DrawTaskTableRow( resource.ChartStepworks.Count );
-    ws.DrawChartBackground( resource.ChartStepworks.Count, numberOfMonths );
+    ws.DrawTaskTableRow( taskCount );
+    ws.DrawChartBackground( taskCount, numberOfMonths );
 
-    ws.PaintChart( resource.ChartStepworks.Count, resource.Backgrounds );
+    ws.PaintChart( taskCount, resource.Backgrounds );
   }
 
   private static void CreateTitle( this ExcelWorksheet ws, string title, int usedColumnSpan )
@@ -267,21 +269,36 @@ public static class WorksheetFormater
 
   private static void DrawTaskTableRow( this ExcelWorksheet ws, int taskCount )
   {
-    ExcelRange range = ws.Cells [ _tableStartRow + _tableHeaderHeightSpan, 2, _tableStartRow + _tableHeaderHeightSpan + taskCount, 9 ];
+    ExcelRange range = ws.Cells [ _tableStartRow + _tableHeaderHeightSpan, 2, _tableStartRow + _tableHeaderHeightSpan - 1 + taskCount, 9 ];
     range.Style.VerticalAlignment = ExcelVerticalAlignment.Center;
     range.Style.HorizontalAlignment = ExcelHorizontalAlignment.Left;
     range.Style.Border.Left.Style = ExcelBorderStyle.Thin;
     range.Style.Border.Right.Style = ExcelBorderStyle.Thin;
     range.Style.Border.Top.Style = ExcelBorderStyle.Thin;
     range.Style.Border.Bottom.Style = ExcelBorderStyle.Thin;
-    for ( int i = 0; i < taskCount + 1; i++ ) {
+    for ( int i = 0; i < taskCount; i++ ) {
       ws.Row( _tableStartRow + _tableHeaderHeightSpan + i ).Height = 19.5;
+
+      ws.Cells [ _tableStartRow + _tableHeaderHeightSpan + i, 5 ].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+      ws.Cells [ _tableStartRow + _tableHeaderHeightSpan + i, 5 ].Style.HorizontalAlignment = ExcelHorizontalAlignment.Right;
+
+      ws.Cells [ _tableStartRow + _tableHeaderHeightSpan + i, 6 ].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+      ws.Cells [ _tableStartRow + _tableHeaderHeightSpan + i, 6 ].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+
+      ws.Cells [ _tableStartRow + _tableHeaderHeightSpan + i, 7 ].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+      ws.Cells [ _tableStartRow + _tableHeaderHeightSpan + i, 7 ].Style.HorizontalAlignment = ExcelHorizontalAlignment.Right;
+
+      ws.Cells [ _tableStartRow + _tableHeaderHeightSpan + i, 8 ].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+      ws.Cells [ _tableStartRow + _tableHeaderHeightSpan + i, 8 ].Style.HorizontalAlignment = ExcelHorizontalAlignment.Right;
+
+      ws.Cells [ _tableStartRow + _tableHeaderHeightSpan + i, 9 ].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+      ws.Cells [ _tableStartRow + _tableHeaderHeightSpan + i, 9 ].Style.HorizontalAlignment = ExcelHorizontalAlignment.Right;
     }
   }
 
   private static void DrawChartBackground( this ExcelWorksheet ws, int taskCount, int numberOfMonths )
   {
-    for ( int rowIndex = 0; rowIndex <= taskCount; rowIndex++ ) {
+    for ( int rowIndex = 0; rowIndex < taskCount; rowIndex++ ) {
       for ( int currentUnitDate = 0; currentUnitDate <= numberOfMonths * 6 - 1; currentUnitDate++ ) {
         var cell = ws.Cells [ _tableStartRow + _tableHeaderHeightSpan + rowIndex, _chartStartColumn + currentUnitDate ];
         if ( currentUnitDate % 6 == 0 ) {
@@ -315,7 +332,7 @@ public static class WorksheetFormater
       var color = GetColor( backgrounds [ i ].ColorCode );
       var range = ws.Cells [
         _tableStartRow + _tableHeaderHeightSpan, _chartStartColumn + i * 2,
-        _tableStartRow + _tableHeaderHeightSpan + numberOfTasks, _chartStartColumn + i * 2 + 1 ];
+        _tableStartRow + _tableHeaderHeightSpan - 1 + numberOfTasks, _chartStartColumn + i * 2 + 1 ];
       range.Style.Fill.PatternType = ExcelFillStyle.Solid;
       range.Style.Fill.BackgroundColor.SetColor( color );
     }
