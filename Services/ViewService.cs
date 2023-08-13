@@ -266,7 +266,7 @@ public class ViewService : IViewService
       }
       existingTask.TaskName = task.Name ?? string.Empty;
       existingTask.IsHidden = task.IsHidden;
-      existingTask.TaskDescription = task.Note;
+      existingTask.TaskDescription = task.Detail;
       existingTask.TaskNote = task.Note;
       await _viewTaskRepository.Update( existingTask );
     }
