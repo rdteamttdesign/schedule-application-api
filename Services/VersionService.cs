@@ -290,6 +290,7 @@ public class VersionService : IVersionService
     var newVersionName = $"Copy of {oldVersion.VersionName}";
 
     var latestName = versions.Select( version => version.VersionName )
+      .Where( name => name.Length > newVersionName.Length )
       .Where( name => name.Substring( 0, newVersionName.Length + 1 ) == $"{newVersionName} " && Regex.IsMatch( name.Split( " " ).LastOrDefault() ?? string.Empty, @"\([1-9]+\)" ) )
       .OrderByDescending( x => x ).FirstOrDefault();
 
