@@ -111,7 +111,7 @@ public class FormDataToModelConverter
               {
                 StepworkId = stepworkFormData.Id,
                 RelatedStepworkId = predecessorFormData.Id,
-                Type = predecessorFormData.Type == "FS" ? 1 :  predecessorFormData.Type == "SS" ? 2 : 3 ,
+                Type = predecessorFormData.Type == "FS" ? 1 : predecessorFormData.Type == "SS" ? 2 : 3,
                 Lag = predecessorFormData.LagDays
               } );
             }
@@ -145,12 +145,18 @@ public class FormDataToModelConverter
             {
               StepworkId = grouptaskFormData.Id,
               RelatedStepworkId = predecessorFormData.Id,
-              Type = predecessorFormData.Type == "FS" ? 1 :  predecessorFormData.Type == "SS" ? 2 : 3 ,
+              Type = predecessorFormData.Type == "FS" ? 1 : predecessorFormData.Type == "SS" ? 2 : 3,
               Lag = predecessorFormData.LagDays
             } );
           }
         }
       }
     }
+
+    // check valid color id
+    foreach ( var stepwork in Stepworks )
+      if ( stepwork.ColorId == 0 ) {
+        stepwork.ColorId = defaultColor.ColorId;
+      }
   }
 }
