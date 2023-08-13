@@ -46,9 +46,12 @@ public static class WorksheetFormater
     else
       ws.CreateChartHeader( numberOfMonths );
 
+    if ( taskCount == 0 ) {
+      return;
+    }
+
     ws.DrawTaskTableRow( taskCount );
     ws.DrawChartBackground( taskCount, numberOfMonths );
-
     ws.PaintChart( taskCount, resource.Backgrounds );
   }
 
@@ -359,6 +362,7 @@ public static class WorksheetFormater
     for ( int rowIndex = 0; rowIndex < taskCount; rowIndex++ ) {
       var cell = ws.Cells [ _tableStartRow + _tableHeaderHeightSpan + rowIndex, _chartStartColumn + numberOfMonths * 6 ];
       cell.Style.HorizontalAlignment = ExcelHorizontalAlignment.Left;
+      cell.Style.VerticalAlignment = ExcelVerticalAlignment.Center;
       cell.Style.Border.Left.Style = ExcelBorderStyle.Thin;
       cell.Style.Border.Top.Style = ExcelBorderStyle.Thin;
       cell.Style.Border.Right.Style = ExcelBorderStyle.Thin;
