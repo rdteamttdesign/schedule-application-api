@@ -311,4 +311,156 @@ public class ProjectSettingService : IProjectSettingService
       return new ServiceResponse<ProjectBackground>( $"{BackgroundNotification.ErrorSaving} {ex.Message}" );
     }
   }
+
+  public ServiceResponse<ICollection<BackgroundColorResource>> CalculateDateRanges( CalculateDateRangesFormData formData )
+  {
+    try {
+      if ( formData.IncludeYear ) {
+        // Current is not include year
+        var currentDateList = new List<DateTimeExt>
+        {
+          new DateTimeExt( -1, 1, 10 ),
+          new DateTimeExt( -1, 1, 20 ),
+          new DateTimeExt( -1, 1, 30 )
+        };
+        for ( int i = 2; i <= formData.NumberOfMonths; i++ )
+          for ( int j = 0; j < 3; j++ )
+            currentDateList.Add( currentDateList.Last().GetNextDates() );
+
+        var currentColorIdList = new long? [ currentDateList.Count ];
+
+        foreach ( var background in formData.BackgroundColors )
+          foreach ( var dateRange in background.DateRanges ) {
+            var dates = dateRange.DisplayText.ToDateArray();
+            foreach ( var date in dates ) {
+              var index = currentDateList.IndexOf( date );
+              currentColorIdList [ index ] = background.ColorId;
+            }
+          }
+
+        var startYear = formData.StartYear;
+        var startMonth = formData.StartMonth;
+        var updateDateList = new List<ProjectBackground>()
+        {
+          new ProjectBackground(){ Year = startYear, Month = startMonth, Date = 10 },
+          new ProjectBackground(){ Year = startYear, Month = startMonth, Date = 20 },
+          new ProjectBackground(){ Year = startYear, Month = startMonth, Date = 30 }
+        };
+        for ( int i = 2; i <= formData.NumberOfMonths; i++ )
+          for ( int j = 0; j < 3; j++ )
+            updateDateList.Add( GetNextDate( updateDateList.Last() ) );
+
+        for ( int i = 0; i < updateDateList.Count; i++ ) {
+          if ( i < currentColorIdList.Length ) {
+            updateDateList [ i ].ColorId = currentColorIdList [ i ];
+          }
+          else {
+            break;
+          }
+        }
+        var datesGroupByColor = updateDateList.GroupBy( x => x.ColorId );
+        foreach ( var background in formData.BackgroundColors ) {
+          background.DateRanges.Clear();
+          var backgroundDates = datesGroupByColor.FirstOrDefault( x => x.Key == background.ColorId );
+          if ( backgroundDates == null ) {
+            continue;
+          }
+          var dates = backgroundDates.Select( x => DateTimeExt.Create( x ) );
+          foreach ( var diaplayDateRangeText in dates.ToFormatString() ) {
+            var fromDateText = diaplayDateRangeText.Split( "-" ) [ 0 ].Trim().Split( "/" );
+            var toDateText = diaplayDateRangeText.Split( "-" ) [ 1 ].Trim().Split( "/" );
+            background.DateRanges.Add( new BackgroundDateRange()
+            {
+              DisplayText = diaplayDateRangeText,
+              StartYear = int.Parse( fromDateText [ 0 ] ),
+              StartMonth = int.Parse( fromDateText [ 1 ] ),
+              StartDate = int.Parse( fromDateText [ 2 ] ),
+              ToYear = int.Parse( toDateText [ 0 ] ),
+              ToMonth = int.Parse( toDateText [ 1 ] ),
+              ToDate = int.Parse( toDateText [ 2 ] )
+            } );
+          }
+        }
+
+        return new ServiceResponse<ICollection<BackgroundColorResource>>( formData.BackgroundColors );
+      }
+      else {
+        var startYear = formData.StartYear;
+        var startMonth = formData.StartMonth;
+        var currentDateList = new List<DateTimeExt>
+        {
+          new DateTimeExt( startYear, startMonth, 10 ),
+          new DateTimeExt( startYear, startMonth, 20 ),
+          new DateTimeExt( startYear, startMonth, 30 )
+        };
+        for ( int i = 2; i <= formData.NumberOfMonths; i++ )
+          for ( int j = 0; j < 3; j++ )
+            currentDateList.Add( currentDateList.Last().GetNextDates() );
+
+        var currentColorIdList = new long? [ currentDateList.Count ];
+
+        foreach ( var background in formData.BackgroundColors )
+          foreach ( var dateRange in background.DateRanges ) {
+            var dates = dateRange.DisplayText.ToDateArray();
+            foreach ( var date in dates ) {
+              var index = currentDateList.IndexOf( date );
+              currentColorIdList [ index ] = background.ColorId;
+            }
+          }
+
+        var updateDateList = new List<ProjectBackground>()
+        {
+          new ProjectBackground() { Year = -1, Month = 1, Date = 10 },
+          new ProjectBackground() { Year = -1, Month = 1, Date = 20 },
+          new ProjectBackground() { Year = -1, Month = 1, Date = 30 }
+        };
+        for ( int i = 2; i <= formData.NumberOfMonths; i++ )
+          for ( int j = 0; j < 3; j++ )
+            updateDateList.Add( GetNextDate( updateDateList.Last() ) );
+
+        for ( int i = 0; i < updateDateList.Count; i++ ) {
+          if ( i < currentColorIdList.Length ) {
+            updateDateList [ i ].ColorId = currentColorIdList [ i ];
+          }
+          else {
+            break;
+          }
+        }
+        var datesGroupByColor = updateDateList.GroupBy( x => x.ColorId );
+        foreach ( var background in formData.BackgroundColors ) {
+          background.DateRanges.Clear();
+          var backgroundDates = datesGroupByColor.FirstOrDefault( x => x.Key == background.ColorId );
+          if ( backgroundDates == null ) {
+            continue;
+          }
+          var dates = backgroundDates.Select( x => DateTimeExt.Create( x ) );
+          foreach ( var diaplayDateRangeText in dates.ToFormatString() ) {
+            var fromDateText = diaplayDateRangeText.Split( "-" ) [ 0 ].Trim().Split( "/" );
+            var toDateText = diaplayDateRangeText.Split( "-" ) [ 1 ].Trim().Split( "/" );
+            background.DateRanges.Add( new BackgroundDateRange()
+            {
+              DisplayText = diaplayDateRangeText,
+              StartYear = -1,
+              StartMonth = int.Parse( fromDateText [ 0 ] ),
+              StartDate = int.Parse( fromDateText [ 1 ] ),
+              ToYear = -1,
+              ToMonth = int.Parse( toDateText [ 0 ] ),
+              ToDate = int.Parse( toDateText [ 1 ] )
+            } );
+          }
+        }
+
+        return new ServiceResponse<ICollection<BackgroundColorResource>>( formData.BackgroundColors );
+      }
+    }
+    catch ( Exception ex ) {
+      return new ServiceResponse<ICollection<BackgroundColorResource>>( $"{ex.Message} {ex.StackTrace}" );
+    }
+  }
+
+  private ProjectBackground GetNextDate( ProjectBackground current )
+  {
+    var date = DateTimeExt.Create( current ).GetNextDates();
+    return new ProjectBackground() { Year = date.Year, Month = date.Month, Date = date.Date };
+  }
 }
