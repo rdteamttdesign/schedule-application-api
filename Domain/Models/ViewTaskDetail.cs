@@ -26,4 +26,5 @@ public class ViewTaskDetail
   public string? Note { get; set; }
   public int DisplayOrder { get; set; }
   public ICollection<Stepwork> Stepworks { get; set; } = null!;
+  public bool IsHidden { get; set; }
 }
