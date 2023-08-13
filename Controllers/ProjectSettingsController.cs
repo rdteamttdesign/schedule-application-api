@@ -58,7 +58,7 @@ public class ProjectSettingsController : ControllerBase
     }
   }
 
-  [HttpGet( "settings/calculate-date-ranges" )]
+  [HttpPost( "settings/calculate-date-ranges" )]
   [Authorize]
   public IActionResult CalculateDateRanges( [FromBody] CalculateDateRangesFormData formData )
   {
