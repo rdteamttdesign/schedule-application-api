@@ -206,9 +206,9 @@ public class ViewService : IViewService
         ViewName = formData.ViewName,
         VersionId = versionId
       };
-      var newTask = await _viewRepository.Create( view );
+      var newView = await _viewRepository.Create( view );
       await _unitOfWork.CompleteAsync();
-      var resource = _mapper.Map<ViewResource>( view );
+      var resource = _mapper.Map<ViewResource>( newView );
 
       var viewTaskResult = await CreateViewTasks( versionId, view.ViewId, formData.Tasks );
       if ( !viewTaskResult.Success ) {
@@ -285,6 +285,7 @@ public class ViewService : IViewService
         VersionId = toVersionId
       };
       var newViewResult = await _viewRepository.Create( newView );
+      await _unitOfWork.CompleteAsync();
       if ( newViewResult == null ) {
         continue;
       }
