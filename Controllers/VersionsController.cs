@@ -160,7 +160,7 @@ public class VersionsController : ControllerBase
       if ( version == null ) {
         return BadRequest( ProjectNotification.NonExisted );
       }
-      var result = await _versionService.DuplicateProject( projectId, version );
+      var result = await _versionService.DuplicateVersion( projectId, version );
       await _viewService.DuplicateView(versionId, result.Content.VersionId );
       return Ok( result.Content );
     }
