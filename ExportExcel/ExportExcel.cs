@@ -22,7 +22,7 @@ public static class ExportExcel
       #region Custom view sheet
       foreach ( var view in resource.ViewTasks.Keys ) {
         var sheet2 = excel.Workbook.Worksheets.Add( view.ViewName );
-        sheet2.CreateMainTableFrame( resource );
+        sheet2.CreateMainTableFrame( resource, isMainView: false, view );
         sheet2.PopulateData( resource.ViewTasks [ view ], startRow: resource.Setting.IncludeYear ? 11 : 10, numberOfMonths: resource.Backgrounds.Count / 3 );
       }
       #endregion
@@ -41,7 +41,7 @@ public static class ExportExcel
       var xlWorkBook = xlApp.Workbooks.Open( path );
       var xlWorkSheet = ( Worksheet ) xlWorkBook.Worksheets.get_Item( 1 );
       xlWorkSheet.DrawChart( resource.ChartStepworks );
-      xlWorkSheet.AddLegend( resource.UsedColors.OrderBy( x => x.Type ).ToList(), 10 + resource.Backgrounds.Count * 2 );
+      xlWorkSheet.AddLegend( resource.UsedColors.OrderBy( x => x.Type ).ToList(), 11 + resource.Backgrounds.Count * 2 );
       for ( int j = 2; j < resource.ViewTasks.Count + 2; j++ ) {
         var xlWorkSheet2 = ( Worksheet ) xlWorkBook.Worksheets.get_Item( j );
         xlWorkSheet2.DrawChart( resource.ViewTasks.Values.ElementAt( j - 2 ), startRow: resource.Setting.IncludeYear ? 11 : 10 );

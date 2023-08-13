@@ -2,6 +2,7 @@
 using OfficeOpenXml;
 using System.Drawing;
 using SchedulingTool.Api.Resources;
+using SchedulingTool.Api.Domain.Models;
 
 namespace SchedulingTool.Api.ExportExcel;
 
@@ -13,13 +14,15 @@ public static class WorksheetFormater
   private static int _chartStartColumn = 11;
   private static int _tableHeaderHeightSpan = 3;
 
-  public static void CreateMainTableFrame( this ExcelWorksheet ws, ProjectResource resource )
+  public static void CreateMainTableFrame( this ExcelWorksheet ws, ProjectResource resource, bool isMainView = true, View? view = null )
   {
     ws.Cells.Style.Font.Name = "MS Gothic";
     ws.View.ShowGridLines = false;
     ws.Drawings.Clear();
 
-    var taskCount = resource.Grouptasks.SelectMany( x => x.Tasks ).Count() + resource.Grouptasks.Count;
+    var taskCount = isMainView
+      ? resource.Grouptasks.SelectMany( x => x.Tasks ).Count() + resource.Grouptasks.Count
+      : resource.ViewTasks [ view! ].Count + resource.ViewTasks [ view! ].GroupBy( x => x.GroupTaskId ).Count();
 
     if ( resource.Setting.IncludeYear ) {
       _tableHeaderHeightSpan = 4;
@@ -146,6 +149,7 @@ public static class WorksheetFormater
 
       ws.Cells [ _tableStartRow + 1, _chartStartColumn + i * 6 ].Style.Border.Left.Style = ExcelBorderStyle.Thin;
     }
+    ws.Cells [ _tableStartRow + 1, _chartStartColumn + numberOfMonths * 6 - 1 ].Style.Border.Right.Style = ExcelBorderStyle.Thin;
 
     for ( int i = 0; i < numberOfMonths * 6; i++ ) {
       if ( i % 6 == 0 ) {
@@ -168,6 +172,21 @@ public static class WorksheetFormater
     for ( int i = 0; i < numberOfMonths * 6; i++ ) {
       ws.Cells [ _tableStartRow + 2, _chartStartColumn + i ].Style.Border.Bottom.Style = ExcelBorderStyle.Thin;
     }
+    #endregion
+
+    #region Create note column
+    var noteRange = ws.Cells [
+      _tableStartRow, _chartStartColumn + numberOfMonths * 6,
+      _tableStartRow + _tableHeaderHeightSpan - 1, _chartStartColumn + numberOfMonths * 6 ];
+    noteRange.Merge = true;
+    noteRange.Value = "備 　考";
+    noteRange.Style.Font.Bold = true;
+    noteRange.Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+    noteRange.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+    noteRange.Style.Border.Left.Style = ExcelBorderStyle.Thin;
+    noteRange.Style.Border.Right.Style = ExcelBorderStyle.Thin;
+    noteRange.Style.Border.Top.Style = ExcelBorderStyle.Thin;
+    noteRange.Style.Border.Bottom.Style = ExcelBorderStyle.Thin;
     #endregion
   }
 
@@ -265,6 +284,21 @@ public static class WorksheetFormater
       ws.Cells [ _tableStartRow + 3, _chartStartColumn + i ].Style.Border.Bottom.Style = ExcelBorderStyle.Thin;
     }
     #endregion
+
+    #region Create note column
+    var noteRange = ws.Cells [
+      _tableStartRow, _chartStartColumn + numberOfMonths * 6,
+      _tableStartRow + _tableHeaderHeightSpan - 1, _chartStartColumn + numberOfMonths * 6 ];
+    noteRange.Merge = true;
+    noteRange.Value = "備 　考";
+    noteRange.Style.Font.Bold = true;
+    noteRange.Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+    noteRange.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+    noteRange.Style.Border.Left.Style = ExcelBorderStyle.Thin;
+    noteRange.Style.Border.Right.Style = ExcelBorderStyle.Thin;
+    noteRange.Style.Border.Top.Style = ExcelBorderStyle.Thin;
+    noteRange.Style.Border.Bottom.Style = ExcelBorderStyle.Thin;
+    #endregion
   }
 
   private static void DrawTaskTableRow( this ExcelWorksheet ws, int taskCount )
@@ -320,6 +354,15 @@ public static class WorksheetFormater
           cell.Style.Border.Bottom.Style = ExcelBorderStyle.Thin;
         }
       }
+    }
+
+    for ( int rowIndex = 0; rowIndex < taskCount; rowIndex++ ) {
+      var cell = ws.Cells [ _tableStartRow + _tableHeaderHeightSpan + rowIndex, _chartStartColumn + numberOfMonths * 6 ];
+      cell.Style.HorizontalAlignment = ExcelHorizontalAlignment.Left;
+      cell.Style.Border.Left.Style = ExcelBorderStyle.Thin;
+      cell.Style.Border.Top.Style = ExcelBorderStyle.Thin;
+      cell.Style.Border.Right.Style = ExcelBorderStyle.Thin;
+      cell.Style.Border.Bottom.Style = ExcelBorderStyle.Thin;
     }
   }
 
