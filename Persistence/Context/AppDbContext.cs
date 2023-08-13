@@ -553,6 +553,23 @@ namespace SchedulingTool.Api.Persistence.Context
 
                 entity.Property(e => e.Group).HasColumnName("group");
 
+                entity.Property(e => e.IsHidden)
+                    .HasColumnType("bit(1)")
+                    .HasColumnName("is_hidden")
+                    .HasDefaultValueSql("b'0'");
+
+                entity.Property(e => e.TaskDescription)
+                    .HasMaxLength(125)
+                    .HasColumnName("task_description");
+
+                entity.Property(e => e.TaskName)
+                    .HasMaxLength(125)
+                    .HasColumnName("task_name");
+
+                entity.Property(e => e.TaskNote)
+                    .HasMaxLength(125)
+                    .HasColumnName("task_note");
+
                 entity.HasOne(d => d.View)
                     .WithMany(p => p.ViewTasks)
                     .HasForeignKey(d => d.ViewId)
@@ -601,11 +618,13 @@ namespace SchedulingTool.Api.Persistence.Context
 
         entity.Property( e => e.GroupTaskName ).HasColumnName( "group_task_name" );
 
-        entity.Property( e => e.Description ).HasColumnName( "description" );
+        entity.Property( e => e.Description ).HasColumnName( "task_description" );
 
-        entity.Property( e => e.Note ).HasColumnName( "note" );
+        entity.Property( e => e.Note ).HasColumnName( "task_note" );
 
         entity.Property( e => e.DisplayOrder ).HasColumnName( "display_order" );
+
+        entity.Property( e => e.IsHidden ).HasColumnName( "is_hidden" );
       } );
 
       OnModelCreatingPartial( modelBuilder);
