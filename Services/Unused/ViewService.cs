@@ -114,7 +114,7 @@ public class ViewService : IViewService
             continue;
           }
           //Recalculate end of last stepwork if task has more than one stepwork
-          var gap = 0f;
+          var gap = 0d;
           for ( int i = 0; i < task.Stepworks.Count - 1; i++ ) {
             gap += task.Stepworks.ElementAt( i ).Duration * ( setting!.AmplifiedFactor - 1 ) / task.NumberOfTeam;
           }

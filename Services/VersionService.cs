@@ -149,7 +149,7 @@ public class VersionService : IVersionService
     return groupTaskResources;
   }
 
-  private List<ChartStepwork> GrouptaskResourcesToChartStepworks( IList<GroupTaskDetailResource> grouptasks, float amplifiedFactor, bool includeYear )
+  private List<ChartStepwork> GrouptaskResourcesToChartStepworks( IList<GroupTaskDetailResource> grouptasks, double amplifiedFactor, bool includeYear )
   {
     var i = includeYear ? 11 : 10;
     var data = new List<ChartStepwork>();

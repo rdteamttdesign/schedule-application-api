@@ -7,13 +7,13 @@ public class ProjectSettingResource
   public long ProjectSettingId { get; set; }
   public long ProjectId { get; set; }
   public bool SeparateGroupTask { get; set; }
-  public float AssemblyDurationRatio { get; set; }
-  public float RemovalDurationRatio { get; set; }
+  public double AssemblyDurationRatio { get; set; }
+  public double RemovalDurationRatio { get; set; }
   public ICollection<ColorDefResource> StepworkColors { get; set; } = null!;
   public ICollection<BackgroundColorResource> BackgroundColors { get; set; } = null!;
   public int NumberOfMonths { get; set; }
   public int ColumnWidth { get; set; }
-  public float AmplifiedFactor { get; set; }
+  public double AmplifiedFactor { get; set; }
 }
 
 public class BackgroundColorResource

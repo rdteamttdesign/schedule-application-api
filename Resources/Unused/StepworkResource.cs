@@ -2,9 +2,9 @@
 
 public class StepworkResource
 {
-  public float Start { get; set; }
-  public float Duration { get; set; }
-  public float PercentStepWork { get; set; }
+  public double Start { get; set; }
+  public double Duration { get; set; }
+  public double PercentStepWork { get; set; }
   public string? Name { get; set; }
   public string ParentTaskId { get; set; } = null!;
   public string Id { get; set; } = null!;
@@ -13,6 +13,6 @@ public class StepworkResource
   public int DisplayOrder { get; set; }
   public ICollection<PredecessorResource>? Predecessors { get; set; }
   public long? ColorId { get; set; }
-  public float End { get; set; }
+  public double End { get; set; }
   public int GroupNumbers { get; set; }
 }

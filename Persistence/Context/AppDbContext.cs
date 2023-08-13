@@ -217,7 +217,7 @@ namespace SchedulingTool.Api.Persistence.Context
 
             modelBuilder.Entity<ProjectBackground>(entity =>
             {
-                entity.HasKey(e => new { e.VersionId, e.Year, e.Month, e.Date })
+                entity.HasKey(e => new { e.VersionId, e.Month, e.Year, e.Date })
                     .HasName("PRIMARY")
                     .HasAnnotation("MySql:IndexPrefixLength", new[] { 0, 0, 0, 0 });
 
@@ -229,9 +229,9 @@ namespace SchedulingTool.Api.Persistence.Context
 
                 entity.Property(e => e.VersionId).HasColumnName("version_id");
 
-                entity.Property(e => e.Year).HasColumnName("year");
-
                 entity.Property(e => e.Month).HasColumnName("month");
+
+                entity.Property(e => e.Year).HasColumnName("year");
 
                 entity.Property(e => e.Date).HasColumnName("date");
 
@@ -265,11 +265,9 @@ namespace SchedulingTool.Api.Persistence.Context
 
                 entity.Property(e => e.AmplifiedFactor)
                     .HasColumnName("amplified_factor")
-                    .HasDefaultValueSql("'1.7'");
+                    .HasDefaultValueSql("'2'");
 
-                entity.Property(e => e.AssemblyDurationRatio)
-                    .HasColumnName("assembly_duration_ratio")
-                    .HasDefaultValueSql("'0.4'");
+                entity.Property(e => e.AssemblyDurationRatio).HasColumnName("assembly_duration_ratio");
 
                 entity.Property(e => e.ColumnWidth)
                     .HasColumnName("column_width")
@@ -282,7 +280,7 @@ namespace SchedulingTool.Api.Persistence.Context
 
                 entity.Property(e => e.RemovalDurationRatio)
                     .HasColumnName("removal_duration_ratio")
-                    .HasDefaultValueSql("'0.6'");
+                    .HasDefaultValueSql("'1'");
 
                 entity.Property(e => e.SeparateGroupTask)
                     .HasColumnType("bit(1)")
@@ -552,6 +550,23 @@ namespace SchedulingTool.Api.Persistence.Context
                 entity.Property(e => e.DisplayOrder).HasColumnName("display_order");
 
                 entity.Property(e => e.Group).HasColumnName("group");
+
+                entity.Property(e => e.IsHidden)
+                    .HasColumnType("bit(1)")
+                    .HasColumnName("is_hidden")
+                    .HasDefaultValueSql("b'0'");
+
+                entity.Property(e => e.TaskDescription)
+                    .HasMaxLength(125)
+                    .HasColumnName("task_description");
+
+                entity.Property(e => e.TaskName)
+                    .HasMaxLength(125)
+                    .HasColumnName("task_name");
+
+                entity.Property(e => e.TaskNote)
+                    .HasMaxLength(125)
+                    .HasColumnName("task_note");
 
                 entity.HasOne(d => d.View)
                     .WithMany(p => p.ViewTasks)
