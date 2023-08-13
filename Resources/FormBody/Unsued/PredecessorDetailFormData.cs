@@ -7,6 +7,6 @@ public class PredecessorDetailFormData
   public int RelatedGroupTaskIndex { get; set; }
   public int RelatedTaskIndex { get; set; }
   public int RelatedStepworkIndex { get; set; }
-  public decimal Lag { get; set; }
+  public double Lag { get; set; }
   public long Type { get; set; }
 }

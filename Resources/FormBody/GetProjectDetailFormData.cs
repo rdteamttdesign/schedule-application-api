@@ -3,5 +3,5 @@
 public class GetProjectDetailFormData
 {
   public int? ColumnWidth { get; set; }
-  public decimal? AmplifiedFactor { get; set; }
+  public double? AmplifiedFactor { get; set; }
 }

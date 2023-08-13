@@ -10,12 +10,12 @@ public class ProjectSettingFormData
 
   [Required]
   [Range( 0.09, 1, ErrorMessage = "Please enter valid ratio (from 0.01 to 1)" )]
-  public decimal AssemblyDurationRatio { get; set; }
+  public double AssemblyDurationRatio { get; set; }
 
 
   [Required]
   [Range( 0.09, 1, ErrorMessage = "Please enter valid ratio (from 0.01 to 1)" )]
-  public decimal RemovalDurationRatio { get; set; }
+  public double RemovalDurationRatio { get; set; }
 
   [Required]
   public ICollection<ColorDefFormData> StepworkColors { get; set; } = null!;
@@ -39,7 +39,7 @@ public class ProjectSettingFormData
   public int StartMonth { get; set; }
 
   [Required]
-  public decimal AmplifiedFactor { get; set; }
+  public double AmplifiedFactor { get; set; }
 }
 
 public class ColorDefFormData
