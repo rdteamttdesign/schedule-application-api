@@ -12,7 +12,7 @@ namespace SchedulingTool.Api.ExportExcel;
 
 public static class WorksheetContentUtils
 {
-  private const double ALMOST_ZERO = 10e-6;
+  private const double ALMOST_ZERO = 10e-5;
   public static void PopulateData( this ExcelWorksheet ws, IEnumerable<GroupTaskDetailResource> grouptasks, int startRow, int numberOfMonths )
   {
     var index = 1;
