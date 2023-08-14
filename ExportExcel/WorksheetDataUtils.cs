@@ -169,6 +169,7 @@ public static class WorksheetContentUtils
       foreach ( var task in group.OrderBy( t => t.DisplayOrder ) ) {
         worksheet.Cells [ startRow, 2 ].Value = i;
         worksheet.Cells [ startRow, 3 ].Value = task.TaskName;
+        worksheet.Cells [ startRow, 4 ].Value = task.Description;
         worksheet.Cells [ startRow, 3 ].Style.Indent = 1;
         worksheet.Cells [ startRow, 7 ].Value = task.Duration;
         worksheet.Cells [ startRow, 7 ].Style.Numberformat.Format = "#,###0.0 日";
