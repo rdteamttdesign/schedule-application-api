@@ -91,14 +91,7 @@ builder.Services.Configure<FormOptions>( option =>
   option.MemoryBufferThreshold = int.MaxValue;
 } );
 
-
-// Add services to the container.
-
-//AUTH
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-//builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
-//builder.Services.AddScoped<ITokenHandler, TokenHandler>();
-//builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
 
 builder.Services.Configure<TokenOptions>( builder.Configuration.GetSection( "TokenOptions" ) );
 var tokenOptions = builder.Configuration.GetSection( "TokenOptions" ).Get<TokenOptions>();
@@ -117,24 +110,7 @@ builder.Services.AddAuthentication( JwtBearerDefaults.AuthenticationScheme )
       IssuerSigningKey = signingConfigurations.SecurityKey,
       ClockSkew = TimeSpan.Zero
     };
-
-    //jwtBearerOptions.Events = new JwtBearerEvents
-    //{
-    //  OnMessageReceived = context =>
-    //  {
-    //    var accessToken = context.Request.Query [ "access_token" ];
-    //    var path = context.HttpContext.Request.Path;
-    //    if ( !string.IsNullOrEmpty( accessToken ) &&
-    //         ( path.StartsWithSegments( $"/{hubConnectionName}" ) ) ) {
-    //      context.Token = accessToken;
-    //    }
-    //    return Task.CompletedTask;
-    //  }
-    //};
   } );
-
-//builder.Services.AddScoped<IUserRepository, UserRepository>();
-//builder.Services.AddScoped<IUserService, UserService>();
 
 builder.Services.AddScoped<IProjectRepository, ProjectRepository>();
 
@@ -144,34 +120,24 @@ builder.Services.AddScoped<IVersionService, VersionService>();
 builder.Services.AddScoped<IProjectVersionRepository, ProjectVersionRepository>();
 
 builder.Services.AddScoped<IProjectSettingRepository, ProjectSettingRepository>();
-//builder.Services.AddScoped<IProjectSettingService, ProjectSettingService>();
 
 builder.Services.AddScoped<IBackgroundRepository, BackgroundRepository>();
-//builder.Services.AddScoped<IBackgroundService, BackgroundService>();
 
 builder.Services.AddScoped<IColorDefRepository, ColorDefRepository>();
-//builder.Services.AddScoped<IColorDefService, ColorDefService>();
 
 builder.Services.AddScoped<IGroupTaskRepository, GroupTaskRepository>();
-//builder.Services.AddScoped<IGroupTaskService, GroupTaskService>();
 
 builder.Services.AddScoped<ITaskRepository, TaskRepository>();
-//builder.Services.AddScoped<ITaskService, TaskService>();
 
 builder.Services.AddScoped<IStepworkRepository, StepworkRepository>();
-//builder.Services.AddScoped<IStepworkService, StepworkService>();
 
 builder.Services.AddScoped<IPredecessorRepository, PredecessorRepository>();
-//builder.Services.AddScoped<IPredecessorService, PredecessorService>();
 
 builder.Services.AddScoped<IPredecessorTypeRepository, PredecessorTypeRepository>();
-//builder.Services.AddScoped<IPredecessorTypeService, PredecessorTypeService>();
 
 builder.Services.AddScoped<IViewRepository, ViewRepository>();
-//builder.Services.AddScoped<IViewService, ViewService>();
 
 builder.Services.AddScoped<IViewTaskRepository, ViewTaskRepository>();
-//builder.Services.AddScoped<IViewTaskService, ViewTaskService>();
 
 builder.Services.AddAutoMapper( AppDomain.CurrentDomain.GetAssemblies() );
 
