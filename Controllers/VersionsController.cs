@@ -73,7 +73,7 @@ public class VersionsController : ControllerBase
 
   [HttpGet( "versions/{versionId}/details" )]
   [Authorize]
-  public async Task<IActionResult> GetProjectDetails( long versionId, int columnWidth, float amplifiedFactor )
+  public async Task<IActionResult> GetProjectDetails( long versionId, int columnWidth, double amplifiedFactor )
   {
     var userId = long.Parse( HttpContext.User.Claims.FirstOrDefault( x => x.Type.ToLower() == "sid" )?.Value! );
     var version = await _versionService.GetVersionById( versionId );
@@ -160,7 +160,7 @@ public class VersionsController : ControllerBase
       if ( version == null ) {
         return BadRequest( ProjectNotification.NonExisted );
       }
-      var result = await _versionService.DuplicateProject( projectId, version );
+      var result = await _versionService.DuplicateVersion( projectId, version );
       await _viewService.DuplicateView(versionId, result.Content.VersionId );
       return Ok( result.Content );
     }

@@ -161,7 +161,7 @@ public class VersionService : IVersionService
     await _unitOfWork.CompleteAsync();
   }
 
-  public async Task<IEnumerable<object>> GetGroupTasksByVersionId( long versionId, int columnWidth, float amplifiedFactor )
+  public async Task<IEnumerable<object>> GetGroupTasksByVersionId( long versionId, int columnWidth, double amplifiedFactor )
   {
     var setting = await _projectSettingRepository.GetByVersionId( versionId );
     if ( columnWidth == -1 )
@@ -283,14 +283,15 @@ public class VersionService : IVersionService
     }
   }
 
-  public async Task<ServiceResponse<VersionResource>> DuplicateProject( long projectId, Version oldVersion )
+  public async Task<ServiceResponse<VersionResource>> DuplicateVersion( long projectId, Version oldVersion )
   {
     var versions = await GetActiveVersions( oldVersion.UserId, projectId );
 
     var newVersionName = $"Copy of {oldVersion.VersionName}";
 
     var latestName = versions.Select( version => version.VersionName )
-      .Where( name => Regex.IsMatch( name, $"{newVersionName} \\([1-9]\\)" ) )
+      .Where( name => name.Length > newVersionName.Length )
+      .Where( name => name.Substring( 0, newVersionName.Length + 1 ) == $"{newVersionName} " && Regex.IsMatch( name.Split( " " ).LastOrDefault() ?? string.Empty, @"\([1-9]+\)" ) )
       .OrderByDescending( x => x ).FirstOrDefault();
 
     if ( latestName != null ) {

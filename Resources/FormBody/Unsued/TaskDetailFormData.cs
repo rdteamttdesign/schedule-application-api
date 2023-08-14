@@ -8,8 +8,8 @@ public class TaskDetailFormData
   public int Index { get; set; }
   //public int GroupIndex { get; set; }
   public int NumberOfTeam { get; set; }
-  public float Duration { get; set; }
-  public float AmplifiedDuration { get; set; }
+  public double Duration { get; set; }
+  public double AmplifiedDuration { get; set; }
   public string? Description { get; set; }
   public string? Note { get; set; }
   public ICollection<StepworkDetailFormData> Stepworks { get; set; } = null!;

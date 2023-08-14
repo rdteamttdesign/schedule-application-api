@@ -70,7 +70,7 @@ public static class ExcelFileReader
         //if ( string.IsNullOrEmpty( taskName ) ) {
         //  continue;
         //}
-        var duration = GetFloat( worksheet.Cell( i, 4 ).Value );
+        var duration = GetDouble( worksheet.Cell( i, 4 ).Value );
         if ( duration == 0 ) {
           continue;
         }
@@ -101,9 +101,9 @@ public static class ExcelFileReader
         //  taskIndex++;
         //}
         int numberOfStepworks = 0;
-        var totalStepworkPortion = 0d;
+        double totalStepworkPortion = 0;
         for ( int j = 7; j < 17; j++ ) {
-          var value = GetFloat( worksheet.Cell( i, j ).Value );
+          var value = GetDouble( worksheet.Cell( i, j ).Value );
           if ( value == 0 ) {
             continue;
           }
@@ -115,9 +115,9 @@ public static class ExcelFileReader
         }
         else {
           task.Stepworks = new List<StepworkResource>();
-          var offset = 0f;
+          var offset = 0d;
           for ( int j = 7; j < 17; j++ ) {
-            var percentStepwork = GetFloat( worksheet.Cell( i, j ).Value );
+            var percentStepwork = GetDouble( worksheet.Cell( i, j ).Value );
             if ( percentStepwork == 0 ) {
               continue;
             }
@@ -203,7 +203,7 @@ public static class ExcelFileReader
           groupTasks.Add( groupTask );
         }
         var taskName = GetText( worksheet.Cell( i, 2 ).Value );
-        var duration = GetFloat( worksheet.Cell( i, 4 ).Value );
+        var duration = GetDouble( worksheet.Cell( i, 4 ).Value );
         if ( duration == 0 ) {
           continue;
         }
@@ -228,7 +228,7 @@ public static class ExcelFileReader
         int numberOfStepworks = 0;
         double totalStepworkPortion = 0;
         for ( int j = 7; j < 17; j++ ) {
-          var value = GetFloat( worksheet.Cell( i, j ).Value );
+          var value = GetDouble( worksheet.Cell( i, j ).Value );
           if ( value == 0 ) {
             continue;
           }
@@ -244,7 +244,7 @@ public static class ExcelFileReader
         }
         else {
           for ( int j = 7; j < 17; j++ ) {
-            var percentStepwork = GetFloat( worksheet.Cell( i, j ).Value );
+            var percentStepwork = GetDouble( worksheet.Cell( i, j ).Value );
             if ( percentStepwork == 0 ) {
               continue;
             }

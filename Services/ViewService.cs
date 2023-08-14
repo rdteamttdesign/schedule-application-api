@@ -142,7 +142,7 @@ public class ViewService : IViewService
             continue;
           }
           //Recalculate end of last stepwork if task has more than one stepwork
-          var gap = 0f;
+          var gap = 0d;
           for ( int i = 0; i < task.Stepworks.Count - 1; i++ ) {
             gap += task.Stepworks.ElementAt( i ).Duration * ( setting!.AmplifiedFactor - 1 ) / task.NumberOfTeam;
           }
@@ -206,9 +206,9 @@ public class ViewService : IViewService
         ViewName = formData.ViewName,
         VersionId = versionId
       };
-      var newTask = await _viewRepository.Create( view );
+      var newView = await _viewRepository.Create( view );
       await _unitOfWork.CompleteAsync();
-      var resource = _mapper.Map<ViewResource>( view );
+      var resource = _mapper.Map<ViewResource>( newView );
 
       var viewTaskResult = await CreateViewTasks( versionId, view.ViewId, formData.Tasks );
       if ( !viewTaskResult.Success ) {
@@ -233,7 +233,19 @@ public class ViewService : IViewService
       await _viewRepository.Update( view );
       await _unitOfWork.CompleteAsync();
 
-      await DeleteView( viewId, false );
+      var viewTasks = ( await _viewTaskRepository.GetViewTasksByViewId( viewId ) ).ToList();
+
+      var deletedViewTasks = new List<ViewTask>();
+      for ( int i = 0; i < viewTasks.Count; i++ ) {
+        var updatingTask = formData.Tasks.FirstOrDefault( x => x.Id == viewTasks [ i ].LocalTaskId );
+        if ( updatingTask != null ) {
+          formData.Tasks.Remove( updatingTask );
+        }
+        else {
+          _viewTaskRepository.Delete( viewTasks [ i ] );
+        }
+      }
+      await _unitOfWork.CompleteAsync();
       await CreateViewTasks( versionId, viewId, formData.Tasks );
 
       var resource = _mapper.Map<ViewResource>( view );
@@ -285,6 +297,7 @@ public class ViewService : IViewService
         VersionId = toVersionId
       };
       var newViewResult = await _viewRepository.Create( newView );
+      await _unitOfWork.CompleteAsync();
       if ( newViewResult == null ) {
         continue;
       }

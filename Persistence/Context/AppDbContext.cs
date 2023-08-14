@@ -217,7 +217,7 @@ namespace SchedulingTool.Api.Persistence.Context
 
             modelBuilder.Entity<ProjectBackground>(entity =>
             {
-                entity.HasKey(e => new { e.VersionId, e.Year, e.Month, e.Date })
+                entity.HasKey(e => new { e.VersionId, e.Month, e.Year, e.Date })
                     .HasName("PRIMARY")
                     .HasAnnotation("MySql:IndexPrefixLength", new[] { 0, 0, 0, 0 });
 
@@ -229,9 +229,9 @@ namespace SchedulingTool.Api.Persistence.Context
 
                 entity.Property(e => e.VersionId).HasColumnName("version_id");
 
-                entity.Property(e => e.Year).HasColumnName("year");
-
                 entity.Property(e => e.Month).HasColumnName("month");
+
+                entity.Property(e => e.Year).HasColumnName("year");
 
                 entity.Property(e => e.Date).HasColumnName("date");
 
@@ -265,11 +265,9 @@ namespace SchedulingTool.Api.Persistence.Context
 
                 entity.Property(e => e.AmplifiedFactor)
                     .HasColumnName("amplified_factor")
-                    .HasDefaultValueSql("'1.7'");
+                    .HasDefaultValueSql("'2'");
 
-                entity.Property(e => e.AssemblyDurationRatio)
-                    .HasColumnName("assembly_duration_ratio")
-                    .HasDefaultValueSql("'0.4'");
+                entity.Property(e => e.AssemblyDurationRatio).HasColumnName("assembly_duration_ratio");
 
                 entity.Property(e => e.ColumnWidth)
                     .HasColumnName("column_width")
@@ -282,7 +280,7 @@ namespace SchedulingTool.Api.Persistence.Context
 
                 entity.Property(e => e.RemovalDurationRatio)
                     .HasColumnName("removal_duration_ratio")
-                    .HasDefaultValueSql("'0.6'");
+                    .HasDefaultValueSql("'1'");
 
                 entity.Property(e => e.SeparateGroupTask)
                     .HasColumnType("bit(1)")

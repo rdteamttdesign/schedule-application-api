@@ -4,7 +4,7 @@ public class StepworkDetailFormData
 {
   //public DataChange Change { get; set; }
   //public long TaskId { get; set; }
-  public float Portion { get; set; }
+  public double Portion { get; set; }
   public long ColorId { get; set; }
   public int Index { get; set; }
   //public int TaskIndex { get; set; }

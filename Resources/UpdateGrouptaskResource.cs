@@ -13,7 +13,7 @@ public class UpdateTaskResource
   public string Change { get; set; } = null!;
   public string Id { get; set; } = null!;
   public string? Name { get; set; }
-  public float Duration { get; set; }
+  public double Duration { get; set; }
   public int GroupsNumber { get; set; }
   public string? Note { get; set; }
   public string? Detail { get; set; }
@@ -24,5 +24,5 @@ public class UpdateStepworkResource
 {
   public string Id { get; set; } = null!;
   public long ColorId { get; set; }
-  public float PercentStepWork { get; set; }
+  public double PercentStepWork { get; set; }
 }
