@@ -2,11 +2,7 @@
 using Microsoft.CodeAnalysis;
 using SchedulingTool.Api.Domain.Models;
 using SchedulingTool.Api.Domain.Repositories;
-using SchedulingTool.Api.Domain.Services.Communication;
 using SchedulingTool.Api.Domain.Services.Unused;
-using SchedulingTool.Api.Extension;
-using SchedulingTool.Api.Notification;
-using Task = System.Threading.Tasks.Task;
 
 namespace SchedulingTool.Api.Services.Unused;
 
@@ -18,7 +14,12 @@ public class ViewService : IViewService
   private readonly IUnitOfWork _unitOfWork;
   private readonly IMapper _mapper;
 
-  public ViewService( IViewRepository viewRepository, IUnitOfWork unitOfWork, IMapper mapper, IStepworkRepository stepworkRepository, IProjectSettingRepository projectSettingRepository )
+  public ViewService( 
+    IViewRepository viewRepository, 
+    IUnitOfWork unitOfWork, 
+    IMapper mapper, 
+    IStepworkRepository stepworkRepository, 
+    IProjectSettingRepository projectSettingRepository )
   {
     _viewRepository = viewRepository;
     _unitOfWork = unitOfWork;
@@ -36,48 +37,6 @@ public class ViewService : IViewService
   {
     return await _viewRepository.GetById( viewId );
   }
-
-  //public async Task<IEnumerable<object>> GetViewDetailById( long projectId, IEnumerable<ViewTaskDetail> tasks )
-  //{
-  //  var setting = await _projectSettingRepository.GetByVersionId( projectId );
-  //  CalculateDuration( tasks, setting! );
-  //  var result = new List<KeyValuePair<int, object>>();
-  //  var tasksByGroup = tasks.GroupBy( t => t.GroupTaskName );
-
-  //  int i = 1;
-  //  foreach ( var group in tasksByGroup ) {
-  //    var groupId = Guid.NewGuid().ToString();
-  //    var grouptaskResource = new GroupTaskResource()
-  //    {
-  //      Name = group.Key,
-  //      Id = groupId,
-  //      Type = "project",
-  //      DisplayOrder = i
-  //    };
-  //    result.Add( new KeyValuePair<int, object>( i, grouptaskResource ) );
-  //    foreach ( var task in group ) {
-  //      var taskResource = new TaskResource()
-  //      {
-  //        Duration = task.Duration,
-  //        Start = task.MinStart.DaysToColumnWidth( setting!.ColumnWidth ),
-  //        End = task.MaxEnd.DaysToColumnWidth( setting.ColumnWidth ),
-  //        Name = task.TaskName,
-  //        Id = task.TaskLocalId,
-  //        Type = "task",
-  //        Detail = string.Empty,
-  //        GroupId = groupId,
-  //        DisplayOrder = i,
-  //        Note = string.Empty,
-  //        ColorId = 1,
-  //        GroupsNumber = 0
-  //      };
-  //      i++;
-  //      result.Add( new KeyValuePair<int, object>( i, taskResource ) );
-  //    }
-  //    i++;
-  //  }
-  //  return result.OrderBy( o => o.Key ).Select( o => o.Value );
-  //}
 
   private void CalculateDuration( IEnumerable<ViewTaskDetail> tasks, ProjectSetting setting )
   {
@@ -134,35 +93,6 @@ public class ViewService : IViewService
       }
     }
   }
-
-  public async Task<ServiceResponse<View>> CreateView( View view )
-  {
-    try {
-      var newTask = await _viewRepository.Create( view );
-      await _unitOfWork.CompleteAsync();
-      return new ServiceResponse<View>( newTask );
-    }
-    catch ( Exception ex ) {
-      return new ServiceResponse<View>( $"{ViewNotification.ErrorSaving} {ex.Message}" );
-    }
-  }
-
-  public async Task<ServiceResponse<View>> UpdateView( View view )
-  {
-    try {
-      await _viewRepository.Update( view );
-      await _unitOfWork.CompleteAsync();
-      return new ServiceResponse<View>( view );
-    }
-    catch ( Exception ex ) {
-      return new ServiceResponse<View>( $"{ViewNotification.ErrorSaving} {ex.Message}" );
-    }
-  }
-
-  //public async Task DeleteView( long viewId, bool isDeleteView )
-  //{
-  //  await _viewRepository.DeleteView( viewId, isDeleteView );
-  //}
 
   public async Task<IEnumerable<ViewTaskDetail>> GetViewTasks( long projectId, long viewId )
   {

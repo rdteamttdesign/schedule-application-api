@@ -22,7 +22,6 @@ public class VersionService : IVersionService
   private readonly IStepworkRepository _stepworkRepository;
   private readonly IPredecessorRepository _predecessorRepository;
   private readonly IViewRepository _viewRepository;
-  private readonly IUnitOfWork _unitOfWork;
   private readonly IMapper _mapper;
 
   public VersionService(
@@ -36,7 +35,6 @@ public class VersionService : IVersionService
     IStepworkRepository stepworkRepository,
     IPredecessorRepository predecessorRepository,
     IViewRepository viewRepository,
-    IUnitOfWork unitOfWork,
     IMapper mapper )
   {
     _projectRepository = projectRepository;
@@ -49,7 +47,6 @@ public class VersionService : IVersionService
     _stepworkRepository = stepworkRepository;
     _predecessorRepository = predecessorRepository;
     _viewRepository = viewRepository;
-    _unitOfWork = unitOfWork;
     _mapper = mapper;
   }
 
@@ -110,7 +107,7 @@ public class VersionService : IVersionService
     var result = new Dictionary<View, List<ViewTaskDetail>>();
     var views = await _viewRepository.GetViewsByVersionId( versionId );
     foreach ( var view in views ) {
-      var viewTasks = await _viewRepository.GetViewTasks( versionId, view.ViewId );
+      var viewTasks = await GetViewTasks( versionId, view.ViewId );
       result.Add( view, viewTasks.Where( x => !x.IsHidden ).ToList() );
     }
     return result;
@@ -209,4 +206,74 @@ public class VersionService : IVersionService
     }
     return resources.ToList();
   }
+
+  #region Get view task
+  private void CalculateDuration( IEnumerable<ViewTaskDetail> tasks, ProjectSetting setting )
+  {
+    var tasksByGroup = tasks.GroupBy( t => t.Group );
+    foreach ( var group in tasksByGroup ) {
+      if ( group.Count() < 1 ) {
+        continue;
+      }
+      if ( group.Key == 0 ) {
+        // not in group
+        foreach ( var task in group ) {
+          var minStart = task.Stepworks.Min( s => s.Start );
+          var maxEnd = task.Stepworks.Max( s => s.End );
+          task.MinStart = minStart;
+          task.MaxEnd = maxEnd;
+          var duration = task.MaxEnd - task.MinStart;
+          if ( task.Stepworks.Count > 1 && task.NumberOfTeam != 0 ) {
+            // more than one stepwork and number of teams > 0
+            for ( int i = 0; i < task.Stepworks.Count - 1; i++ ) {
+              duration += task.Stepworks.ElementAt( i ).Duration * ( setting!.AmplifiedFactor - 1 ) / task.NumberOfTeam;
+            }
+            task.Duration = duration;
+          }
+          else {
+            // other cases
+            task.Duration = duration;
+          }
+        }
+      }
+      else {
+        // in group
+        foreach ( var task in group ) {
+          if ( !( task.Stepworks.Count > 1 && task.NumberOfTeam != 0 ) ) {
+            continue;
+          }
+          //Recalculate end of last stepwork if task has more than one stepwork
+          var gap = 0d;
+          for ( int i = 0; i < task.Stepworks.Count - 1; i++ ) {
+            gap += task.Stepworks.ElementAt( i ).Duration * ( setting!.AmplifiedFactor - 1 ) / task.NumberOfTeam;
+          }
+          task.Stepworks.Last().End += gap;
+        }
+        var stepworks = group.SelectMany( task => task.Stepworks );
+        var minStart = stepworks.Min( s => s.Start );
+        var maxEnd = stepworks.Max( s => s.End );
+        var lastTask = group.First( t => t.Stepworks.Any( s => s.End == maxEnd ) );
+        var duration = maxEnd - minStart;
+
+        foreach ( var task in group ) {
+          task.MinStart = minStart;
+          task.MaxEnd = maxEnd;
+          task.Duration = duration;
+        }
+      }
+    }
+  }
+
+  public async Task<IEnumerable<ViewTaskDetail>> GetViewTasks( long versionId, long viewId )
+  {
+    var setting = await _projectSettingRepository.GetByVersionId( versionId );
+    var viewtasks = await _viewRepository.GetViewTasks( versionId, viewId );
+    foreach ( var task in viewtasks ) {
+      var stepworks = await _stepworkRepository.GetStepworksByTaskId( task.TaskId );
+      task.Stepworks = stepworks.ToList();
+    }
+    CalculateDuration( viewtasks, setting! );
+    return viewtasks;
+  }
+  #endregion
 }
