@@ -239,6 +239,8 @@ public class ViewService : IViewService
       for ( int i = 0; i < viewTasks.Count; i++ ) {
         var updatingTask = formData.Tasks.FirstOrDefault( x => x.Id == viewTasks [ i ].LocalTaskId );
         if ( updatingTask != null ) {
+          viewTasks [ i ].DisplayOrder = updatingTask.DisplayOrder;
+          viewTasks [ i ].Group = updatingTask.Group;
           formData.Tasks.Remove( updatingTask );
         }
         else {
