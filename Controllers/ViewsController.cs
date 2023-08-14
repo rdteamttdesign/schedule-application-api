@@ -48,6 +48,10 @@ public class ViewsController : ControllerBase
     if ( !ModelState.IsValid ) {
       return BadRequest( ModelState.GetErrorMessages() );
     }
+    var existViewName = await _viewService.IsViewNameExists( versionId, formData.ViewName );
+    if ( existViewName ) {
+      return Conflict( $"{formData.ViewName} already existed." );
+    }
     var result = await _viewService.CreateView( versionId, formData );
     if ( !result.Success ) {
       return BadRequest( result.Message );
@@ -59,6 +63,13 @@ public class ViewsController : ControllerBase
   [Authorize]
   public async Task<IActionResult> UpdateView( long versionId, long viewId, [FromBody] ViewFormData formData )
   {
+    if ( !ModelState.IsValid ) {
+      return BadRequest( ModelState.GetErrorMessages() );
+    }
+    var existViewName = await _viewService.IsViewNameExists( versionId, formData.ViewName );
+    if ( existViewName ) {
+      return Conflict( $"{formData.ViewName} already existed." );
+    }
     var result = await _viewService.UpdateView( versionId, viewId, formData );
     if ( !result.Success ) {
       return BadRequest( result.Message );
