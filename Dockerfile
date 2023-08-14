@@ -2,11 +2,11 @@
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build-env
 WORKDIR /app
 # Copy csproj and restore as distinct layers
-COPY *.csproj ./
+COPY ./SchedulingTool.Api/*.csproj ./
 RUN dotnet restore
 # Copy everything else and build
 RUN pwd
-COPY . ./
+COPY ./SchedulingTool.Api ./
 RUN ls ./
 RUN dotnet publish SchedulingTool.Api/SchedulingTool.Api.csproj --no-restore -c Release -o out
 # Build runtime image
