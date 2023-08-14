@@ -380,7 +380,7 @@ public class VersionService : IVersionService
       bgColorList.Add( color.ColorId, newColorResult.Content );
     }
 
-    var backgrounds = await _backgroundRepository.GetBackgroundsByVersionId( oldVersion.VersionId );
+    var backgrounds = await _backgroundRepository.GetBackgroundsByVersionId( newVersion.VersionId );
     foreach ( var bg in backgrounds ) {
       var updatingBackground = await _backgroundRepository.GetProjectBackground( result.Content.VersionId, bg.Year, bg.Month, bg.Date );
       if ( updatingBackground == null ) {
