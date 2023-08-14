@@ -323,9 +323,15 @@ public class ViewService : IViewService
     }
   }
 
-  public async Task<bool> IsViewNameExists( long versionId, string viewName )
+  public async Task<bool> IsViewNameExists( long versionId, string viewName, long? viewId = null )
   {
     var views = await _viewRepository.GetViewsByVersionId( versionId );
-    return views.Any( x => x.ViewName == viewName );
+    if ( viewId == null ) {
+      return views.Any( x => x.ViewName == viewName );
+    }
+    else {
+      return views.Where( x => x.ViewId != viewId ).Any( x => x.ViewName == viewName );
+    }
   }
 }
+
