@@ -108,7 +108,7 @@ public class VersionService : IVersionService
     var views = await _viewRepository.GetViewsByVersionId( versionId );
     foreach ( var view in views ) {
       var viewTasks = await GetViewTasks( versionId, view.ViewId );
-      result.Add( view, viewTasks.Where( x => !x.IsHidden ).ToList() );
+      result.Add( view, viewTasks.ToList() );
     }
     return result;
   }
@@ -273,7 +273,7 @@ public class VersionService : IVersionService
       task.Stepworks = stepworks.ToList();
     }
     CalculateDuration( viewtasks, setting! );
-    return viewtasks;
+    return viewtasks.Where( x => !x.IsHidden );
   }
   #endregion
 }
