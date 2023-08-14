@@ -111,7 +111,7 @@ public class VersionService : IVersionService
     var views = await _viewRepository.GetViewsByVersionId( versionId );
     foreach ( var view in views ) {
       var viewTasks = await _viewRepository.GetViewTasks( versionId, view.ViewId );
-      result.Add( view, viewTasks.ToList() );
+      result.Add( view, viewTasks.Where( x => !x.IsHidden ).ToList() );
     }
     return result;
   }
