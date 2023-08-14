@@ -380,7 +380,7 @@ public class VersionService : IVersionService
       bgColorList.Add( color.ColorId, newColorResult.Content );
     }
 
-    var backgrounds = await _backgroundRepository.GetBackgroundsByVersionId( newVersion.VersionId );
+    var backgrounds = await _backgroundRepository.GetBackgroundsByVersionId( oldVersion.VersionId );
     foreach ( var bg in backgrounds ) {
       var updatingBackground = await _backgroundRepository.GetProjectBackground( result.Content.VersionId, bg.Year, bg.Month, bg.Date );
       if ( updatingBackground == null ) {
@@ -390,7 +390,7 @@ public class VersionService : IVersionService
         continue;
       }
       updatingBackground.ColorId = bgColorList [ bg.ColorId.Value ].ColorId;
-      await _backgroundRepository.Update( bg );
+      await _backgroundRepository.Update( updatingBackground );
       await _unitOfWork.CompleteAsync();
     }
     #endregion
