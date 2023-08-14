@@ -10,6 +10,7 @@ using SchedulingTool.Api.Notification;
 using SchedulingTool.Api.Resources;
 using SchedulingTool.Api.Resources.Extended;
 using SchedulingTool.Api.Resources.FormBody;
+using System.Runtime.CompilerServices;
 using ModelTask = SchedulingTool.Api.Domain.Models.Task;
 using Task = System.Threading.Tasks.Task;
 
@@ -321,4 +322,16 @@ public class ViewService : IViewService
       await _unitOfWork.CompleteAsync();
     }
   }
+
+  public async Task<bool> IsViewNameExists( long versionId, string viewName, long? viewId = null )
+  {
+    var views = await _viewRepository.GetViewsByVersionId( versionId );
+    if ( viewId == null ) {
+      return views.Any( x => x.ViewName == viewName );
+    }
+    else {
+      return views.Where( x => x.ViewId != viewId ).Any( x => x.ViewName == viewName );
+    }
+  }
 }
+

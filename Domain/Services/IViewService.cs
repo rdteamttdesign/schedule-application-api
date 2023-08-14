@@ -15,4 +15,5 @@ public interface IViewService
   Task DeleteView( long viewId, bool isDeleteView );
   Task<ServiceResponse<View>> SaveViewDetail( long viewId, ICollection<ViewTaskDetailFormData> formData );
   Task DuplicateView( long fromVersionId, long toVersionId );
+  Task<bool> IsViewNameExists( long versionId, string viewName, long? viewId = null );
 }
