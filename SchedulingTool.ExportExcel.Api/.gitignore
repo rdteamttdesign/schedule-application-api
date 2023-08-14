@@ -1,0 +1,13 @@
+.git/*
+.vs/*
+.idea/*
+.vs/*
+
+bin/*
+obj/*
+
+CloudApp.Api.csproj.user
+
+logs/*
+Properties/PublishProfiles/*
+appsettings.Staging.json
