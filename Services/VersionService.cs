@@ -390,7 +390,7 @@ public class VersionService : IVersionService
         continue;
       }
       updatingBackground.ColorId = bgColorList [ bg.ColorId.Value ].ColorId;
-      await _backgroundRepository.Update( bg );
+      await _backgroundRepository.Update( updatingBackground );
       await _unitOfWork.CompleteAsync();
     }
     #endregion
