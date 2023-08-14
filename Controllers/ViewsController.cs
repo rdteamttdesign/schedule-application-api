@@ -50,7 +50,7 @@ public class ViewsController : ControllerBase
     }
     var existViewName = await _viewService.IsViewNameExists( versionId, formData.ViewName );
     if ( existViewName ) {
-      return Conflict( $"{formData.ViewName} already existed." );
+      return StatusCode( 409, $"{formData.ViewName} already existed." );
     }
     var result = await _viewService.CreateView( versionId, formData );
     if ( !result.Success ) {
@@ -68,7 +68,7 @@ public class ViewsController : ControllerBase
     }
     var existViewName = await _viewService.IsViewNameExists( versionId, formData.ViewName );
     if ( existViewName ) {
-      return Conflict( $"{formData.ViewName} already existed." );
+      return StatusCode( 409, $"{formData.ViewName} already existed." );
     }
     var result = await _viewService.UpdateView( versionId, viewId, formData );
     if ( !result.Success ) {
