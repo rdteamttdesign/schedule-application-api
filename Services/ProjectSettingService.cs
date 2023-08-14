@@ -207,7 +207,7 @@ public class ProjectSettingService : IProjectSettingService
       }
     }
     else {
-      for ( int i = 0; i < formData.NumberOfMonths; i++ ) {
+      for ( int i = 1; i <= formData.NumberOfMonths; i++ ) {
         newBackgrounds.Add( new ProjectBackground() { VersionId = versionId, Year = -1, Month = i, Date = 10 } );
         newBackgrounds.Add( new ProjectBackground() { VersionId = versionId, Year = -1, Month = i, Date = 20 } );
         newBackgrounds.Add( new ProjectBackground() { VersionId = versionId, Year = -1, Month = i, Date = 30 } );
