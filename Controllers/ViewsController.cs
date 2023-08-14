@@ -70,7 +70,7 @@ public class ViewsController : ControllerBase
     if ( !ModelState.IsValid ) {
       return BadRequest( ModelState.GetErrorMessages() );
     }
-    var existViewName = await _viewService.IsViewNameExists( versionId, formData.ViewName );
+    var existViewName = await _viewService.IsViewNameExists( versionId, formData.ViewName, viewId );
     if ( existViewName ) {
       Response.StatusCode = 409;
       return Ok( new
