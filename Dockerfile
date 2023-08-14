@@ -8,7 +8,7 @@ RUN dotnet restore
 RUN pwd
 COPY . ./
 RUN ls ./
-RUN dotnet publish SchedulingTool.Api.csproj --no-restore -c Release -o out
+RUN dotnet publish SchedulingTool.Api/SchedulingTool.Api.csproj --no-restore -c Release -o out
 # Build runtime image
 FROM mcr.microsoft.com/dotnet/aspnet:6.0
 WORKDIR /app
