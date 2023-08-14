@@ -7,7 +7,6 @@ using SchedulingTool.Api.Extension;
 using SchedulingTool.Api.Notification;
 using SchedulingTool.Api.Resources;
 using SchedulingTool.Api.Resources.FormBody;
-using ModelTask = SchedulingTool.Api.Domain.Models.Task;
 
 namespace SchedulingTool.Api.Controllers;
 
@@ -18,31 +17,22 @@ public class ViewsController : ControllerBase
   private readonly IMapper _mapper;
   private readonly IViewService _viewService;
   private readonly IViewTaskService _viewTaskService;
-  private readonly ITaskService _taskService;
-  private readonly IGroupTaskService _groupTaskService;
-  private readonly IStepworkService _stepworkService;
 
   public ViewsController(
     IMapper mapper,
     IViewService viewService,
-    IViewTaskService viewTaskService,
-    ITaskService taskService,
-    IGroupTaskService groupTaskService,
-    IStepworkService stepworkService )
+    IViewTaskService viewTaskService )
   {
     _mapper = mapper;
     _viewService = viewService;
     _viewTaskService = viewTaskService;
-    _taskService = taskService;
-    _groupTaskService = groupTaskService;
-    _stepworkService = stepworkService;
   }
 
-  [HttpGet( "projects/{projectId}/views" )]
+  [HttpGet( "versions/{versionId}/views" )]
   [Authorize]
-  public async Task<IActionResult> GetViewsInProject( long projectId )
+  public async Task<IActionResult> GetViewsInProject( long versionId )
   {
-    var views = await _viewService.GetViewsByProjectId( projectId );
+    var views = await _viewService.GetViewsByVersionId( versionId );
     var viewResources = _mapper.Map<IEnumerable<ViewResource>>( views );
     foreach ( var viewResource in viewResources ) {
       var viewTasks = await _viewTaskService.GetViewTasksByViewId( viewResource.ViewId );
@@ -51,52 +41,27 @@ public class ViewsController : ControllerBase
     return Ok( viewResources );
   }
 
-  [HttpPost( "projects/{projectId}/views" )]
+  [HttpPost( "versions/{versionId}/views" )]
   [Authorize]
-  public async Task<IActionResult> CreateView( long projectId, [FromBody] ViewFormData formData )
+  public async Task<IActionResult> CreateView( long versionId, [FromBody] ViewFormData formData )
   {
-    // checking
     if ( !ModelState.IsValid ) {
       return BadRequest( ModelState.GetErrorMessages() );
     }
-    // create view
-    var view = new View()
-    {
-      ViewName = formData.ViewName,
-      ProjectId = projectId
-    };
-    var result = await _viewService.CreateView( view );
+    var result = await _viewService.CreateView( versionId, formData );
     if ( !result.Success ) {
       return BadRequest( result.Message );
     }
-    var resource = _mapper.Map<ViewResource>( result.Content );
-    // create tasks include view
-    var _ = await _viewTaskService.CreateViewTasks( result.Content.ViewId, formData.Tasks );
-    if ( _.Success )
-      resource.ViewTasks = _.Content;
-
-    return Ok( resource );
+    return Ok( result.Content );
   }
 
-  [HttpPut( "views/{viewId}" )]
+  [HttpPut( "versions/{versionId}/views/{viewId}" )]
   [Authorize]
-  public async Task<IActionResult> UpdateView( long viewId, [FromBody] ViewFormData formData )
+  public async Task<IActionResult> UpdateView( long versionId, long viewId, [FromBody] ViewFormData formData )
   {
-    try {
-      // checking
-      var view = await _viewService.GetViewById( viewId );
-      if ( view == null ) {
-        return BadRequest( ViewNotification.NonExisted );
-      }
-      view.ViewName = formData.ViewName;
-      await _viewService.UpdateView( view );
-      // clear tasks in view
-      await _viewService.DeleteView( viewId, false );
-      // create tasks include view
-      await _viewTaskService.CreateViewTasks( viewId, formData.Tasks );
-    }
-    catch ( Exception ex ) {
-      return BadRequest( $"{ViewNotification.ErrorSaving} {ex.Message}" );
+    var result = await _viewService.UpdateView( versionId, viewId, formData );
+    if ( !result.Success ) {
+      return BadRequest( result.Message );
     }
     return NoContent();
   }
@@ -114,28 +79,35 @@ public class ViewsController : ControllerBase
     return NoContent();
   }
 
-  [HttpGet( "projects/{projectId}/views/{viewId}" )]
+  [HttpGet( "versions/{versionId}/views/{viewId}" )]
   [Authorize]
-  public async Task<IActionResult> GetViewDetail( long projectId, long viewId )
+  public async Task<IActionResult> GetViewDetail( long versionId, long viewId )
   {
-    // checking
-    var view = await _viewService.GetViewById( viewId );
-    if ( view == null ) {
-      return BadRequest( ViewNotification.NonExisted );
+    try {
+      var result = await _viewService.GetViewDetailById( versionId, viewId );
+      if ( !result.Success ) {
+        return BadRequest( result.Message );
+      }
+      return Ok( result.Content );
     }
-    // get tasks in view
-    var viewTasks = await _viewService.GetViewTasks( projectId, viewId );
-
-    if ( !viewTasks.Any() ) {
-      return BadRequest( "View has no task." );
+    catch ( Exception ex ) {
+      return BadRequest( $"{ex.Message} {ex.StackTrace}" );
     }
+  }
 
-    foreach ( var viewTask in viewTasks ) {
-      var stepworks = await _stepworkService.GetStepworksByTaskId( viewTask.TaskId );
-      viewTask.Stepworks = stepworks.ToList();
+  [HttpPut( "versions/{versionId}/views/{viewId}/details" )]
+  [Authorize]
+  public async Task<IActionResult> SaveViewDetail( long versionId, long viewId, [FromBody] ICollection<ViewTaskDetailFormData> formData )
+  {
+    try {
+      var result = await _viewService.SaveViewDetail( viewId, formData );
+      if ( !result.Success ) {
+        return BadRequest( result.Message );
+      }
+      return NoContent();
     }
-
-    var viewDetail = await _viewService.GetViewDetailById( projectId, viewTasks.OrderBy( t => t.DisplayOrder ) );
-    return Ok( viewDetail );
+    catch ( Exception ex ) {
+      return BadRequest( $"{ex.Message} {ex.StackTrace}" );
+    }
   }
 }

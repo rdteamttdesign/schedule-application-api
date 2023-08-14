@@ -1,11 +1,12 @@
 ﻿using AutoMapper;
 using SchedulingTool.Api.Domain.Models;
+using SchedulingTool.Api.Domain.Models.Extended;
 using SchedulingTool.Api.Domain.Security.Tokens;
 using SchedulingTool.Api.Resources;
 using SchedulingTool.Api.Resources.Extended;
-using SchedulingTool.Api.Resources.FormBody.projectdetail;
-using SchedulingTool.Api.Resources.projectdetail;
+using SchedulingTool.Api.Resources.Unused;
 using Task = SchedulingTool.Api.Domain.Models.Task;
+using Version = SchedulingTool.Api.Domain.Models.Version;
 
 namespace SchedulingTool.Api.Mapping;
 
@@ -19,7 +20,9 @@ public class ModelToResourceProfile : Profile
       .ForMember( a => a.AccessExpiration, opt => opt.MapFrom( a => a.Expiration ) )
       .ForMember( a => a.RefreshExpiration, opt => opt.MapFrom( a => a.RefreshToken.Expiration ) );
 
+    CreateMap<Version, VersionResource>();
     CreateMap<Project, ProjectResource>();
+    CreateMap<ProjectVersionDetails, VersionResource>();
     CreateMap<ColorDef, ColorDefResource>();
     CreateMap<ColorDef, BackgroundColorResource>();
     CreateMap<ProjectSetting, ProjectSettingResource>();
@@ -71,5 +74,20 @@ public class ModelToResourceProfile : Profile
       .ForMember( dest => dest.Type, opt => opt.MapFrom( src => src.Type == 1 ? "FS" : ( src.Type == 2 ? "SS" : "FF" ) ) )
       .ForMember( dest => dest.Id, opt => opt.MapFrom( src => src.RelatedStepworkLocalId ) )
       .ForMember( dest => dest.LagDays, opt => opt.MapFrom( src => src.Lag ) );
+
+    CreateMap<GroupTaskDetailResource, UpdateGrouptaskResource>()
+      .ForMember( dest => dest.Id, opt => opt.MapFrom( src => src.LocalId ) )
+      .ForMember( dest => dest.Name, opt => opt.MapFrom( src => src.GroupTaskName ) );
+    CreateMap<TaskDetailResource, UpdateTaskResource>()
+      .ForMember( dest => dest.Id, opt => opt.MapFrom( src => src.LocalId ) )
+      .ForMember( dest => dest.Name, opt => opt.MapFrom( src => src.TaskName ) )
+      .ForMember( dest => dest.Duration, opt => opt.MapFrom( src => src.Duration ) )
+      .ForMember( dest => dest.GroupsNumber, opt => opt.MapFrom( src => src.NumberOfTeam ) )
+      .ForMember( dest => dest.Note, opt => opt.MapFrom( src => src.Note ) )
+      .ForMember( dest => dest.Detail, opt => opt.MapFrom( src => src.Description ) );
+    CreateMap<StepworkDetailResource, UpdateStepworkResource>()
+      .ForMember( dest => dest.Id, opt => opt.MapFrom( src => src.LocalId ) )
+      .ForMember( dest => dest.ColorId, opt => opt.MapFrom( src => src.ColorId ) )
+      .ForMember( dest => dest.PercentStepWork, opt => opt.MapFrom( src => src.Portion ) );
   }
 }

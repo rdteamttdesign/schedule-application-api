@@ -1,8 +1,9 @@
 ﻿namespace SchedulingTool.Api.Domain.Models.Enum;
 
-public enum DataChange
+public static class DataChange
 {
-  Create = 0,
-  Update = 1,
-  Delete = 2
+  public static readonly string None = "none";
+  public static readonly string New = "new";
+  public static readonly string Update = "update";
+  public static readonly string Delete = "delete";
 }

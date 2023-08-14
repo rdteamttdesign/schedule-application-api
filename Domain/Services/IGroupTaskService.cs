@@ -5,7 +5,7 @@ namespace SchedulingTool.Api.Domain.Services;
 
 public interface IGroupTaskService
 {
-  Task<IEnumerable<GroupTask>> GetGroupTasksByProjectId( long projectId );
+  Task<IEnumerable<GroupTask>> GetGroupTasksByVersionId( long versionId );
   Task<GroupTask?> GetGroupTaskById( long groupTaskId );
   Task<ServiceResponse<GroupTask>> CreateGroupTask( GroupTask groupTask );
   Task<ServiceResponse<GroupTask>> UpdateGroupTask( GroupTask groupTask );

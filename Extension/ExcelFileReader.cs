@@ -1,12 +1,11 @@
 ﻿using ClosedXML.Excel;
-using DocumentFormat.OpenXml.Spreadsheet;
 using SchedulingTool.Api.Domain.Models;
 using SchedulingTool.Api.Resources;
-using SchedulingTool.Api.Resources.projectdetail;
+using SchedulingTool.Api.Resources.Extended;
 
 namespace SchedulingTool.Api.Extension;
 
-public static class ImportFileUtils
+public static class ExcelFileReader
 {
   public static List<object> ReadFromFile(
     Stream fileStream,
@@ -71,7 +70,7 @@ public static class ImportFileUtils
         //if ( string.IsNullOrEmpty( taskName ) ) {
         //  continue;
         //}
-        var duration = GetFloat( worksheet.Cell( i, 4 ).Value );
+        var duration = GetDouble( worksheet.Cell( i, 4 ).Value );
         if ( duration == 0 ) {
           continue;
         }
@@ -102,9 +101,9 @@ public static class ImportFileUtils
         //  taskIndex++;
         //}
         int numberOfStepworks = 0;
-        var totalStepworkPortion = 0d;
+        double totalStepworkPortion = 0;
         for ( int j = 7; j < 17; j++ ) {
-          var value = GetFloat( worksheet.Cell( i, j ).Value );
+          var value = GetDouble( worksheet.Cell( i, j ).Value );
           if ( value == 0 ) {
             continue;
           }
@@ -116,9 +115,9 @@ public static class ImportFileUtils
         }
         else {
           task.Stepworks = new List<StepworkResource>();
-          var offset = 0f;
+          var offset = 0d;
           for ( int j = 7; j < 17; j++ ) {
-            var percentStepwork = GetFloat( worksheet.Cell( i, j ).Value );
+            var percentStepwork = GetDouble( worksheet.Cell( i, j ).Value );
             if ( percentStepwork == 0 ) {
               continue;
             }
@@ -151,6 +150,127 @@ public static class ImportFileUtils
       } );
     }
     return groupTasks;
+  }
+
+  public static List<GroupTaskDetailResource> ReadFromFile(
+   Stream fileStream,
+   ICollection<string> sheetNameList,
+   long installColorId,
+   long removalColorId,
+   out List<SheetImportMessage> messages )
+  {
+    messages = new List<SheetImportMessage>();
+    using var workbook = new XLWorkbook( fileStream );
+    var groupTasks = new List<GroupTaskDetailResource>();
+    foreach ( var sheetName in sheetNameList ) {
+      if ( !workbook.Worksheets.Contains( sheetName ) ) {
+        messages.Add( new SheetImportMessage()
+        {
+          SheetName = sheetName,
+          Status = SheetImportMessage.SheetImportStatus.NotFound
+        } );
+        continue;
+      }
+      var worksheet = workbook.Worksheet( sheetName );
+      if ( !AssertFormat( worksheet ) ) {
+        messages.Add( new SheetImportMessage()
+        {
+          SheetName = sheetName,
+          Status = SheetImportMessage.SheetImportStatus.WrongFormat
+        } );
+        continue;
+      }
+      var usedRowCount = worksheet.RowsUsed().Count();
+      var groupName = string.Empty;
+      var groupId = string.Empty;
+      GroupTaskDetailResource? groupTask = null;
+      for ( int i = 2; i < usedRowCount + 1; i++ ) {
+        if ( worksheet.Row( i ).IsHidden ) {
+          continue;
+        }
+        groupName = GetText( worksheet.Cell( i, 1 ).Value );
+        if ( i == 2 && string.IsNullOrEmpty( groupName ) ) {
+          groupName = "<blank>";
+        }
+
+        if ( !string.IsNullOrEmpty( groupName ) ) {
+          groupId = Guid.NewGuid().ToString();
+          groupTask = new GroupTaskDetailResource()
+          {
+            GroupTaskName = groupName,
+            Tasks = new List<TaskDetailResource>()
+          };
+          groupTasks.Add( groupTask );
+        }
+        var taskName = GetText( worksheet.Cell( i, 2 ).Value );
+        var duration = GetDouble( worksheet.Cell( i, 4 ).Value );
+        if ( duration == 0 ) {
+          continue;
+        }
+        else if ( duration < 0 ) {
+          duration = Math.Abs( duration );
+        }
+        var numberOfGroups = GetInt( worksheet.Cell( i, 5 ).Value );
+        if ( numberOfGroups < 0 ) {
+          numberOfGroups = Math.Abs( numberOfGroups );
+        }
+        var taskId = Guid.NewGuid().ToString();
+        var task = new TaskDetailResource()
+        {
+          Duration = duration,
+          TaskName = GetText( worksheet.Cell( i, 2 ).Value ),
+          Description = GetText( worksheet.Cell( i, 3 ).Value ),
+          Note = GetText( worksheet.Cell( i, 6 ).Value ),
+          NumberOfTeam = numberOfGroups,
+          Stepworks = new List<StepworkDetailResource>()
+        };
+        groupTask?.Tasks.Add( task );
+        int numberOfStepworks = 0;
+        double totalStepworkPortion = 0;
+        for ( int j = 7; j < 17; j++ ) {
+          var value = GetDouble( worksheet.Cell( i, j ).Value );
+          if ( value == 0 ) {
+            continue;
+          }
+          totalStepworkPortion += Math.Abs( value );
+          numberOfStepworks++;
+        }
+        if ( numberOfStepworks == 0 || Math.Abs( totalStepworkPortion - 1 ) > 10e-7 ) {
+          task.Stepworks.Add( new StepworkDetailResource()
+          {
+            Portion = 1,
+            ColorId = installColorId
+          } );
+        }
+        else {
+          for ( int j = 7; j < 17; j++ ) {
+            var percentStepwork = GetDouble( worksheet.Cell( i, j ).Value );
+            if ( percentStepwork == 0 ) {
+              continue;
+            }
+            var stepwork = new StepworkDetailResource()
+            {
+              Portion = Math.Abs( percentStepwork ),
+              ColorId = percentStepwork > 0 ? installColorId : removalColorId,
+            };
+            task.Stepworks.Add( stepwork );
+          }
+        }
+      }
+      messages.Add( new SheetImportMessage()
+      {
+        SheetName = sheetName,
+        Status = SheetImportMessage.SheetImportStatus.Success
+      } );
+    }
+
+    foreach ( var group in groupTasks ) {
+      if ( group.Tasks.Count == 0 && group.GroupTaskName == "<blank>" ) {
+
+      }
+    }
+
+    return groupTasks.Where( group => !( group.Tasks.Count == 0 && group.GroupTaskName == "<blank>" ) ).ToList();
   }
 
   private static bool AssertFormat(IXLWorksheet sheet)
@@ -186,7 +306,7 @@ public static class ImportFileUtils
         worksheet.Cell( rowIndex, 3 ).Value = task.Description;
         worksheet.Cell( rowIndex, 4 ).Value = task.Duration;
         worksheet.Cell( rowIndex, 5 ).Value = task.NumberOfTeam;
-        worksheet.Cell( rowIndex, 6 ).Value = task.AmplifiedDuration;
+        //worksheet.Cell( rowIndex, 6 ).Value = task.AmplifiedDuration;
         worksheet.Cell( rowIndex, 7 ).Value = task.Note;
         worksheet.Cell( rowIndex, 8 ).Value = task.Stepworks.Count;
         for ( int k = 0; k < task.Stepworks.Count; k++ ) {
@@ -218,17 +338,17 @@ public static class ImportFileUtils
   {
     return cellValue.IsNumber ? ( double ) cellValue.GetNumber() : 0;
   }
-}
 
-public class SheetImportMessage
-{
-  public string SheetName { get; set; } = null!;
-  public string Status { get; set; } = null!;
-
-  public static class SheetImportStatus
+  public class SheetImportMessage
   {
-    public static string Success = "Success";
-    public static string NotFound = "Not found";
-    public static string WrongFormat = "Wrong format";
+    public string SheetName { get; set; } = null!;
+    public string Status { get; set; } = null!;
+
+    public static class SheetImportStatus
+    {
+      public static string Success = "Success";
+      public static string NotFound = "Not found";
+      public static string WrongFormat = "Wrong format";
+    }
   }
 }

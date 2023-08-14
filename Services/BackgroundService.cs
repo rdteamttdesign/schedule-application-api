@@ -19,24 +19,24 @@ public class BackgroundService : IBackgroundService
     _unitOfWork = unitOfWork;
   }
 
-  public async Task<IEnumerable<ProjectBackground>> GetBackgroundsByProjectId( long projectId )
+  public async Task<IEnumerable<ProjectBackground>> GetBackgroundsByVersionId( long versionId )
   {
-    return await _backgroundRepository.GetBackgroundsByProjectId( projectId );
+    return await _backgroundRepository.GetBackgroundsByVersionId( versionId );
   }
 
-  public async Task BatchDelete( long projectId, int fromMonth )
+  public async Task BatchDelete( long versionId, int fromMonth )
   {
-    await _backgroundRepository.BatchDelete( projectId, fromMonth );
+    await _backgroundRepository.BatchDelete( versionId, fromMonth );
   }
 
-  public async Task AddMonth( long projectId, int numberOfMonth )
+  public async Task AddMonth( long versionId, int numberOfMonth )
   {
-    await _backgroundRepository.AddMonth( projectId, numberOfMonth );
+    await _backgroundRepository.AddMonth( versionId, numberOfMonth );
   }
 
-  public async Task<ProjectBackground?> GetProjectBackground( long projectId, int month )
+  public async Task<ProjectBackground?> GetProjectBackground( long versionId, int year, int month, int date )
   {
-    return await _backgroundRepository.GetProjectBackground( projectId, month );
+    return await _backgroundRepository.GetProjectBackground( versionId, year, month, date );
   }
 
   public async Task<ServiceResponse<ProjectBackground>> UpdateProjectBackground( ProjectBackground projectBackground )

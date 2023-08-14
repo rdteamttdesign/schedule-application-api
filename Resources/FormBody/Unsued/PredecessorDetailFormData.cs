@@ -1,4 +1,4 @@
-﻿namespace SchedulingTool.Api.Resources.FormBody;
+﻿namespace SchedulingTool.Api.Resources.FormBody.Unsued;
 
 public class PredecessorDetailFormData
 {
@@ -7,6 +7,6 @@ public class PredecessorDetailFormData
   public int RelatedGroupTaskIndex { get; set; }
   public int RelatedTaskIndex { get; set; }
   public int RelatedStepworkIndex { get; set; }
-  public float Lag { get; set; }
+  public double Lag { get; set; }
   public long Type { get; set; }
 }

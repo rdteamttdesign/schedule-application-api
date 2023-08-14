@@ -12,28 +12,33 @@ public class BackgroundRepository : GenericRepository<ProjectBackground>, IBackg
   {
   }
 
-  public async Task<ProjectBackground?> GetProjectBackground( long projectId, int month )
+  public async Task<ProjectBackground?> GetProjectBackground( long versionId,int year, int month, int date )
   {
-    return await _context.ProjectBackgrounds.FindAsync( projectId, month );
+    return await _context.ProjectBackgrounds.FirstOrDefaultAsync( x => x.VersionId == versionId && x.Year == year && x.Month == month && x.Date == date );
   }
 
-  public async Task<IEnumerable<ProjectBackground>> GetBackgroundsByProjectId( long projectId )
+  public async Task<IEnumerable<ProjectBackground>> GetBackgroundsByVersionId( long versionId )
   {
-    return await _context.ProjectBackgrounds.Where( bg => bg.ProjectId == projectId ).ToListAsync();
+    return await _context.ProjectBackgrounds.Where( bg => bg.VersionId == versionId ).ToListAsync();
   }
 
-  public async Task BatchCreate( long projectId, int numberOfMonths )
+  public async Task BatchCreate( long versionId, int numberOfMonths )
   {
-    await _context.Database.ExecuteSqlRawAsync( "CALL usp_Background_BatchCreate({0} , {1})", projectId, numberOfMonths );
+    await _context.Database.ExecuteSqlRawAsync( "CALL usp_Background_BatchCreate({0} , {1})", versionId, numberOfMonths );
   }
 
-  public async Task BatchDelete( long projectId, int fromMonth )
+  public async Task BatchDelete( long versionId, int fromMonth )
   {
-    await _context.Database.ExecuteSqlRawAsync( "CALL usp_Background_DeleteFromMonth({0} , {1})", projectId, fromMonth );
+    await _context.Database.ExecuteSqlRawAsync( "CALL usp_Background_DeleteFromMonth({0} , {1})", versionId, fromMonth );
   }
 
-  public async Task AddMonth( long projectId, int numberOfMonth )
+  public async Task AddMonth( long versionId, int numberOfMonth )
   {
-    await _context.Database.ExecuteSqlRawAsync( "CALL usp_Background_AddMonth({0} , {1})", projectId, numberOfMonth );
+    await _context.Database.ExecuteSqlRawAsync( "CALL usp_Background_AddMonth({0} , {1})", versionId, numberOfMonth );
+  }
+
+  public async Task BatchDelete( long versionId )
+  {
+    await _context.Database.ExecuteSqlRawAsync( "CALL usp_Background_DeleteAll({0})", versionId );
   }
 }

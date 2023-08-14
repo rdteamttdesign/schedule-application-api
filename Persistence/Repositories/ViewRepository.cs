@@ -12,9 +12,9 @@ public class ViewRepository : GenericRepository<View>, IViewRepository
   {
   }
 
-  public async Task<IEnumerable<View>> GetViewsByProjectId( long projectId )
+  public async Task<IEnumerable<View>> GetViewsByVersionId( long versionId )
   {
-    return await _context.Views.Where( view => view.ProjectId == projectId ).ToListAsync();
+    return await _context.Views.Where( view => view.VersionId == versionId ).ToListAsync();
   }
 
   public async Task DeleteView( long viewId, bool isDeleteView )

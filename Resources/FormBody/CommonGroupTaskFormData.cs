@@ -1,11 +1,9 @@
-﻿using SchedulingTool.Api.Resources.projectdetail;
+﻿namespace SchedulingTool.Api.Resources.FormBody;
 
-namespace SchedulingTool.Api.Resources.FormBody.projectdetail;
-
-public class GroupTaskFormData
+public class CommonGroupTaskFormData
 {
-  public float Start { get; set; }
-  public float Duration { get; set; }
+  public double Start { get; set; }
+  public double Duration { get; set; }
   public string Name { set; get; } = null!;
   public string Id { set; get; } = null!;
   public string Type { set; get; } = null!;
@@ -18,5 +16,5 @@ public class GroupTaskFormData
   public string? Note { get; set; } = null!;
   public ICollection<StepworkResource>? Stepworks { get; set; }
   public ICollection<PredecessorResource>? Predecessors { get; set; }
-  public float End { get; set; }
+  public double End { get; set; }
 }

@@ -5,14 +5,16 @@ namespace SchedulingTool.Api.Domain.Models
 {
     public partial class ProjectSetting
     {
-        public long ProjectSettingId { get; set; }
-        public long ProjectId { get; set; }
+        public long VersionId { get; set; }
         public bool SeparateGroupTask { get; set; }
-        public float AssemblyDurationRatio { get; set; }
-        public float RemovalDurationRatio { get; set; }
+        public double AssemblyDurationRatio { get; set; }
+        public double RemovalDurationRatio { get; set; }
         public int ColumnWidth { get; set; }
-        public float AmplifiedFactor { get; set; }
+        public double AmplifiedFactor { get; set; }
+        public bool IncludeYear { get; set; }
+        public int StartYear { get; set; }
+        public int StartMonth { get; set; }
 
-        public virtual Project Project { get; set; } = null!;
+        public virtual Version Version { get; set; } = null!;
     }
 }

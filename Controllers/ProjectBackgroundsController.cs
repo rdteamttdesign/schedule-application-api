@@ -14,28 +14,28 @@ public class ProjectBackgroundsController : ControllerBase
 {
   private readonly IMapper _mapper;
   private readonly IBackgroundService _backgroundService;
-  private readonly IProjectService _projectService;
+  private readonly IVersionService _versionService;
 
   public ProjectBackgroundsController(
     IMapper mapper,
     IBackgroundService backgroundService,
-    IProjectService projectService )
+    IVersionService versionService )
   {
     _mapper = mapper;
     _backgroundService = backgroundService;
-    _projectService = projectService;
+    _versionService = versionService;
   }
 
-  [HttpGet( "projects/{projectId}/backgrounds" )]
+  [HttpGet( "versions/{versionId}/backgrounds" )]
   [Authorize]
-  public async Task<IActionResult> GetProjectBackgrounds( long projectId )
+  public async Task<IActionResult> GetProjectBackgrounds( long versionId )
   {
     var userId = long.Parse( HttpContext.User.Claims.FirstOrDefault( x => x.Type.ToLower() == "sid" )?.Value! );
-    var project = await _projectService.GetProject( userId, projectId );
-    if ( project == null ) {
+    var version = await _versionService.GetVersionById( versionId );
+    if ( version == null ) {
       return BadRequest( ProjectNotification.NonExisted );
     }
-    var backgrounds = await _backgroundService.GetBackgroundsByProjectId( projectId );
+    var backgrounds = await _backgroundService.GetBackgroundsByVersionId( versionId );
     if ( backgrounds == null ) {
       return BadRequest( BackgroundNotification.NonExisted );
     }
@@ -43,17 +43,17 @@ public class ProjectBackgroundsController : ControllerBase
     return Ok( resource );
   }
 
-  [HttpDelete( "projects/{projectId}/backgrounds" )]
+  [HttpDelete( "versions/{versionId}/backgrounds" )]
   [Authorize]
-  public async Task<IActionResult> DeleteProjectBackgroundsFromMonth( long projectId, [FromBody] DeleteBackgroundsFormBody formBody )
+  public async Task<IActionResult> DeleteProjectBackgroundsFromMonth( long versionId, [FromBody] DeleteBackgroundsFormBody formBody )
   {
     var userId = long.Parse( HttpContext.User.Claims.FirstOrDefault( x => x.Type.ToLower() == "sid" )?.Value! );
-    var project = await _projectService.GetProject( userId, projectId );
-    if ( project == null ) {
+    var version = await _versionService.GetVersionById(versionId);
+    if ( version == null ) {
       return BadRequest( ProjectNotification.NonExisted );
     }
     try {
-      _backgroundService.BatchDelete( projectId, formBody.DeleteFromMonth );
+      _backgroundService.BatchDelete( versionId, formBody.DeleteFromMonth );
     }
     catch ( Exception ex ) {
       return BadRequest( $"{ex.Message}: {ex.StackTrace}" );
@@ -61,27 +61,27 @@ public class ProjectBackgroundsController : ControllerBase
     return NoContent();
   }
 
-  [HttpPut( "projects/{projectId}/backgrounds" )]
-  [Authorize]
-  public async Task<IActionResult> UpdateProjectBackgroundsFromMonth( long projectId, [FromBody] ICollection<BackgroundFormBody> formBody )
-  {
-    var userId = long.Parse( HttpContext.User.Claims.FirstOrDefault( x => x.Type.ToLower() == "sid" )?.Value! );
-    var project = await _projectService.GetProject( userId, projectId );
-    if ( project == null ) {
-      return BadRequest( ProjectNotification.NonExisted );
-    }
-    try {
-      foreach ( var item in formBody ) {
-        var projectBackground = await _backgroundService.GetProjectBackground( projectId, item.Month );
-        if ( projectBackground == null )
-          continue;
-        projectBackground.ColorId = item.ColorId;
-        await _backgroundService.UpdateProjectBackground( projectBackground );
-      }
-    }
-    catch ( Exception ex ) {
-      return BadRequest( $"{ex.Message}: {ex.StackTrace}" );
-    }
-    return NoContent();
-  }
+  //[HttpPut( "versions/{versionId}/backgrounds" )]
+  //[Authorize]
+  //public async Task<IActionResult> UpdateProjectBackgroundsFromMonth( long versionId, [FromBody] ICollection<BackgroundFormBody> formBody )
+  //{
+  //  var userId = long.Parse( HttpContext.User.Claims.FirstOrDefault( x => x.Type.ToLower() == "sid" )?.Value! );
+  //  var project = await _versionService.GetVersionById(versionId);
+  //  if ( project == null ) {
+  //    return BadRequest( ProjectNotification.NonExisted );
+  //  }
+  //  try {
+  //    foreach ( var item in formBody ) {
+  //      var projectBackground = await _backgroundService.GetProjectBackground( versionId, item.Month );
+  //      if ( projectBackground == null )
+  //        continue;
+  //      projectBackground.ColorId = item.ColorId;
+  //      await _backgroundService.UpdateProjectBackground( projectBackground );
+  //    }
+  //  }
+  //  catch ( Exception ex ) {
+  //    return BadRequest( $"{ex.Message}: {ex.StackTrace}" );
+  //  }
+  //  return NoContent();
+  //}
 }

@@ -4,5 +4,5 @@ namespace SchedulingTool.Api.Domain.Repositories;
 
 public interface IProjectSettingRepository : IGenericRepository<ProjectSetting>
 {
-  Task<ProjectSetting?> GetByProjectId( long projectId );
+  Task<ProjectSetting?> GetByVersionId( long versionId );
 }
