@@ -265,9 +265,11 @@ namespace SchedulingTool.Api.Persistence.Context
 
                 entity.Property(e => e.AmplifiedFactor)
                     .HasColumnName("amplified_factor")
-                    .HasDefaultValueSql("'2'");
+                    .HasDefaultValueSql("'1.7'");
 
-                entity.Property(e => e.AssemblyDurationRatio).HasColumnName("assembly_duration_ratio");
+                entity.Property(e => e.AssemblyDurationRatio)
+                    .HasColumnName("assembly_duration_ratio")
+                    .HasDefaultValueSql("'0.6'");
 
                 entity.Property(e => e.ColumnWidth)
                     .HasColumnName("column_width")
@@ -280,7 +282,7 @@ namespace SchedulingTool.Api.Persistence.Context
 
                 entity.Property(e => e.RemovalDurationRatio)
                     .HasColumnName("removal_duration_ratio")
-                    .HasDefaultValueSql("'1'");
+                    .HasDefaultValueSql("'0.4'");
 
                 entity.Property(e => e.SeparateGroupTask)
                     .HasColumnType("bit(1)")
@@ -350,6 +352,11 @@ namespace SchedulingTool.Api.Persistence.Context
                 entity.Property(e => e.End).HasColumnName("end");
 
                 entity.Property(e => e.Index).HasColumnName("index");
+
+                entity.Property(e => e.IsSubStepwork)
+                    .HasColumnType("bit(1)")
+                    .HasColumnName("is_sub_stepwork")
+                    .HasDefaultValueSql("b'0'");
 
                 entity.Property(e => e.LocalId)
                     .HasMaxLength(45)
@@ -609,7 +616,7 @@ namespace SchedulingTool.Api.Persistence.Context
         entity.Property( e => e.IsHidden ).HasColumnName( "is_hidden" );
       } );
 
-      OnModelCreatingPartial(modelBuilder);
+            OnModelCreatingPartial(modelBuilder);
         }
 
         partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
