@@ -100,7 +100,8 @@ public class FormDataToModelConverter
               Duration = stepworkFormData.PercentStepWork * stepworkFormData.Duration / 100,
               Name = stepworkFormData.Name ?? string.Empty,
               Start = stepworkFormData.Start,
-              End = stepworkFormData.End
+              End = stepworkFormData.End,
+              IsSubStepwork = stepworkFormData.IsSubStepWork
             } );
             if ( stepworkFormData.Predecessors == null ) {
               continue;
