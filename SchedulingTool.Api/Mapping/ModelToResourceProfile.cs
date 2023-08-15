@@ -63,7 +63,8 @@ public class ModelToResourceProfile : Profile
       .ForMember( dest => dest.ParentTaskId, opt => opt.MapFrom( src => src.TaskLocalId ) )
       .ForMember( dest => dest.Id, opt => opt.MapFrom( src => src.LocalId ) )
       .ForMember( dest => dest.Type, opt => opt.MapFrom( src => "task" ) )
-      .ForMember( dest => dest.DisplayOrder, opt => opt.MapFrom( src => src.Index ) );
+      .ForMember( dest => dest.DisplayOrder, opt => opt.MapFrom( src => src.Index ) )
+      .ForMember( dest => dest.IsSubStepWork, opt => opt.MapFrom( src => src.IsSubStepwork ) );
 
     CreateMap<Predecessor, PredecessorResource>()
       .ForMember( dest => dest.Type, opt => opt.MapFrom( src => src.Type == 1 ? "FS" : ( src.Type == 2 ? "SS" : "FF" ) ) )

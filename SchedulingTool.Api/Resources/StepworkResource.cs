@@ -15,4 +15,5 @@ public class StepworkResource
   public long? ColorId { get; set; }
   public double End { get; set; }
   public int GroupNumbers { get; set; }
+  public bool IsSubStepWork { get; set; }
 }
