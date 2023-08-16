@@ -193,18 +193,25 @@ public class VersionService : IVersionService
         }
         else {
           if ( task.NumberOfTeam != 0 ) {
-            var factor = amplifiedFactor - 1;
-            var firstStep = stepworks.ElementAt( 0 );
-            var gap = firstStep.Duration * factor;
-            if ( task.NumberOfTeam > 0 )
-              gap /= task.NumberOfTeam;
-            for ( int i = 1; i < stepworks.Count(); i++ ) {
-              var stepwork = stepworks.ElementAt( i );
-              stepwork.Start += gap;
-              if ( task.NumberOfTeam > 1 )
-                gap += stepwork.Duration * factor;
-              else
-                gap += stepwork.Duration * factor / task.NumberOfTeam;
+            // --->comment old code
+            //var factor = amplifiedFactor - 1;
+            //var firstStep = stepworks.ElementAt( 0 );
+            //var gap = firstStep.Duration * factor;
+            //if ( task.NumberOfTeam > 0 )
+            //  gap /= task.NumberOfTeam;
+            //for ( int i = 1; i < stepworks.Count(); i++ ) {
+            //  var stepwork = stepworks.ElementAt( i );
+            //  stepwork.Start += gap;
+            //  if ( task.NumberOfTeam > 1 )
+            //    gap += stepwork.Duration * factor;
+            //  else
+            //    gap += stepwork.Duration * factor / task.NumberOfTeam;
+            //}
+            // ---> end comment
+
+            var groupByRow = stepworks.GroupBy( x => x.IsSubStepwork );
+            foreach ( var group in groupByRow ) {
+              CalculateStartDay( group, amplifiedFactor, task.NumberOfTeam );
             }
           }
 
@@ -232,6 +239,23 @@ public class VersionService : IVersionService
       }
     }
     return result.OrderBy( o => o.Key ).Select( o => o.Value );
+  }
+
+  private void CalculateStartDay( IEnumerable<Stepwork> stepworks, double amplifiedFactor, int numberOfTeams )
+  {
+    var factor = amplifiedFactor - 1;
+    var firstStep = stepworks.ElementAt( 0 );
+    var gap = firstStep.Duration * factor;
+    if ( numberOfTeams > 0 )
+      gap /= numberOfTeams;
+    for ( int i = 1; i < stepworks.Count(); i++ ) {
+      var stepwork = stepworks.ElementAt( i );
+      stepwork.Start += gap;
+      if ( numberOfTeams > 1 )
+        gap += stepwork.Duration * factor;
+      else
+        gap += stepwork.Duration * factor / numberOfTeams;
+    }
   }
 
   public async Task SaveProjectTasks( long versionId, ICollection<CommonGroupTaskFormData> formData )
