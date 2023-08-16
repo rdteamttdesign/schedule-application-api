@@ -100,7 +100,7 @@ public class FormDataToModelConverter
               Duration = stepworkFormData.PercentStepWork * stepworkFormData.Duration / 100,
               Name = stepworkFormData.Name ?? string.Empty,
               //Start = stepworkFormData.Start,
-              Start = grouptaskFormData.Start.ColumnWidthToDays( setting.ColumnWidth ),
+              Start = stepworkFormData.Start.ColumnWidthToDays( setting.ColumnWidth ),
               End = stepworkFormData.End,
               IsSubStepwork = stepworkFormData.IsSubStepWork
             } );
