@@ -68,7 +68,7 @@ public class ViewService : IViewService
       viewTask.Stepworks = stepworks.ToList();
     }
     var tasks = viewTasks.OrderBy( t => t.DisplayOrder );
-    CalculateDuration( tasks, setting! );
+    CalculateDuration2( tasks, setting! );
     var result = new List<KeyValuePair<int, object>>();
     var tasksByGroup = tasks.GroupBy( t => t.GroupTaskName );
 
@@ -153,6 +153,52 @@ public class ViewService : IViewService
         var minStart = stepworks.Min( s => s.Start );
         var maxEnd = stepworks.Max( s => s.End );
         var lastTask = group.First( t => t.Stepworks.Any( s => s.End == maxEnd ) );
+        var duration = maxEnd - minStart;
+
+        foreach ( var task in group ) {
+          task.MinStart = minStart;
+          task.MaxEnd = maxEnd;
+          task.Duration = duration;
+        }
+      }
+    }
+  }
+
+  private void CalculateDuration2( IEnumerable<ViewTaskDetail> tasks, ProjectSetting setting )
+  {
+    var tasksByGroup = tasks.GroupBy( t => t.Group );
+    foreach ( var group in tasksByGroup ) {
+      if ( group.Count() < 1 ) {
+        continue;
+      }
+      if ( group.Key == 0 ) {
+        // not in group
+        foreach ( var task in group ) {
+          var minStart = task.Stepworks.Min( s => s.Start ).DaysToColumnWidth( setting.ColumnWidth );
+          var maxEnd = task.Stepworks.Max( s => s.End ).DaysToColumnWidth( setting.ColumnWidth );
+          task.MinStart = minStart;
+          task.MaxEnd = maxEnd;
+          var duration = task.MaxEnd - task.MinStart;
+          task.Duration = duration;
+        }
+      }
+      else {
+        // in group
+        //foreach ( var task in group ) {
+        //  if ( !( task.Stepworks.Count > 1 && task.NumberOfTeam != 0 ) ) {
+        //    continue;
+        //  }
+        //  //Recalculate end of last stepwork if task has more than one stepwork
+        //  var gap = 0d;
+        //  for ( int i = 0; i < task.Stepworks.Count - 1; i++ ) {
+        //    gap += task.Stepworks.ElementAt( i ).Duration * ( setting!.AmplifiedFactor - 1 ) / task.NumberOfTeam;
+        //  }
+        //  task.Stepworks.Last().End += gap;
+        //}
+        var stepworks = group.SelectMany( task => task.Stepworks );
+        var minStart = stepworks.Min( s => s.Start ).DaysToColumnWidth( setting.ColumnWidth );
+        var maxEnd = stepworks.Max( s => s.End ).DaysToColumnWidth( setting.ColumnWidth );
+        //var lastTask = group.First( t => t.Stepworks.Any( s => s.End == maxEnd ) );
         var duration = maxEnd - minStart;
 
         foreach ( var task in group ) {
