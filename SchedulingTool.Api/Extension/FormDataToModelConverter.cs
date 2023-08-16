@@ -101,7 +101,7 @@ public class FormDataToModelConverter
               Name = stepworkFormData.Name ?? string.Empty,
               //Start = stepworkFormData.Start,
               Start = stepworkFormData.Start.ColumnWidthToDays( setting.ColumnWidth ),
-              End = stepworkFormData.End,
+              End = stepworkFormData.End.ColumnWidthToDays( setting.ColumnWidth ),
               IsSubStepwork = stepworkFormData.IsSubStepWork
             } );
             if ( stepworkFormData.Predecessors == null ) {
@@ -130,14 +130,15 @@ public class FormDataToModelConverter
             ColorId = grouptaskFormData.ColorId ?? defaultColor.ColorId,
             Duration = grouptaskFormData.Duration,
             Name = grouptaskFormData.Name ?? string.Empty,
-            Start = grouptaskFormData.Start.ColumnWidthToDays( setting.ColumnWidth )
+            Start = grouptaskFormData.Start.ColumnWidthToDays( setting.ColumnWidth ),
+            End = grouptaskFormData.End.ColumnWidthToDays( setting.ColumnWidth )
           };
-          _.End = _.Duration;
-          if ( grouptaskFormData.GroupsNumber > 0 ) {
-            _.End *= setting!.AmplifiedFactor;
-            _.End /= grouptaskFormData.GroupsNumber > 0 ? grouptaskFormData.GroupsNumber : 1;
-          }
-          _.End += _.Start;
+          //_.End = _.Duration;
+          //if ( grouptaskFormData.GroupsNumber > 0 ) {
+          //  _.End *= setting!.AmplifiedFactor;
+          //  _.End /= grouptaskFormData.GroupsNumber > 0 ? grouptaskFormData.GroupsNumber : 1;
+          //}
+          //_.End += _.Start;
           Stepworks.Add( _ );
         }
         // case not stepwork but had predecessor
