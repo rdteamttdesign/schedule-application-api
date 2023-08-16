@@ -192,21 +192,21 @@ public class VersionService : IVersionService
             + task.Duration.DaysToColumnWidth( columnWidth ) * ( task.NumberOfTeam == 0 ? 1 : amplifiedFactor );
         }
         else {
-          //if ( task.NumberOfTeam != 0 ) {
-          //  var factor = amplifiedFactor - 1;
-          //  var firstStep = stepworks.ElementAt( 0 );
-          //  var gap = firstStep.Duration * factor;
-          //  if ( task.NumberOfTeam > 0 )
-          //    gap /= task.NumberOfTeam;
-          //  for ( int i = 1; i < stepworks.Count(); i++ ) {
-          //    var stepwork = stepworks.ElementAt( i );
-          //    stepwork.Start += gap;
-          //    if ( task.NumberOfTeam > 1 )
-          //      gap += stepwork.Duration * factor;
-          //    else
-          //      gap += stepwork.Duration * factor / task.NumberOfTeam;
-          //  }
-          //}
+          if ( task.NumberOfTeam != 0 ) {
+            var factor = amplifiedFactor - 1;
+            var firstStep = stepworks.ElementAt( 0 );
+            var gap = firstStep.Duration * factor;
+            if ( task.NumberOfTeam > 0 )
+              gap /= task.NumberOfTeam;
+            for ( int i = 1; i < stepworks.Count(); i++ ) {
+              var stepwork = stepworks.ElementAt( i );
+              stepwork.Start += gap;
+              if ( task.NumberOfTeam > 1 )
+                gap += stepwork.Duration * factor;
+              else
+                gap += stepwork.Duration * factor / task.NumberOfTeam;
+            }
+          }
 
           var stepworkResources = new List<StepworkResource>();
           foreach ( var stepwork in stepworks ) {
