@@ -161,6 +161,7 @@ public class VersionService : IVersionService
           }
         }
         task.AmplifiedDuration = task.Duration * ( task.NumberOfTeam == 0 ? 1 : ( amplifiedFactor / task.NumberOfTeam ) );
+
         foreach ( var sw in task.Stepworks ) {
           var chartSw = new ChartStepwork()
           {
@@ -168,7 +169,7 @@ public class VersionService : IVersionService
             Color = WorksheetFormater.GetColor( sw.ColorDetail.Code ),
             Start = sw.Start,
             Duration = sw.Portion * task.Duration * ( task.NumberOfTeam == 0 ? 1 : ( amplifiedFactor / task.NumberOfTeam ) ),
-            RowIndex = i
+            RowIndex = sw.IsSubStepwork ? i + 1 : i
           };
           foreach ( var predecessor in sw.Predecessors ) {
             chartSw.Predecessors.Add(
@@ -180,6 +181,9 @@ public class VersionService : IVersionService
               } );
           }
           data.Add( chartSw );
+        }
+        if ( task.Stepworks.Any( x => x.IsSubStepwork ) ) {
+          i++;
         }
         i++;
       }

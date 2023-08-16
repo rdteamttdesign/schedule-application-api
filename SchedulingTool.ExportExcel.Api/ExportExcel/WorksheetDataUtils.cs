@@ -54,10 +54,19 @@ public static class WorksheetContentUtils
 
         ws.Cells [ startRow, numberOfMonths * 6 + 11 ].Value = task.Note;
 
+        if ( TaskHasMultiLine( task ) ) {
+          startRow++;
+        }
+
         index++;
         startRow++;
       }
     }
+  }
+
+  private static bool TaskHasMultiLine( TaskDetailResource task )
+  {
+    return task.Stepworks.Any( x => x.IsSubStepwork );
   }
 
   public static void DrawChart( this Worksheet xlWorkSheet, IEnumerable<ChartStepwork> chartStepwork )
