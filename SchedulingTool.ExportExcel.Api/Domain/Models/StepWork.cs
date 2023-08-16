@@ -17,6 +17,7 @@ namespace SchedulingTool.Api.Domain.Models
         public double End { get; set; }
         public double Duration { get; set; }
         public ulong Type { get; set; }
+        public bool IsSubStepwork { get; set; }
 
         public virtual ColorDef Color { get; set; } = null!;
         public virtual Task Task { get; set; } = null!;

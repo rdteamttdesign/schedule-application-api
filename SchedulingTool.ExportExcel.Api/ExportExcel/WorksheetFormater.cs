@@ -21,7 +21,7 @@ public static class WorksheetFormater
     ws.Drawings.Clear();
 
     var taskCount = isMainView
-      ? resource.Grouptasks.SelectMany( x => x.Tasks ).Count() + resource.Grouptasks.Count
+      ? resource.Grouptasks.SelectMany( x => x.Tasks ).Count() + resource.Grouptasks.Count + resource.Grouptasks.SelectMany( x => x.Tasks ).Count( x => x.Stepworks.Any( sw => sw.IsSubStepwork ) )
       : resource.ViewTasks [ view! ].Count + resource.ViewTasks [ view! ].GroupBy( x => x.GroupTaskId ).Count();
 
     if ( resource.Setting.IncludeYear ) {

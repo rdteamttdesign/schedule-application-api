@@ -1,6 +1,4 @@
-﻿using SchedulingTool.Api.Domain.Models.Enum;
-
-namespace SchedulingTool.Api.Resources;
+﻿namespace SchedulingTool.Api.Resources;
 
 public class StepworkDetailResource
 {
@@ -11,6 +9,7 @@ public class StepworkDetailResource
   public long TaskId { get; set; }
   public long ColorId { get; set; }
   public ColorDetailResource ColorDetail { get; set; } = null!;
+  public bool IsSubStepwork { get; set; }
 
   public ICollection<PredecessorDetailResource> Predecessors { get; set; } = null!;
 }
