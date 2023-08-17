@@ -187,10 +187,10 @@ public class ViewService : IViewService
     for ( int i = 1; i < stepworks.Count(); i++ ) {
       var stepwork = stepworks.ElementAt( i );
       stepwork.Start += gap;
-      stepwork.End = stepwork.Duration * stepwork.Portion;
+      stepwork.End = stepwork.Duration;
       if ( numberOfTeams > 0 ) {
         stepwork.End *= amplifiedFactor;
-        stepwork.End /= numberOfTeams > 0 ? numberOfTeams : 1;
+        stepwork.End /= numberOfTeams;
       }
       stepwork.End += stepwork.Start;
       if ( numberOfTeams > 1 )
