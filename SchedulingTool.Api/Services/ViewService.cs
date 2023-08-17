@@ -118,22 +118,31 @@ public class ViewService : IViewService
       if ( group.Key == 0 ) {
         // not in group
         foreach ( var task in group ) {
-          var minStart = task.Stepworks.Min( s => s.Start );
-          var maxEnd = task.Stepworks.Max( s => s.End );
+          //  var minStart = task.Stepworks.Min( s => s.Start );
+          //  var maxEnd = task.Stepworks.Max( s => s.End );
+          //  task.MinStart = minStart;
+          //  task.MaxEnd = maxEnd;
+          //  var duration = task.MaxEnd - task.MinStart;
+          //  if ( task.Stepworks.Count > 1 && task.NumberOfTeam != 0 ) {
+          //    // more than one stepwork and number of teams > 0
+          //    for ( int i = 0; i < task.Stepworks.Count - 1; i++ ) {
+          //      duration += task.Stepworks.ElementAt( i ).Duration * ( setting!.AmplifiedFactor - 1 ) / task.NumberOfTeam;
+          //    }
+          //    task.Duration = duration;
+          //  }
+          //  else {
+          //    // other cases
+          //    task.Duration = duration;
+          //  }
+          var groupByRow = task.Stepworks.GroupBy( x => x.IsSubStepwork );
+          foreach ( var stepworksByRow in groupByRow ) {
+            CalculateStartEnd( stepworksByRow, setting.AmplifiedFactor, task.NumberOfTeam );
+          }
+          var minStart = groupByRow.SelectMany( x => x ).Min( s => s.Start );
+          var maxEnd = groupByRow.SelectMany( x => x ).Max( s => s.End );
           task.MinStart = minStart;
           task.MaxEnd = maxEnd;
-          var duration = task.MaxEnd - task.MinStart;
-          if ( task.Stepworks.Count > 1 && task.NumberOfTeam != 0 ) {
-            // more than one stepwork and number of teams > 0
-            for ( int i = 0; i < task.Stepworks.Count - 1; i++ ) {
-              duration += task.Stepworks.ElementAt( i ).Duration * ( setting!.AmplifiedFactor - 1 ) / task.NumberOfTeam;
-            }
-            task.Duration = duration;
-          }
-          else {
-            // other cases
-            task.Duration = duration;
-          }
+          task.Duration = task.MaxEnd - task.MinStart;
         }
       }
       else {
@@ -143,11 +152,15 @@ public class ViewService : IViewService
             continue;
           }
           //Recalculate end of last stepwork if task has more than one stepwork
-          var gap = 0d;
-          for ( int i = 0; i < task.Stepworks.Count - 1; i++ ) {
-            gap += task.Stepworks.ElementAt( i ).Duration * ( setting!.AmplifiedFactor - 1 ) / task.NumberOfTeam;
+          //var gap = 0d;
+          //for ( int i = 0; i < task.Stepworks.Count - 1; i++ ) {
+          //  gap += task.Stepworks.ElementAt( i ).Duration * ( setting!.AmplifiedFactor - 1 ) / task.NumberOfTeam;
+          //}
+          //task.Stepworks.Last().End += gap;
+          var groupByRow = task.Stepworks.GroupBy( x => x.IsSubStepwork );
+          foreach ( var stepworksByRow in groupByRow ) {
+            CalculateStartEnd( stepworksByRow, setting.AmplifiedFactor, task.NumberOfTeam );
           }
-          task.Stepworks.Last().End += gap;
         }
         var stepworks = group.SelectMany( task => task.Stepworks );
         var minStart = stepworks.Min( s => s.Start );
@@ -161,6 +174,29 @@ public class ViewService : IViewService
           task.Duration = duration;
         }
       }
+    }
+  }
+
+  private void CalculateStartEnd( IEnumerable<Stepwork> stepworks, double amplifiedFactor, int numberOfTeams )
+  {
+    var factor = amplifiedFactor - 1;
+    var firstStep = stepworks.ElementAt( 0 );
+    var gap = firstStep.Duration * factor;
+    if ( numberOfTeams > 0 )
+      gap /= numberOfTeams;
+    for ( int i = 1; i < stepworks.Count(); i++ ) {
+      var stepwork = stepworks.ElementAt( i );
+      stepwork.Start += gap;
+      stepwork.End = stepwork.Duration * stepwork.Portion;
+      if ( numberOfTeams > 0 ) {
+        stepwork.End *= amplifiedFactor;
+        stepwork.End /= numberOfTeams > 0 ? numberOfTeams : 1;
+      }
+      stepwork.End += stepwork.Start;
+      if ( numberOfTeams > 1 )
+        gap += stepwork.Duration * factor;
+      else
+        gap += stepwork.Duration * factor / numberOfTeams;
     }
   }
 
