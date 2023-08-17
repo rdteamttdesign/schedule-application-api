@@ -154,10 +154,9 @@ public class VersionService : IVersionService
       i++;
       foreach ( var task in grouptask.Tasks ) {
         if ( task.Stepworks.Count > 1 && task.NumberOfTeam > 0 ) {
-          var gap = task.Stepworks.First().Portion * task.Duration * ( task.NumberOfTeam == 0 ? 1 : ( ( amplifiedFactor - 1 ) / task.NumberOfTeam ) );
-          for ( int j = 1; j < task.Stepworks.Count; j++ ) {
-            task.Stepworks.ElementAt( j ).Start += gap;
-            gap += task.Stepworks.ElementAt( j ).Portion * task.Duration * ( task.NumberOfTeam == 0 ? 1 : ( ( amplifiedFactor - 1 ) / task.NumberOfTeam ) );
+          var groupByRow = task.Stepworks.GroupBy( x => x.IsSubStepwork );
+          foreach ( var group in groupByRow ) {
+            CalculateStartDay( group, amplifiedFactor, task.NumberOfTeam, task.Duration );
           }
         }
         task.AmplifiedDuration = task.Duration * ( task.NumberOfTeam == 0 ? 1 : ( amplifiedFactor / task.NumberOfTeam ) );
@@ -189,6 +188,23 @@ public class VersionService : IVersionService
       }
     }
     return data;
+  }
+
+  private void CalculateStartDay( IEnumerable<StepworkDetailResource> stepworks, double amplifiedFactor, int numberOfTeams, double duration )
+  {
+    var factor = amplifiedFactor - 1;
+    var firstStep = stepworks.ElementAt( 0 );
+    var gap = duration * firstStep.Portion * factor;
+    if ( numberOfTeams > 0 )
+      gap /= numberOfTeams;
+    for ( int i = 1; i < stepworks.Count(); i++ ) {
+      var stepwork = stepworks.ElementAt( i );
+      stepwork.Start += gap;
+      if ( numberOfTeams > 1 )
+        gap += stepwork.Portion * duration * factor;
+      else
+        gap += stepwork.Portion * duration * factor / numberOfTeams;
+    }
   }
 
   private async Task<IList<ProjectBackgroundResource>> GetBackgrounds( long versionId )
