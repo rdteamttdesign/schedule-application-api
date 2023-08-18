@@ -319,6 +319,7 @@ public class ViewService : IViewService
       existingTask.IsHidden = task.IsHidden;
       existingTask.TaskDescription = task.Detail;
       existingTask.TaskNote = task.Note;
+      existingTask.IsDayFormat = task.IsDayFormat;
       await _viewTaskRepository.Update( existingTask );
     }
     await _unitOfWork.CompleteAsync();
