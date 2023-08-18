@@ -42,7 +42,7 @@ public class ProjectsController : ControllerBase
   public async Task<IActionResult> GetProjects( [FromQuery] QueryProjectFormData formData )
   {
     var userId = long.Parse( HttpContext.User.Claims.FirstOrDefault( x => x.Type.ToLower() == "sid" )?.Value! );
-    var projects = await _projectService.GetProjectListByUserId( userId );
+    var projects = await _projectService.GetProjectListByUserId( userId, isShared: false );
     if ( !projects.Any() ) {
       return Ok( new
       {
@@ -54,10 +54,36 @@ public class ProjectsController : ControllerBase
         HasPrevious = false
       } );
     }
-
     var pagedListprojects = PagedList<ProjectListResource>.ToPagedList( projects.OrderByDescending( project => project.ModifiedDate ), formData.PageNumber, formData.PageSize );
+    return Ok( new
+    {
+      Data = pagedListprojects,
+      CurrentPage = pagedListprojects.CurrentPage,
+      PageSize = pagedListprojects.PageSize,
+      PageCount = pagedListprojects.TotalPages,
+      HasNext = pagedListprojects.HasNext,
+      HasPrevious = pagedListprojects.HasPrevious
+    } );
+  }
 
-    //var resources = _mapper.Map<IEnumerable<ProjectListResource>>( pagedListprojects );
+  [HttpGet( "shared" )]
+  [Authorize]
+  public async Task<IActionResult> GetSharedProjects( [FromQuery] QueryProjectFormData formData )
+  {
+    var userId = long.Parse( HttpContext.User.Claims.FirstOrDefault( x => x.Type.ToLower() == "sid" )?.Value! );
+    var projects = await _projectService.GetProjectListByUserId( userId, isShared: true );
+    if ( !projects.Any() ) {
+      return Ok( new
+      {
+        Data = new object [] { },
+        CurrentPage = 0,
+        PageSize = 0,
+        PageCount = 0,
+        HasNext = false,
+        HasPrevious = false
+      } );
+    }
+    var pagedListprojects = PagedList<ProjectListResource>.ToPagedList( projects.OrderByDescending( project => project.ModifiedDate ), formData.PageNumber, formData.PageSize );
     return Ok( new
     {
       Data = pagedListprojects,
@@ -126,7 +152,7 @@ public class ProjectsController : ControllerBase
     return Ok( resource );
   }
 
-  [HttpGet("deactive-projects")]
+  [HttpGet( "deactive-projects" )]
   [Authorize]
   public async Task<IActionResult> GetDeactiveProjects( [FromQuery] QueryProjectFormData formData )
   {

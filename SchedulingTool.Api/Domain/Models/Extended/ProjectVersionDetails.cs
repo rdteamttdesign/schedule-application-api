@@ -12,4 +12,5 @@ public class ProjectVersionDetails
   public DateTime ModifiedDate { get; set; }
   public bool IsActivated { get; set; }
   public int NumberOfMonths { get; set; }
+  public bool IsShared { get; set; }
 }

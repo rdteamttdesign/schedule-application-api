@@ -72,10 +72,12 @@ public class ProjectService : IProjectService
     }
   }
 
-  public async Task<IEnumerable<ProjectListResource>> GetProjectListByUserId( long userId )
+  public async Task<IEnumerable<ProjectListResource>> GetProjectListByUserId( long userId, bool isShared )
   {
     var projectVersions = await _projectRepository.GetProjectVersionDetails( userId );
-    var groupByProject = projectVersions.Where( version => version.IsActivated ).GroupBy( x => new { ProjectId = x.ProjectId, ProjectName = x.ProjectName } );
+    var groupByProject = projectVersions
+      .Where( version => version.IsActivated && version.IsShared == isShared )
+      .GroupBy( x => new { ProjectId = x.ProjectId, ProjectName = x.ProjectName } );
     var projectResources = new List<ProjectListResource>();
     foreach ( var group in groupByProject ) {
       var projectResource = new ProjectListResource()

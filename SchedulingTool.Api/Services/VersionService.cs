@@ -102,6 +102,8 @@ public class VersionService : IVersionService
 
     foreach ( var version in versionsToDeactive ) {
       version.IsActivated = false;
+      version.ModifiedDate = DateTime.UtcNow;
+      version.ModifiedBy = userId;
       await _versionRepository.Update( version );
       await _unitOfWork.CompleteAsync();
     }
