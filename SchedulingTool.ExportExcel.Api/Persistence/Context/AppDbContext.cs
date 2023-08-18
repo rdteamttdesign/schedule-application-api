@@ -558,6 +558,11 @@ namespace SchedulingTool.Api.Persistence.Context
 
                 entity.Property(e => e.Group).HasColumnName("group");
 
+                entity.Property(e => e.IsDayFormat)
+                    .HasColumnType("bit(1)")
+                    .HasColumnName("is_day_format")
+                    .HasDefaultValueSql("b'1'");
+
                 entity.Property(e => e.IsHidden)
                     .HasColumnType("bit(1)")
                     .HasColumnName("is_hidden")
