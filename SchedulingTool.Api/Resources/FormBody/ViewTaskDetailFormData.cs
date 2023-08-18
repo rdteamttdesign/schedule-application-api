@@ -8,4 +8,5 @@ public class ViewTaskDetailFormData
   public string? Detail { get; set; }
   public string? Note { get; set; }
   public string Type { get; set; } = null!;
+  public bool IsDayFormat { get; set; }
 }
