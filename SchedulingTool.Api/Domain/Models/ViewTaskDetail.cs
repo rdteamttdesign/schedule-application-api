@@ -26,5 +26,6 @@ public class ViewTaskDetail
   public string? Note { get; set; }
   public int DisplayOrder { get; set; }
   public bool IsHidden { get; set; }
+  public bool IsDayFormat { get; set; }
   public ICollection<Stepwork> Stepworks { get; set; } = null!;
 }

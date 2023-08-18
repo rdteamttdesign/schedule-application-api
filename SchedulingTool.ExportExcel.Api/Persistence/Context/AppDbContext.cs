@@ -619,6 +619,7 @@ namespace SchedulingTool.Api.Persistence.Context
         entity.Property( e => e.Note ).HasColumnName( "task_note" );
         entity.Property( e => e.DisplayOrder ).HasColumnName( "display_order" );
         entity.Property( e => e.IsHidden ).HasColumnName( "is_hidden" );
+        entity.Property( e => e.IsDayFormat ).HasColumnName( "is_day_format" );
       } );
 
             OnModelCreatingPartial(modelBuilder);

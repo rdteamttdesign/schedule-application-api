@@ -98,7 +98,8 @@ public class ViewService : IViewService
           Note = task.Note ?? string.Empty,
           ColorId = 1,
           GroupsNumber = 0,
-          IsHidden = task.IsHidden
+          IsHidden = task.IsHidden,
+          IsDayFormat = task.IsDayFormat
         };
         i++;
         result.Add( new KeyValuePair<int, object>( i, taskResource ) );
