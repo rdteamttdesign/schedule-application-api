@@ -15,4 +15,5 @@ public class ViewTaskDetailResource
   public long ColorId { get; set; }
   public int GroupsNumber { get; set; }
   public bool IsHidden { get; set; }
+  public bool IsDayFormat { get; set; }
 }

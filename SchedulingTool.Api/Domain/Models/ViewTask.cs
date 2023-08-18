@@ -13,6 +13,7 @@ namespace SchedulingTool.Api.Domain.Models
         public string TaskName { get; set; } = null!;
         public string? TaskDescription { get; set; }
         public string? TaskNote { get; set; }
+        public bool IsDayFormat { get; set; }
 
         public virtual View View { get; set; } = null!;
     }

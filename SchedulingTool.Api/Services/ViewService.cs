@@ -98,7 +98,8 @@ public class ViewService : IViewService
           Note = task.Note ?? string.Empty,
           ColorId = 1,
           GroupsNumber = 0,
-          IsHidden = task.IsHidden
+          IsHidden = task.IsHidden,
+          IsDayFormat = task.IsDayFormat
         };
         i++;
         result.Add( new KeyValuePair<int, object>( i, taskResource ) );
@@ -319,6 +320,7 @@ public class ViewService : IViewService
       existingTask.IsHidden = task.IsHidden;
       existingTask.TaskDescription = task.Detail;
       existingTask.TaskNote = task.Note;
+      existingTask.IsDayFormat = task.IsDayFormat;
       await _viewTaskRepository.Update( existingTask );
     }
     await _unitOfWork.CompleteAsync();
