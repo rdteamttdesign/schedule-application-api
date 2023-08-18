@@ -161,7 +161,7 @@ public class VersionsController : ControllerBase
         return BadRequest( ProjectNotification.NonExisted );
       }
       var result = await _versionService.DuplicateVersion( projectId, version );
-      await _viewService.DuplicateView(versionId, result.Content.VersionId );
+      await _viewService.DuplicateView( versionId, result.Content.VersionId );
       return Ok( result.Content );
     }
     catch ( Exception ex ) {
@@ -228,6 +228,22 @@ public class VersionsController : ControllerBase
 
       return Ok( result );
 
+    }
+    catch ( Exception ex ) {
+      return BadRequest( ex.Message );
+    }
+  }
+
+  [HttpPut( "versions/send-to-another-project" )]
+  [Authorize]
+  public async Task<IActionResult> SendVersionsToAnotherProject( [FromBody] SendVersionsToAnotherProjectFormData formData )
+  {
+    if ( !ModelState.IsValid ) {
+      return BadRequest( ModelState.GetErrorMessages() );
+    }
+    try {
+      await _versionService.SendVersionsToAnotherProject( formData.VersionIds, formData.ToProject );
+      return NoContent();
     }
     catch ( Exception ex ) {
       return BadRequest( ex.Message );

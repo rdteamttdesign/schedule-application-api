@@ -21,4 +21,5 @@ public interface IVersionService
   Task<ServiceResponse<VersionResource>> DuplicateVersion( long projectId, Version oldVersion );
   Task<dynamic> GetDataFromFile( long versionId, Stream fileStream, int maxDisplayOrder, string [] sheetNameList );
   Task<dynamic> GetUpdatedDataFromFile( long versionId, Stream fileStream, string [] sheetNameList );
+  Task SendVersionsToAnotherProject( ICollection<long> versionIds, long toProjectId );
 }

@@ -741,4 +741,14 @@ public class VersionService : IVersionService
     result.Change = change;
     return result;
   }
+
+  public async Task SendVersionsToAnotherProject( ICollection<long> versionIds, long toProjectId )
+  {
+    var projectVersions = ( await _projectVersionRepository.GetAll() ).Where( x => versionIds.Contains( x.VersionId ) );
+    foreach ( var projectVersion in projectVersions ) {
+      projectVersion.ProjectId = toProjectId;
+      await _projectVersionRepository.Update( projectVersion );
+    }
+    await _unitOfWork.CompleteAsync();
+  }
 }
