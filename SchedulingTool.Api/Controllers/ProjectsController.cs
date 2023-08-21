@@ -32,7 +32,19 @@ public class ProjectsController : ControllerBase
   {
     var userId = long.Parse( HttpContext.User.Claims.FirstOrDefault( x => x.Type.ToLower() == "sid" )?.Value! );
     var projects = await _projectService.GetActiveProjects( userId );
-    var nameList = projects.Select( p => p.ProjectName ).ToList();
+    var nameList = projects.Where( p => !p.IsShared ).Select( p => p.ProjectName ).ToList();
+
+    return Ok( nameList );
+  }
+
+
+  [HttpGet( "shared/name-list" )]
+  [Authorize]
+  public async Task<IActionResult> GetSharedProjectNameList()
+  {
+    var userId = long.Parse( HttpContext.User.Claims.FirstOrDefault( x => x.Type.ToLower() == "sid" )?.Value! );
+    var projects = await _projectService.GetActiveProjects( userId );
+    var nameList = projects.Where( p => p.IsShared ).Select( p => p.ProjectName ).ToList();
 
     return Ok( nameList );
   }
