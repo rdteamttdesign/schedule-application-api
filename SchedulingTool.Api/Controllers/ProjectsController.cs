@@ -42,10 +42,7 @@ public class ProjectsController : ControllerBase
   [Authorize]
   public async Task<IActionResult> GetSharedProjectNameList()
   {
-    var userId = long.Parse( HttpContext.User.Claims.FirstOrDefault( x => x.Type.ToLower() == "sid" )?.Value! );
-    var projects = await _projectService.GetActiveProjects( userId );
-    var nameList = projects.Where( p => p.IsShared ).Select( p => p.ProjectName ).ToList();
-
+    var nameList = await _projectService.GetSharedActiveProjectNameList();
     return Ok( nameList );
   }
 
@@ -54,7 +51,7 @@ public class ProjectsController : ControllerBase
   public async Task<IActionResult> GetProjects( [FromQuery] QueryProjectFormData formData )
   {
     var userId = long.Parse( HttpContext.User.Claims.FirstOrDefault( x => x.Type.ToLower() == "sid" )?.Value! );
-    var projects = await _projectService.GetProjectListByUserId( userId, isShared: false );
+    var projects = await _projectService.GetProjectListByUserId( userId, isActivated: true );
     if ( !projects.Any() ) {
       return Ok( new
       {
@@ -83,7 +80,7 @@ public class ProjectsController : ControllerBase
   public async Task<IActionResult> GetSharedProjects( [FromQuery] QueryProjectFormData formData )
   {
     var userId = long.Parse( HttpContext.User.Claims.FirstOrDefault( x => x.Type.ToLower() == "sid" )?.Value! );
-    var projects = await _projectService.GetProjectListByUserId( userId, isShared: true );
+    var projects = await _projectService.GetSharedProjectList( isActivated: true );
     if ( !projects.Any() ) {
       return Ok( new
       {
@@ -115,12 +112,14 @@ public class ProjectsController : ControllerBase
       return BadRequest( ModelState.GetErrorMessages() );
     }
     var userId = long.Parse( HttpContext.User.Claims.FirstOrDefault( x => x.Type.ToLower() == "sid" )?.Value! );
+    var userName = HttpContextExtension.GetUserName( HttpContext );
     var version = new Version()
     {
       VersionName = formData.VersionName,
       UserId = userId,
       CreatedDate = DateTime.UtcNow,
       ModifiedDate = DateTime.UtcNow,
+      ModifiedBy = userName,
       IsActivated = true,
       NumberOfMonths = formData.NumberOfMonths
     };
@@ -129,7 +128,9 @@ public class ProjectsController : ControllerBase
       ProjectName = formData.ProjectName,
       UserId = userId,
       CreatedDate = DateTime.UtcNow,
-      ModifiedDate = DateTime.UtcNow
+      ModifiedDate = DateTime.UtcNow,
+      ModifiedBy = userName,
+      IsShared = formData.IsShared
     };
     var result = await _projectService.CreateProject( project, version );
 
@@ -148,12 +149,14 @@ public class ProjectsController : ControllerBase
       return BadRequest( ModelState.GetErrorMessages() );
     }
     var userId = long.Parse( HttpContext.User.Claims.FirstOrDefault( x => x.Type.ToLower() == "sid" )?.Value! );
+    var userName = HttpContextExtension.GetUserName( HttpContext );
     var existingProject = await _projectService.GetProjectById( projectId );
     if ( existingProject is null )
       return BadRequest( ProjectNotification.NonExisted );
 
     existingProject.ProjectName = formData.ProjectName;
     existingProject.ModifiedDate = DateTime.UtcNow;
+    existingProject.ModifiedBy = userName;
 
     var result = await _projectService.UpdateProject( existingProject );
     if ( !result.Success )
@@ -168,8 +171,11 @@ public class ProjectsController : ControllerBase
   [Authorize]
   public async Task<IActionResult> GetDeactiveProjects( [FromQuery] QueryProjectFormData formData )
   {
+    if ( !ModelState.IsValid ) {
+      return BadRequest( ModelState.GetErrorMessages() );
+    }
     var userId = long.Parse( HttpContext.User.Claims.FirstOrDefault( x => x.Type.ToLower() == "sid" )?.Value! );
-    var projects = await _projectService.GetDeactiveProjectListByUserId( userId );
+    var projects = await _projectService.GetProjectListByUserId( userId, isActivated: false );
     if ( !projects.Any() ) {
       return Ok( new
       {
@@ -183,8 +189,37 @@ public class ProjectsController : ControllerBase
     }
 
     var pagedListprojects = PagedList<ProjectListResource>.ToPagedList( projects.OrderByDescending( project => project.ModifiedDate ), formData.PageNumber, formData.PageSize );
+    return Ok( new
+    {
+      Data = pagedListprojects,
+      CurrentPage = pagedListprojects.CurrentPage,
+      PageSize = pagedListprojects.PageSize,
+      PageCount = pagedListprojects.TotalPages,
+      HasNext = pagedListprojects.HasNext,
+      HasPrevious = pagedListprojects.HasPrevious
+    } );
+  }
 
-    //var resources = _mapper.Map<IEnumerable<ProjectListResource>>( pagedListprojects );
+  [HttpGet( "shared/deactive-projects" )]
+  [Authorize]
+  public async Task<IActionResult> GetSharedDeactiveProjects( [FromQuery] QueryProjectFormData formData )
+  {
+    if ( !ModelState.IsValid ) {
+      return BadRequest( ModelState.GetErrorMessages() );
+    }
+    var projects = await _projectService.GetSharedProjectList( isActivated: false );
+    if ( !projects.Any() ) {
+      return Ok( new
+      {
+        Data = new object [] { },
+        CurrentPage = 0,
+        PageSize = 0,
+        PageCount = 0,
+        HasNext = false,
+        HasPrevious = false
+      } );
+    }
+    var pagedListprojects = PagedList<ProjectListResource>.ToPagedList( projects.OrderByDescending( project => project.ModifiedDate ), formData.PageNumber, formData.PageSize );
     return Ok( new
     {
       Data = pagedListprojects,

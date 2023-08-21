@@ -3,5 +3,7 @@
 public class SendVersionsToAnotherProjectFormData
 {
   public ICollection<long> VersionIds { get; set; } = null!;
-  public long ToProject { get; set; }
+  public long? ToProjectId { get; set; }
+  public bool SendToSharedProjectList { get; set; }
+  public bool CreateCopy { get; set; }
 }

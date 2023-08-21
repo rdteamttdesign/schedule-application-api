@@ -7,7 +7,7 @@ public interface IVersionRepository : IGenericRepository<Version>
 {
   Task<IEnumerable<Version>> GetActiveVersions( long userId );
   Task<IEnumerable<Version>> GetDeactiveVersions( long userId );
-  Task<IEnumerable<Version>> GetVersionsById( long userId, ICollection<long> versionIds );
+  Task<IEnumerable<Version>> GetVersionsById( ICollection<long> versionIds );
   Task BatchDeleteVersionDetails( long versionId );
   Task BatchDeleteVersion( long versionId );
 }

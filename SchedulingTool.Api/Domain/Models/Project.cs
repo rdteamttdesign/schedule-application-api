@@ -16,6 +16,7 @@ namespace SchedulingTool.Api.Domain.Models
         public DateTime CreatedDate { get; set; }
         public DateTime ModifiedDate { get; set; }
         public bool IsShared { get; set; }
+        public string ModifiedBy { get; set; } = null!;
 
         public virtual ICollection<ProjectVersion> ProjectVersions { get; set; }
     }

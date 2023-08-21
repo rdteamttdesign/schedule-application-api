@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using SchedulingTool.Api.Domain.Models;
+using SchedulingTool.Api.Domain.Models.Extended;
+using Task = SchedulingTool.Api.Domain.Models.Task;
+using Version = SchedulingTool.Api.Domain.Models.Version;
 
 namespace SchedulingTool.Api.Persistence.Context
 {
@@ -205,6 +208,11 @@ namespace SchedulingTool.Api.Persistence.Context
                     .HasColumnType("bit(1)")
                     .HasColumnName("is_shared")
                     .HasDefaultValueSql("b'0'");
+
+                entity.Property(e => e.ModifiedBy)
+                    .HasMaxLength(125)
+                    .HasColumnName("modified_by")
+                    .HasDefaultValueSql("'a'");
 
                 entity.Property(e => e.ModifiedDate)
                     .HasColumnType("datetime")
@@ -502,7 +510,10 @@ namespace SchedulingTool.Api.Persistence.Context
                     .HasColumnName("is_activated")
                     .HasDefaultValueSql("b'1'");
 
-                entity.Property(e => e.ModifiedBy).HasColumnName("modified_by");
+                entity.Property(e => e.ModifiedBy)
+                    .HasMaxLength(125)
+                    .HasColumnName("modified_by")
+                    .HasDefaultValueSql("'a'");
 
                 entity.Property(e => e.ModifiedDate)
                     .HasColumnType("datetime")
@@ -590,6 +601,61 @@ namespace SchedulingTool.Api.Persistence.Context
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("fk_view_task_view");
             });
+
+      modelBuilder.Entity<ProjectVersionDetails>( entity =>
+      {
+        entity.HasNoKey();
+        entity.Property( e => e.ProjectId ).HasColumnName( "project_id" );
+        entity.Property( e => e.ProjectName ).HasColumnName( "project_name" );
+        entity.Property( e => e.ProjectModifiedDate ).HasColumnName( "project_modified_date" );
+        entity.Property( e => e.ProjectModifiedBy ).HasColumnName( "project_modified_by" );
+        entity.Property( e => e.VersionId ).HasColumnName( "version_id" );
+        entity.Property( e => e.VersionName ).HasColumnName( "version_name" );
+        entity.Property( e => e.UserId ).HasColumnName( "user_id" );
+        entity.Property( e => e.CreatedDate ).HasColumnName( "created_date" );
+        entity.Property( e => e.ModifiedDate ).HasColumnName( "modified_date" );
+        entity.Property( e => e.ModifiedBy ).HasColumnName( "modified_by" );
+        entity.Property( e => e.IsActivated ).HasColumnName( "is_activated" );
+        entity.Property( e => e.NumberOfMonths ).HasColumnName( "number_of_months" );
+        entity.Property( e => e.IsShared ).HasColumnName( "is_shared" );
+      } );
+
+      modelBuilder.Entity<ViewTaskDetail>( entity =>
+      {
+        entity.HasNoKey();
+
+        entity.Property( e => e.TaskId ).HasColumnName( "task_id" );
+
+        entity.Property( e => e.TaskLocalId ).HasColumnName( "local_id" );
+
+        entity.Property( e => e.Group ).HasColumnName( "group" );
+
+        entity.Property( e => e.TaskName ).HasColumnName( "task_name" );
+
+        entity.Property( e => e.Index ).HasColumnName( "index" );
+
+        entity.Property( e => e.NumberOfTeam ).HasColumnName( "number_of_team" );
+
+        entity.Property( e => e.Duration ).HasColumnName( "duration" );
+
+        entity.Property( e => e.AmplifiedDuration ).HasColumnName( "amplified_duration" );
+
+        entity.Property( e => e.GroupTaskId ).HasColumnName( "group_task_id" );
+
+        entity.Property( e => e.GroupTaskLocalId ).HasColumnName( "group_task_local_id" );
+
+        entity.Property( e => e.GroupTaskName ).HasColumnName( "group_task_name" );
+
+        entity.Property( e => e.Description ).HasColumnName( "task_description" );
+
+        entity.Property( e => e.Note ).HasColumnName( "task_note" );
+
+        entity.Property( e => e.DisplayOrder ).HasColumnName( "display_order" );
+
+        entity.Property( e => e.IsHidden ).HasColumnName( "is_hidden" );
+
+        entity.Property( e => e.IsDayFormat ).HasColumnName( "is_day_format" );
+      } );
 
             OnModelCreatingPartial(modelBuilder);
         }

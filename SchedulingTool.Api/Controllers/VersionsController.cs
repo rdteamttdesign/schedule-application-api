@@ -1,7 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using SchedulingTool.Api.Domain.Models;
 using SchedulingTool.Api.Domain.Services;
 using SchedulingTool.Api.Extension;
 using SchedulingTool.Api.Notification;
@@ -39,8 +38,9 @@ public class VersionsController : ControllerBase
       return BadRequest( ModelState.GetErrorMessages() );
     }
     var userId = long.Parse( HttpContext.User.Claims.FirstOrDefault( x => x.Type.ToLower() == "sid" )?.Value! );
+    var userName = HttpContextExtension.GetUserName( HttpContext );
     try {
-      await _versionService.BatchDeactiveVersions( userId, versionIds );
+      await _versionService.BatchDeactiveVersions( versionIds, userName );
       return NoContent();
     }
     catch ( Exception ex ) {
@@ -55,12 +55,15 @@ public class VersionsController : ControllerBase
     if ( !ModelState.IsValid ) {
       return BadRequest( ModelState.GetErrorMessages() );
     }
+    var userId = long.Parse( HttpContext.User.Claims.FirstOrDefault( x => x.Type.ToLower() == "sid" )?.Value! );
+    var userName = HttpContextExtension.GetUserName( HttpContext );
     var existingVersion = await _versionService.GetVersionById( versionId );
     if ( existingVersion is null )
       return BadRequest( ProjectNotification.NonExisted );
 
     existingVersion.VersionName = formData.VersionName;
     existingVersion.ModifiedDate = DateTime.UtcNow;
+    existingVersion.ModifiedBy = userName;
 
     var result = await _versionService.UpdateVersion( existingVersion );
     if ( !result.Success )
@@ -97,6 +100,7 @@ public class VersionsController : ControllerBase
       return BadRequest( ModelState.GetErrorMessages() );
     }
     var userId = long.Parse( HttpContext.User.Claims.FirstOrDefault( x => x.Type.ToLower() == "sid" )?.Value! );
+    var userName = HttpContextExtension.GetUserName( HttpContext );
     var version = await _versionService.GetVersionById( versionId );
     if ( version == null ) {
       return BadRequest( ProjectNotification.NonExisted );
@@ -111,6 +115,7 @@ public class VersionsController : ControllerBase
     await _versionService.SaveProjectTasks( versionId, formData );
 
     version.ModifiedDate = DateTime.UtcNow;
+    version.ModifiedBy = userName;
     await _versionService.UpdateVersion( version );
 
     return NoContent();
@@ -156,11 +161,12 @@ public class VersionsController : ControllerBase
   {
     try {
       var userId = long.Parse( HttpContext.User.Claims.FirstOrDefault( x => x.Type.ToLower() == "sid" )?.Value! );
+      var userName = HttpContextExtension.GetUserName( HttpContext );
       var version = await _versionService.GetVersionById( versionId );
       if ( version == null ) {
         return BadRequest( ProjectNotification.NonExisted );
       }
-      var result = await _versionService.DuplicateVersion( projectId, version );
+      var result = await _versionService.DuplicateVersion( userId, userName, projectId, version, newVersionName: null );
       await _viewService.DuplicateView( versionId, result.Content.VersionId );
       return Ok( result.Content );
     }
@@ -194,8 +200,9 @@ public class VersionsController : ControllerBase
       return BadRequest( ModelState.GetErrorMessages() );
     }
     var userId = long.Parse( HttpContext.User.Claims.FirstOrDefault( x => x.Type.ToLower() == "sid" )?.Value! );
+    var userName = HttpContextExtension.GetUserName( HttpContext );
     try {
-      await _versionService.BatchActivateVersions( userId, versionIds );
+      await _versionService.BatchActivateVersions( userId, userName, versionIds );
       return NoContent();
     }
     catch ( Exception ex ) {
@@ -234,7 +241,7 @@ public class VersionsController : ControllerBase
     }
   }
 
-  [HttpPut( "versions/send-to-another-project" )]
+  [HttpPost( "versions/send-to-another-project" )]
   [Authorize]
   public async Task<IActionResult> SendVersionsToAnotherProject( [FromBody] SendVersionsToAnotherProjectFormData formData )
   {
@@ -242,7 +249,9 @@ public class VersionsController : ControllerBase
       return BadRequest( ModelState.GetErrorMessages() );
     }
     try {
-      await _versionService.SendVersionsToAnotherProject( formData.VersionIds, formData.ToProject );
+      var userId = long.Parse( HttpContext.User.Claims.FirstOrDefault( x => x.Type.ToLower() == "sid" )?.Value! );
+      var userName = HttpContextExtension.GetUserName( HttpContext );
+      await _versionService.SendVersionsToAnotherProject( userId, userName, formData );
       return NoContent();
     }
     catch ( Exception ex ) {

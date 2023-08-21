@@ -47,8 +47,9 @@ public class ProjectSettingsController : ControllerBase
     if ( formData.AssemblyDurationRatio + formData.RemovalDurationRatio != 1 ) {
       return BadRequest( "Total ratio must equal to 1" );
     }
-
-    var result = await _projectSettingService.UpdateProjectSettingByVersionId( versionId, formData );
+    var userId = long.Parse( HttpContext.User.Claims.FirstOrDefault( x => x.Type.ToLower() == "sid" )?.Value! );
+    var userName = HttpContextExtension.GetUserName( HttpContext );
+    var result = await _projectSettingService.UpdateProjectSettingByVersionId( versionId, userName, formData );
 
     if ( result.Success ) {
       return NoContent();
