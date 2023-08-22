@@ -13,4 +13,7 @@ public class NewProjectFormData
   [Required]
   [Range( 1, 100, ErrorMessage = "Please enter valid number of months (from 1 to 100)" )]
   public int NumberOfMonths { get; set; }
+
+  [Required]
+  public bool IsShared { get; set; }
 }

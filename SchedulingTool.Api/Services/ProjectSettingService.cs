@@ -121,7 +121,7 @@ public class ProjectSettingService : IProjectSettingService
     return new ServiceResponse<ProjectSettingResource>( resource );
   }
 
-  public async Task<ServiceResponse<ProjectSetting>> UpdateProjectSettingByVersionId( long versionId, ProjectSettingFormData formData )
+  public async Task<ServiceResponse<ProjectSetting>> UpdateProjectSettingByVersionId( long versionId, string userName, ProjectSettingFormData formData )
   {
     var version = await _versionRepository.GetById( versionId );
     if ( version == null ) {
@@ -131,6 +131,8 @@ public class ProjectSettingService : IProjectSettingService
     await UpdateBackgroundSetting( versionId, formData );
 
     version.NumberOfMonths = formData.NumberOfMonths;
+    version.ModifiedDate = DateTime.UtcNow;
+    version.ModifiedBy = userName;
     await _versionRepository.Update( version );
     await _unitOfWork.CompleteAsync();
 

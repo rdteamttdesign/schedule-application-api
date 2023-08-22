@@ -61,12 +61,24 @@ public class VersionService : IVersionService
     _mapper = mapper;
   }
 
-  public async Task<IEnumerable<Version>> GetActiveVersions( long userId, long projectId )
+  //public async Task<IEnumerable<Version>> GetActiveVersions( long userId, long projectId )
+  //{
+  //  var versions = await _versionRepository.GetActiveVersions( userId );
+  //  var projectVersions = await _projectVersionRepository.GetByProjectId( projectId );
+  //  var versionIdList = projectVersions.Select( v => v.VersionId );
+  //  return versions.Where( x => versionIdList.Contains( x.VersionId ) );
+  //}
+
+  public async Task<IEnumerable<string>> GetActiveVersionNameList( long userId, long projectId )
   {
-    var versions = await _versionRepository.GetActiveVersions( userId );
-    var projectVersions = await _projectVersionRepository.GetByProjectId( projectId );
-    var versionIdList = projectVersions.Select( v => v.VersionId );
-    return versions.Where( x => versionIdList.Contains( x.VersionId ) );
+    var project = await _projectRepository.GetById( projectId );
+    if ( project == null ) {
+      return Array.Empty<string>();
+    }
+    var versions = project.IsShared
+      ? await _projectRepository.GetSharedProjectVersionDetails()
+      : await _projectRepository.GetProjectVersionDetails( userId );
+    return versions.Where( x => x.ProjectId == projectId && x.IsActivated ).Select( x => x.VersionName ).Distinct();
   }
 
   public async Task BatchDeleteVersionDetails( long versionId )
@@ -94,14 +106,16 @@ public class VersionService : IVersionService
     }
   }
 
-  public async Task BatchDeactiveVersions( long userId, ICollection<long> versionIds )
+  public async Task BatchDeactiveVersions( ICollection<long> versionIds, string userName )
   {
-    var versionsToDeactive = await _versionRepository.GetVersionsById( userId, versionIds );
+    var versionsToDeactive = await _versionRepository.GetVersionsById( versionIds );
     if ( !versionsToDeactive.Any() )
       return;
 
     foreach ( var version in versionsToDeactive ) {
       version.IsActivated = false;
+      version.ModifiedDate = DateTime.UtcNow;
+      version.ModifiedBy = userName;
       await _versionRepository.Update( version );
       await _unitOfWork.CompleteAsync();
     }
@@ -127,7 +141,7 @@ public class VersionService : IVersionService
     }
   }
 
-  public async Task BatchActivateVersions( long userId, ICollection<long> versionIds )
+  public async Task BatchActivateVersions( long userId, string userName, ICollection<long> versionIds )
   {
     var projects = await _projectRepository.GetAllProjects( userId );
     var activatedVersionIds = ( await _versionRepository.GetActiveVersions( userId ) ).Select( x => x.VersionId );
@@ -148,13 +162,14 @@ public class VersionService : IVersionService
       await _projectRepository.Update( project );
     }
 
-    var versionsToActivate = await _versionRepository.GetVersionsById( userId, versionIds );
+    var versionsToActivate = await _versionRepository.GetVersionsById( versionIds );
     if ( !versionsToActivate.Any() )
       return;
 
     foreach ( var version in versionsToActivate ) {
       version.VersionName += $" (restored at {( int ) DateTime.UtcNow.Subtract( new DateTime( 1970, 1, 1 ) ).TotalSeconds})";
       version.ModifiedDate = DateTime.UtcNow;
+      version.ModifiedBy = userName;
       version.IsActivated = true;
       await _versionRepository.Update( version );
     }
@@ -307,32 +322,38 @@ public class VersionService : IVersionService
     }
   }
 
-  public async Task<ServiceResponse<VersionResource>> DuplicateVersion( long projectId, Version oldVersion )
+  public async Task<ServiceResponse<VersionResource>> DuplicateVersion( long userId, string userName, long projectId, Version oldVersion, string? newVersionName )
   {
-    var versions = await GetActiveVersions( oldVersion.UserId, projectId );
+    //var versions = await GetActiveVersions( oldVersion.UserId, projectId );
 
-    var newVersionName = $"Copy of {oldVersion.VersionName}";
+    //var newVersionName = $"Copy of {oldVersion.VersionName}";
 
-    var latestName = versions.Select( version => version.VersionName )
-      .Where( name => name.Length > newVersionName.Length )
-      .Where( name => name.Substring( 0, newVersionName.Length + 1 ) == $"{newVersionName} " && Regex.IsMatch( name.Split( " " ).LastOrDefault() ?? string.Empty, @"\([1-9]+\)" ) )
-      .OrderByDescending( x => x ).FirstOrDefault();
+    //var latestName = versions.Select( version => version.VersionName )
+    //  .Where( name => name.Length > newVersionName.Length )
+    //  .Where( name => name.Substring( 0, newVersionName.Length + 1 ) == $"{newVersionName} " && Regex.IsMatch( name.Split( " " ).LastOrDefault() ?? string.Empty, @"\([1-9]+\)" ) )
+    //  .OrderByDescending( x => x ).FirstOrDefault();
 
-    if ( latestName != null ) {
-      var duplicatedNumber = latestName.Replace( $"{newVersionName} ", "" ).Replace( "(", "" ).Replace( ")", "" );
-      int.TryParse( duplicatedNumber, out var digit );
-      newVersionName += $" ({digit + 1})";
-    }
-    else {
-      newVersionName += " (1)";
+    //if ( latestName != null ) {
+    //  var duplicatedNumber = latestName.Replace( $"{newVersionName} ", "" ).Replace( "(", "" ).Replace( ")", "" );
+    //  int.TryParse( duplicatedNumber, out var digit );
+    //  newVersionName += $" ({digit + 1})";
+    //}
+    //else {
+    //  newVersionName += " (1)";
+    //}
+
+    if ( newVersionName == null ) {
+      var latestNameList = await GetActiveVersionNameList( userId, projectId );
+      newVersionName = NumberingNewName( latestNameList, $"Copy of {oldVersion.VersionName}" );
     }
 
     var newVersion = new Version()
     {
       VersionName = newVersionName,
-      UserId = oldVersion.UserId,
+      UserId = userId,
       CreatedDate = DateTime.UtcNow,
       ModifiedDate = DateTime.UtcNow,
+      ModifiedBy = userName,
       IsActivated = oldVersion.IsActivated,
       NumberOfMonths = oldVersion.NumberOfMonths
     };
@@ -502,6 +523,22 @@ public class VersionService : IVersionService
     #endregion
 
     return new ServiceResponse<VersionResource>( resource );
+  }
+
+  private string NumberingNewName( IEnumerable<string> existingNamList, string newName )
+  {
+    var latestName = existingNamList.Where( name => name.Length > newName.Length )
+      .Where( name => name.Substring( 0, newName.Length + 1 ) == $"{newName} " && Regex.IsMatch( name.Split( " " ).LastOrDefault() ?? string.Empty, @"\([1-9]+\)" ) )
+      .OrderByDescending( x => x ).FirstOrDefault();
+    if ( latestName != null ) {
+      var duplicatedNumber = latestName.Replace( $"{newName} ", "" ).Replace( "(", "" ).Replace( ")", "" );
+      int.TryParse( duplicatedNumber, out var digit );
+      newName += $" ({digit + 1})";
+    }
+    else {
+      newName += " (1)";
+    }
+    return newName;
   }
 
   private async Task<ServiceResponse<GroupTask>> CreateGroupTask( GroupTask groupTask )
@@ -740,5 +777,75 @@ public class VersionService : IVersionService
     }
     result.Change = change;
     return result;
+  }
+
+  public async Task SendVersionsToAnotherProject( long userId, string userName, SendVersionsToAnotherProjectFormData formData )
+  {
+    var myProjectList = await _projectRepository.GetProjectVersionDetails( userId );
+    var sharedProjectList = await _projectRepository.GetSharedProjectVersionDetails();
+
+    if ( formData.ToProjectId == null ) {
+      // Create new project
+      var toProjectList = formData.SendToSharedProjectList ? sharedProjectList : myProjectList;
+
+      var projectNameList = toProjectList.Where( p => p.IsActivated ).Select( p => p.ProjectName ).Distinct();
+      var newProjectName = NumberingNewName( projectNameList, "新しいプロジェクト" );
+      var project = new Project()
+      {
+        ProjectName = newProjectName,
+        UserId = userId,
+        CreatedDate = DateTime.UtcNow,
+        ModifiedDate = DateTime.UtcNow,
+        ModifiedBy = userName,
+        IsShared = formData.SendToSharedProjectList
+      };
+      var newProject = await _projectRepository.Create( project );
+      await _unitOfWork.CompleteAsync();
+      formData.ToProjectId = newProject.ProjectId;
+    }
+
+    if ( formData.CreateCopy ) {
+      foreach ( var versionId in formData.VersionIds ) {
+        var oldVersion = await _versionRepository.GetById( versionId );
+        var toProjectNameList = await GetActiveVersionNameList( userId, formData.ToProjectId!.Value );
+        var newVersionName = toProjectNameList.Any( x => x == oldVersion!.VersionName ) ? null : oldVersion!.VersionName;
+        await DuplicateVersion( userId, userName, formData.ToProjectId!.Value, oldVersion!, newVersionName );
+      }
+    }
+    else {
+      var fromProjectList = formData.SendToSharedProjectList ? myProjectList : sharedProjectList;
+      var fromProjectIdList = fromProjectList.Where( p => formData.VersionIds.Contains( p.VersionId ) ).Select( p => p.ProjectId ).Distinct();
+
+      await MoveVersionsToAnotherProject( userName, formData.VersionIds, formData.ToProjectId!.Value );
+
+      #region Remove project if it is empty
+      var projectVersions = await _projectVersionRepository.GetAll();
+      var emptyProjectIdList = fromProjectIdList.Where( id => !projectVersions.Any( p => p.ProjectId == id ) );
+      
+      foreach ( var projectId in emptyProjectIdList ) {
+        var project = await _projectRepository.GetById( projectId );
+        if ( project == null ) {
+          continue;
+        }
+        _projectRepository.Delete( project );
+        await _unitOfWork.CompleteAsync();
+      }
+      #endregion
+    }
+  }
+
+  public async Task MoveVersionsToAnotherProject( string userName, ICollection<long> versionIds, long toProjectId )
+  {
+    var projectVersions = ( await _projectVersionRepository.GetAll() ).Where( x => versionIds.Contains( x.VersionId ) );
+    foreach ( var projectVersion in projectVersions ) {
+      _projectVersionRepository.Delete( projectVersion );
+      await _projectVersionRepository.Create( new ProjectVersion() { ProjectId = toProjectId, VersionId = projectVersion.VersionId } );
+
+      var version = await _versionRepository.GetById( projectVersion.VersionId );
+      version!.ModifiedDate = DateTime.UtcNow;
+      version.ModifiedBy = userName;
+      await _versionRepository.Update( version );
+    }
+    await _unitOfWork.CompleteAsync();
   }
 }
