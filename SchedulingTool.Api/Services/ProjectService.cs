@@ -158,9 +158,13 @@ public class ProjectService : IProjectService
     return projects.Where( project => activeProjectVersions.Where( pv => pv.ProjectId == project.ProjectId ).Any() );
   }
 
-  public async Task<IEnumerable<string>> GetSharedActiveProjectNameList()
+  public async Task<IEnumerable<object>> GetSharedActiveProjectNameList()
   {
     var projects = await _projectRepository.GetSharedProjectVersionDetails();
-    return projects.Where( project => project.IsActivated ).Select( project => project.ProjectName ).Distinct();
+    return projects.Where( project => project.IsActivated )
+      .GroupBy( project => new { project.ProjectId, project.ProjectName } )
+      .Select( g => g.Key )
+      .OrderBy( p => p.ProjectName )
+      .Distinct();
   }
 }
