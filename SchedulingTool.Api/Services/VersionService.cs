@@ -31,6 +31,8 @@ public class VersionService : IVersionService
   private readonly IPredecessorRepository _predecessorRepository;
   private readonly IColorDefRepository _colorRepository;
   private readonly IBackgroundRepository _backgroundRepository;
+  private readonly IViewRepository _viewRepository;
+  private readonly IViewTaskRepository _viewTaskRepository;
   private readonly IMapper _mapper;
 
   public VersionService(
@@ -45,6 +47,8 @@ public class VersionService : IVersionService
     IPredecessorRepository predecessorRepository,
     IColorDefRepository colorDefRepository,
     IBackgroundRepository backgroundRepository,
+    IViewRepository viewRepository,
+    IViewTaskRepository viewTaskRepository,
     IMapper mapper )
   {
     _projectRepository = projectRepository;
@@ -58,16 +62,10 @@ public class VersionService : IVersionService
     _predecessorRepository = predecessorRepository;
     _colorRepository = colorDefRepository;
     _backgroundRepository = backgroundRepository;
+    _viewRepository = viewRepository;
+    _viewTaskRepository = viewTaskRepository;
     _mapper = mapper;
   }
-
-  //public async Task<IEnumerable<Version>> GetActiveVersions( long userId, long projectId )
-  //{
-  //  var versions = await _versionRepository.GetActiveVersions( userId );
-  //  var projectVersions = await _projectVersionRepository.GetByProjectId( projectId );
-  //  var versionIdList = projectVersions.Select( v => v.VersionId );
-  //  return versions.Where( x => versionIdList.Contains( x.VersionId ) );
-  //}
 
   public async Task<IEnumerable<string>> GetActiveVersionNameList( long userId, long projectId )
   {
@@ -324,24 +322,6 @@ public class VersionService : IVersionService
 
   public async Task<ServiceResponse<VersionResource>> DuplicateVersion( long userId, string userName, long projectId, Version oldVersion, string? newVersionName )
   {
-    //var versions = await GetActiveVersions( oldVersion.UserId, projectId );
-
-    //var newVersionName = $"Copy of {oldVersion.VersionName}";
-
-    //var latestName = versions.Select( version => version.VersionName )
-    //  .Where( name => name.Length > newVersionName.Length )
-    //  .Where( name => name.Substring( 0, newVersionName.Length + 1 ) == $"{newVersionName} " && Regex.IsMatch( name.Split( " " ).LastOrDefault() ?? string.Empty, @"\([1-9]+\)" ) )
-    //  .OrderByDescending( x => x ).FirstOrDefault();
-
-    //if ( latestName != null ) {
-    //  var duplicatedNumber = latestName.Replace( $"{newVersionName} ", "" ).Replace( "(", "" ).Replace( ")", "" );
-    //  int.TryParse( duplicatedNumber, out var digit );
-    //  newVersionName += $" ({digit + 1})";
-    //}
-    //else {
-    //  newVersionName += " (1)";
-    //}
-
     if ( newVersionName == null ) {
       var latestNameList = await GetActiveVersionNameList( userId, projectId );
       newVersionName = NumberingNewName( latestNameList, $"Copy of {oldVersion.VersionName}" );
@@ -522,7 +502,42 @@ public class VersionService : IVersionService
     }
     #endregion
 
+    await DuplicateView( oldVersion.VersionId, result.Content.VersionId );
+
     return new ServiceResponse<VersionResource>( resource );
+  }
+
+  private async Task DuplicateView( long fromVersionId, long toVersionId )
+  {
+    var existingViews = await _viewRepository.GetViewsByVersionId( fromVersionId );
+    foreach ( var existingView in existingViews ) {
+      var newView = new View()
+      {
+        ViewName = existingView.ViewName,
+        VersionId = toVersionId
+      };
+      var newViewResult = await _viewRepository.Create( newView );
+      await _unitOfWork.CompleteAsync();
+      if ( newViewResult == null ) {
+        continue;
+      }
+      var viewtasks = await _viewTaskRepository.GetViewTasksByViewId( existingView.ViewId );
+      foreach ( var task in viewtasks ) {
+        var newViewTask = new ViewTask()
+        {
+          LocalTaskId = task.LocalTaskId,
+          Group = task.Group,
+          DisplayOrder = task.DisplayOrder,
+          ViewId = newView.ViewId,
+          IsHidden = task.IsHidden,
+          TaskName = task.TaskName,
+          TaskDescription = task.TaskDescription,
+          TaskNote = task.TaskNote
+        };
+        await _viewTaskRepository.Create( newViewTask );
+      }
+      await _unitOfWork.CompleteAsync();
+    }
   }
 
   private string NumberingNewName( IEnumerable<string> existingNamList, string newName )
