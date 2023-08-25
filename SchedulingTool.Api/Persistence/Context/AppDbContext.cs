@@ -211,8 +211,7 @@ namespace SchedulingTool.Api.Persistence.Context
 
                 entity.Property(e => e.ModifiedBy)
                     .HasMaxLength(125)
-                    .HasColumnName("modified_by")
-                    .HasDefaultValueSql("'a'");
+                    .HasColumnName("modified_by");
 
                 entity.Property(e => e.ModifiedDate)
                     .HasColumnType("datetime")
@@ -512,8 +511,7 @@ namespace SchedulingTool.Api.Persistence.Context
 
                 entity.Property(e => e.ModifiedBy)
                     .HasMaxLength(125)
-                    .HasColumnName("modified_by")
-                    .HasDefaultValueSql("'a'");
+                    .HasColumnName("modified_by");
 
                 entity.Property(e => e.ModifiedDate)
                     .HasColumnType("datetime")
@@ -575,8 +573,7 @@ namespace SchedulingTool.Api.Persistence.Context
 
                 entity.Property(e => e.IsDayFormat)
                     .HasColumnType("bit(1)")
-                    .HasColumnName("is_day_format")
-                    .HasDefaultValueSql("b'1'");
+                    .HasColumnName("is_day_format");
 
                 entity.Property(e => e.IsHidden)
                     .HasColumnType("bit(1)")

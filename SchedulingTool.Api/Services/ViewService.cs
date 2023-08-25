@@ -223,7 +223,8 @@ public class ViewService : IViewService
           IsHidden = false,
           TaskName = task.TaskName,
           TaskDescription = task?.Description,
-          TaskNote = task?.Note
+          TaskNote = task?.Note,
+          IsDayFormat = true
         };
         var viewTaskResult = await _viewTaskRepository.Create( viewTask );
         result.Add( _mapper.Map<ViewTaskResource>( viewTaskResult ) );
@@ -353,7 +354,8 @@ public class ViewService : IViewService
           IsHidden = task.IsHidden,
           TaskName = task.TaskName,
           TaskDescription = task.TaskDescription,
-          TaskNote = task.TaskNote
+          TaskNote = task.TaskNote,
+          IsDayFormat = task.IsDayFormat
         };
         await _viewTaskRepository.Create( newViewTask );
       }
