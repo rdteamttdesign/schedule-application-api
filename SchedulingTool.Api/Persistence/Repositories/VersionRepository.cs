@@ -22,9 +22,9 @@ public class VersionRepository : GenericRepository<Version>, IVersionRepository
     return await _context.Versions.Where( version => version.UserId == userId && !version.IsActivated ).ToListAsync();
   }
 
-  public async Task<IEnumerable<Version>> GetVersionsById( long userId, ICollection<long> versionIds )
+  public async Task<IEnumerable<Version>> GetVersionsById( ICollection<long> versionIds )
   {
-    return await _context.Versions.Where( version => version.UserId == userId && versionIds.Contains( version.VersionId ) ).ToListAsync();
+    return await _context.Versions.Where( version => versionIds.Contains( version.VersionId ) ).ToListAsync();
   }
 
   public async Task BatchDeleteVersionDetails( long versionId )

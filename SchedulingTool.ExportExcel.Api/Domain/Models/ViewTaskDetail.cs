@@ -27,4 +27,5 @@ public class ViewTaskDetail
   public int DisplayOrder { get; set; }
   public ICollection<Stepwork> Stepworks { get; set; } = null!;
   public bool IsHidden { get; set; }
+  public bool IsDayFormat { get; set; }
 }

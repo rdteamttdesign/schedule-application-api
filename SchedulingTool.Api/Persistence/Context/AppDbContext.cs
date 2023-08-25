@@ -204,6 +204,16 @@ namespace SchedulingTool.Api.Persistence.Context
                     .HasColumnType("datetime")
                     .HasColumnName("created_date");
 
+                entity.Property(e => e.IsShared)
+                    .HasColumnType("bit(1)")
+                    .HasColumnName("is_shared")
+                    .HasDefaultValueSql("b'0'");
+
+                entity.Property(e => e.ModifiedBy)
+                    .HasMaxLength(125)
+                    .HasColumnName("modified_by")
+                    .HasDefaultValueSql("'a'");
+
                 entity.Property(e => e.ModifiedDate)
                     .HasColumnType("datetime")
                     .HasColumnName("modified_date");
@@ -500,6 +510,11 @@ namespace SchedulingTool.Api.Persistence.Context
                     .HasColumnName("is_activated")
                     .HasDefaultValueSql("b'1'");
 
+                entity.Property(e => e.ModifiedBy)
+                    .HasMaxLength(125)
+                    .HasColumnName("modified_by")
+                    .HasDefaultValueSql("'a'");
+
                 entity.Property(e => e.ModifiedDate)
                     .HasColumnType("datetime")
                     .HasColumnName("modified_date");
@@ -558,6 +573,11 @@ namespace SchedulingTool.Api.Persistence.Context
 
                 entity.Property(e => e.Group).HasColumnName("group");
 
+                entity.Property(e => e.IsDayFormat)
+                    .HasColumnType("bit(1)")
+                    .HasColumnName("is_day_format")
+                    .HasDefaultValueSql("b'1'");
+
                 entity.Property(e => e.IsHidden)
                     .HasColumnType("bit(1)")
                     .HasColumnName("is_hidden")
@@ -588,13 +608,16 @@ namespace SchedulingTool.Api.Persistence.Context
         entity.Property( e => e.ProjectId ).HasColumnName( "project_id" );
         entity.Property( e => e.ProjectName ).HasColumnName( "project_name" );
         entity.Property( e => e.ProjectModifiedDate ).HasColumnName( "project_modified_date" );
+        entity.Property( e => e.ProjectModifiedBy ).HasColumnName( "project_modified_by" );
         entity.Property( e => e.VersionId ).HasColumnName( "version_id" );
         entity.Property( e => e.VersionName ).HasColumnName( "version_name" );
         entity.Property( e => e.UserId ).HasColumnName( "user_id" );
         entity.Property( e => e.CreatedDate ).HasColumnName( "created_date" );
         entity.Property( e => e.ModifiedDate ).HasColumnName( "modified_date" );
+        entity.Property( e => e.ModifiedBy ).HasColumnName( "modified_by" );
         entity.Property( e => e.IsActivated ).HasColumnName( "is_activated" );
         entity.Property( e => e.NumberOfMonths ).HasColumnName( "number_of_months" );
+        entity.Property( e => e.IsShared ).HasColumnName( "is_shared" );
       } );
 
       modelBuilder.Entity<ViewTaskDetail>( entity =>
@@ -630,9 +653,11 @@ namespace SchedulingTool.Api.Persistence.Context
         entity.Property( e => e.DisplayOrder ).HasColumnName( "display_order" );
 
         entity.Property( e => e.IsHidden ).HasColumnName( "is_hidden" );
+
+        entity.Property( e => e.IsDayFormat ).HasColumnName( "is_day_format" );
       } );
 
-      OnModelCreatingPartial( modelBuilder);
+            OnModelCreatingPartial(modelBuilder);
         }
 
         partial void OnModelCreatingPartial(ModelBuilder modelBuilder);

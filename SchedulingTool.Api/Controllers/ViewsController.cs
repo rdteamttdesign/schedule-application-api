@@ -1,7 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using SchedulingTool.Api.Domain.Models;
 using SchedulingTool.Api.Domain.Services;
 using SchedulingTool.Api.Extension;
 using SchedulingTool.Api.Notification;
@@ -17,15 +16,18 @@ public class ViewsController : ControllerBase
   private readonly IMapper _mapper;
   private readonly IViewService _viewService;
   private readonly IViewTaskService _viewTaskService;
+  private readonly IVersionService _versionService;
 
   public ViewsController(
     IMapper mapper,
     IViewService viewService,
-    IViewTaskService viewTaskService )
+    IViewTaskService viewTaskService,
+    IVersionService versionService )
   {
     _mapper = mapper;
     _viewService = viewService;
     _viewTaskService = viewTaskService;
+    _versionService = versionService;
   }
 
   [HttpGet( "versions/{versionId}/views" )]
@@ -48,6 +50,13 @@ public class ViewsController : ControllerBase
     if ( !ModelState.IsValid ) {
       return BadRequest( ModelState.GetErrorMessages() );
     }
+    var userId = long.Parse( HttpContext.User.Claims.FirstOrDefault( x => x.Type.ToLower() == "sid" )?.Value! );
+    var userName = HttpContextExtension.GetUserName( HttpContext );
+    var version = await _versionService.GetVersionById( versionId );
+    if ( version == null ) {
+      return BadRequest( ProjectNotification.NonExisted );
+    }
+
     var existViewName = await _viewService.IsViewNameExists( versionId, formData.ViewName );
     if ( existViewName ) {
       Response.StatusCode = 409;
@@ -60,6 +69,10 @@ public class ViewsController : ControllerBase
     if ( !result.Success ) {
       return BadRequest( result.Message );
     }
+    version.ModifiedDate = DateTime.UtcNow;
+    version.ModifiedBy = userName;
+    await _versionService.UpdateVersion( version );
+
     return Ok( result.Content );
   }
 
@@ -69,6 +82,12 @@ public class ViewsController : ControllerBase
   {
     if ( !ModelState.IsValid ) {
       return BadRequest( ModelState.GetErrorMessages() );
+    }
+    var userId = long.Parse( HttpContext.User.Claims.FirstOrDefault( x => x.Type.ToLower() == "sid" )?.Value! );
+    var userName = HttpContextExtension.GetUserName( HttpContext );
+    var version = await _versionService.GetVersionById( versionId );
+    if ( version == null ) {
+      return BadRequest( ProjectNotification.NonExisted );
     }
     var existViewName = await _viewService.IsViewNameExists( versionId, formData.ViewName, viewId );
     if ( existViewName ) {
@@ -82,6 +101,10 @@ public class ViewsController : ControllerBase
     if ( !result.Success ) {
       return BadRequest( result.Message );
     }
+    version.ModifiedDate = DateTime.UtcNow;
+    version.ModifiedBy = userName;
+    await _versionService.UpdateVersion( version );
+
     return NoContent();
   }
 
@@ -119,10 +142,24 @@ public class ViewsController : ControllerBase
   public async Task<IActionResult> SaveViewDetail( long versionId, long viewId, [FromBody] ICollection<ViewTaskDetailFormData> formData )
   {
     try {
+      if ( !ModelState.IsValid ) {
+        return BadRequest( ModelState.GetErrorMessages() );
+      }
+      var userId = long.Parse( HttpContext.User.Claims.FirstOrDefault( x => x.Type.ToLower() == "sid" )?.Value! );
+      var userName = HttpContextExtension.GetUserName( HttpContext );
+      var version = await _versionService.GetVersionById( versionId );
+      if ( version == null ) {
+        return BadRequest( ProjectNotification.NonExisted );
+      }
       var result = await _viewService.SaveViewDetail( viewId, formData );
       if ( !result.Success ) {
         return BadRequest( result.Message );
       }
+
+      version.ModifiedDate = DateTime.UtcNow;
+      version.ModifiedBy = userName;
+      await _versionService.UpdateVersion( version );
+
       return NoContent();
     }
     catch ( Exception ex ) {

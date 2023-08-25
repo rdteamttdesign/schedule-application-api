@@ -18,6 +18,7 @@ namespace SchedulingTool.Api.Domain.Models
         public long UserId { get; set; }
         public DateTime CreatedDate { get; set; }
         public DateTime ModifiedDate { get; set; }
+        public string ModifiedBy { get; set; } = null!;
         public bool IsActivated { get; set; }
         public int NumberOfMonths { get; set; }
 

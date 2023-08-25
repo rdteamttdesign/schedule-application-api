@@ -11,6 +11,6 @@ public interface IProjectSettingService
   Task<ServiceResponse<ProjectSettingResource>> GetProjectSettingByVersionId( long versionId );
   Task<ServiceResponse<ProjectSetting>> CreateProjectSetting( ProjectSetting setting );
   Task<ServiceResponse<ProjectSetting>> UpdateProjectSetting( ProjectSetting setting );
-  Task<ServiceResponse<ProjectSetting>> UpdateProjectSettingByVersionId( long versionId, ProjectSettingFormData formData );
+  Task<ServiceResponse<ProjectSetting>> UpdateProjectSettingByVersionId( long versionId, string userName, ProjectSettingFormData formData );
   ServiceResponse<ICollection<BackgroundColorResource>> CalculateDateRanges( CalculateDateRangesFormData formData );
 }

@@ -44,7 +44,9 @@ public class ProjectService : IProjectService
       {
         ProjectName = newProject.ProjectName,
         ProjectId = newProject.ProjectId,
-        ModifiedDate = newVersion.ModifiedDate
+        IsShared = newProject.IsShared,
+        ModifiedDate = newProject.ModifiedDate,
+        ModifiedBy = newProject.ModifiedBy,
       };
       var versionResource = _mapper.Map<VersionResource>( newVersion );
       result.Versions.Add( versionResource );
@@ -72,17 +74,21 @@ public class ProjectService : IProjectService
     }
   }
 
-  public async Task<IEnumerable<ProjectListResource>> GetProjectListByUserId( long userId )
+  public async Task<IEnumerable<ProjectListResource>> GetProjectListByUserId( long userId, bool isActivated )
   {
     var projectVersions = await _projectRepository.GetProjectVersionDetails( userId );
-    var groupByProject = projectVersions.Where( version => version.IsActivated ).GroupBy( x => new { ProjectId = x.ProjectId, ProjectName = x.ProjectName } );
+    var groupByProject = projectVersions
+      .Where( version => version.IsActivated == isActivated && !version.IsShared )
+      .GroupBy( x => new { ProjectId = x.ProjectId, ProjectName = x.ProjectName } );
     var projectResources = new List<ProjectListResource>();
     foreach ( var group in groupByProject ) {
       var projectResource = new ProjectListResource()
       {
         ProjectId = group.Key.ProjectId,
         ProjectName = group.Key.ProjectName,
-        ModifiedDate = group.FirstOrDefault()?.ProjectModifiedDate ?? DateTime.MinValue
+        IsShared = group.FirstOrDefault()?.IsShared ?? false,
+        ModifiedDate = group.FirstOrDefault()?.ProjectModifiedDate ?? DateTime.MinValue,
+        ModifiedBy = group.FirstOrDefault()?.ProjectModifiedBy ?? string.Empty
       };
       foreach ( var version in group.OrderByDescending( x => x.ModifiedDate ) ) {
         var versionResource = _mapper.Map<VersionResource>( version );
@@ -93,17 +99,21 @@ public class ProjectService : IProjectService
     return projectResources;
   }
 
-  public async Task<IEnumerable<ProjectListResource>> GetDeactiveProjectListByUserId( long userId )
+  public async Task<IEnumerable<ProjectListResource>> GetSharedProjectList( bool isActivated )
   {
-    var projectVersions = await _projectRepository.GetProjectVersionDetails( userId );
-    var groupByProject = projectVersions.Where( version => !version.IsActivated ).GroupBy( x => new { ProjectId = x.ProjectId, ProjectName = x.ProjectName } );
+    var projectVersions = await _projectRepository.GetSharedProjectVersionDetails();
+    var groupByProject = projectVersions
+      .Where( version => version.IsActivated == isActivated )
+      .GroupBy( x => new { ProjectId = x.ProjectId, ProjectName = x.ProjectName } );
     var projectResources = new List<ProjectListResource>();
     foreach ( var group in groupByProject ) {
       var projectResource = new ProjectListResource()
       {
         ProjectId = group.Key.ProjectId,
         ProjectName = group.Key.ProjectName,
-        ModifiedDate = group.FirstOrDefault()?.ProjectModifiedDate ?? DateTime.MinValue
+        IsShared = group.FirstOrDefault()?.IsShared ?? false,
+        ModifiedDate = group.FirstOrDefault()?.ProjectModifiedDate ?? DateTime.MinValue,
+        ModifiedBy = group.FirstOrDefault()?.ProjectModifiedBy ?? string.Empty
       };
       foreach ( var version in group.OrderByDescending( x => x.ModifiedDate ) ) {
         var versionResource = _mapper.Map<VersionResource>( version );
@@ -113,16 +123,48 @@ public class ProjectService : IProjectService
     }
     return projectResources;
   }
+
+  //public async Task<IEnumerable<ProjectListResource>> GetDeactiveProjectListByUserId( long userId )
+  //{
+  //  var projectVersions = await _projectRepository.GetProjectVersionDetails( userId );
+  //  var groupByProject = projectVersions.Where( version => !version.IsActivated ).GroupBy( x => new { ProjectId = x.ProjectId, ProjectName = x.ProjectName } );
+  //  var projectResources = new List<ProjectListResource>();
+  //  foreach ( var group in groupByProject ) {
+  //    var projectResource = new ProjectListResource()
+  //    {
+  //      ProjectId = group.Key.ProjectId,
+  //      ProjectName = group.Key.ProjectName,
+  //      IsShared = group.FirstOrDefault()?.IsShared ?? false,
+  //      ModifiedDate = group.FirstOrDefault()?.ProjectModifiedDate ?? DateTime.MinValue
+  //    };
+  //    foreach ( var version in group.OrderByDescending( x => x.ModifiedDate ) ) {
+  //      var versionResource = _mapper.Map<VersionResource>( version );
+  //      projectResource.Versions.Add( versionResource );
+  //    }
+  //    projectResources.Add( projectResource );
+  //  }
+  //  return projectResources;
+  //}
 
   public async Task<IEnumerable<Project>> GetActiveProjects( long userId )
   {
     var activeVersions = await _versionRepository.GetActiveVersions( userId );
-    var projects = await _projectRepository.GetAllProjects( userId );
+    var projects = await _projectRepository.GetMyProjects( userId );
     var projectVersions = await _projectVersionRepository.GetAll();
     var activeProjectVersions = from pv in projectVersions
                                 from version in activeVersions
                                 where pv.VersionId == version.VersionId && version.IsActivated
                                 select pv;
     return projects.Where( project => activeProjectVersions.Where( pv => pv.ProjectId == project.ProjectId ).Any() );
+  }
+
+  public async Task<IEnumerable<object>> GetSharedActiveProjectNameList()
+  {
+    var projects = await _projectRepository.GetSharedProjectVersionDetails();
+    return projects.Where( project => project.IsActivated )
+      .GroupBy( project => new { project.ProjectId, project.ProjectName } )
+      .Select( g => g.Key )
+      .OrderBy( p => p.ProjectName )
+      .Distinct();
   }
 }
