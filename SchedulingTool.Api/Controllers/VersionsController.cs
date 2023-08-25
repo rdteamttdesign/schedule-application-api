@@ -15,8 +15,6 @@ public class VersionsController : ControllerBase
 {
   private readonly IMapper _mapper;
   private readonly IVersionService _versionService;
-  private readonly IViewService _viewService;
-  private readonly IViewTaskService _viewTaskService;
 
   public VersionsController(
     IMapper mapper,
@@ -26,8 +24,6 @@ public class VersionsController : ControllerBase
   {
     _mapper = mapper;
     _versionService = versionService;
-    _viewService = viewService;
-    _viewTaskService = viewTaskService;
   }
 
   [HttpPut( "versions/deactive-versions" )]
@@ -167,7 +163,7 @@ public class VersionsController : ControllerBase
         return BadRequest( ProjectNotification.NonExisted );
       }
       var result = await _versionService.DuplicateVersion( userId, userName, projectId, version, newVersionName: null );
-      await _viewService.DuplicateView( versionId, result.Content.VersionId );
+      //await _viewService.DuplicateView( versionId, result.Content.VersionId );
       return Ok( result.Content );
     }
     catch ( Exception ex ) {
