@@ -476,7 +476,8 @@ public class VersionService : IVersionService
             Start = stepwork.Start,
             End = stepwork.End,
             Duration = stepwork.Duration,
-            Type = stepwork.Type
+            Type = stepwork.Type,
+            IsSubStepwork = stepwork.IsSubStepwork
           };
           var newStepworkResult = await CreateStepwork( newStepwork );
           if ( !newStepworkResult.Success ) {
