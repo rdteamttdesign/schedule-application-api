@@ -39,7 +39,7 @@ public static class WorksheetFormater
 
     var numberOfMonths = resource.Backgrounds.Count / 3;
     ws.CreateTitle( resource.ProjectName, usedColumnSpan: 1 + _tableColumnCount + 1 + numberOfMonths * 6 + 1 );
-    ws.CreateTaskListHeader();
+    ws.CreateTaskListHeader( resource.Setting );
 
     if ( resource.Setting.IncludeYear )
       ws.CreateChartHeaderIncludeYear( resource.Backgrounds );
@@ -68,7 +68,7 @@ public static class WorksheetFormater
     cell.Style.Font.Size = 27;
   }
 
-  private static void CreateTaskListHeader( this ExcelWorksheet ws )
+  private static void CreateTaskListHeader( this ExcelWorksheet ws, ProjectSetting setting )
   {
     ws.TabColor = Color.Black;
 
@@ -79,7 +79,7 @@ public static class WorksheetFormater
     ws.Column( 4 ).Width = GetTrueColumnWidth( 19.29 );
     ws.Column( 5 ).Width = GetTrueColumnWidth( 10.29 );
     ws.Column( 6 ).Width = GetTrueColumnWidth( 7.71 );
-    ws.Column( 7 ).Width = GetTrueColumnWidth( 10 );
+    ws.Column( 7 ).Width = GetTrueColumnWidth( 13.9 );
     ws.Column( 8 ).Width = GetTrueColumnWidth( 9.8 );
     ws.Column( 9 ).Width = GetTrueColumnWidth( 9.8 );
     ws.Column( 10 ).Width = 1 / 0.58;
@@ -91,9 +91,9 @@ public static class WorksheetFormater
     ws.Cells [ _tableStartRow, 4, _tableStartRow, 4 ].Value = "細       目";
     ws.Cells [ _tableStartRow, 5, _tableStartRow, 5 ].Value = "所要日数 (A)";
     ws.Cells [ _tableStartRow, 6, _tableStartRow, 6 ].Value = "台数班数";
-    ws.Cells [ _tableStartRow, 7, _tableStartRow, 7 ].Value = "所要日数 (B) (Ax1.7/\n班数)";
-    ws.Cells [ _tableStartRow, 8, _tableStartRow, 8 ].Value = "設置日数 (C)\n(Bx0.6)";
-    ws.Cells [ _tableStartRow, 9, _tableStartRow, 9 ].Value = "撤去日数 (D)\n(Bx0.4)";
+    ws.Cells [ _tableStartRow, 7, _tableStartRow, 7 ].Value = $"所要日数(B)\n(Ax{setting.AmplifiedFactor}\n/班数)\n(日)";
+    ws.Cells [ _tableStartRow, 8, _tableStartRow, 8 ].Value = $"設置日数 (C)\n(Bx{setting.AssemblyDurationRatio})";
+    ws.Cells [ _tableStartRow, 9, _tableStartRow, 9 ].Value = $"撤去日数 (D)\n(Bx{setting.RemovalDurationRatio})";
     #endregion
 
     #region Merge cell and styling for header
