@@ -533,7 +533,8 @@ public class VersionService : IVersionService
           IsHidden = task.IsHidden,
           TaskName = task.TaskName,
           TaskDescription = task.TaskDescription,
-          TaskNote = task.TaskNote
+          TaskNote = task.TaskNote,
+          IsDayFormat = task.IsDayFormat
         };
         await _viewTaskRepository.Create( newViewTask );
       }
