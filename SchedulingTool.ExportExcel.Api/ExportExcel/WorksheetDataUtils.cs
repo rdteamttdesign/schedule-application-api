@@ -186,7 +186,7 @@ public static class WorksheetContentUtils
         }
         else {
           worksheet.Cells [ startRow, 7 ].Value = task.Duration / 30;
-          worksheet.Cells [ startRow, 7 ].Style.Numberformat.Format = "#,###0.0 月";
+          worksheet.Cells [ startRow, 7 ].Style.Numberformat.Format = "#,###0.0 ヶ月";
         }
         worksheet.Cells [ startRow, numberOfMonths * 6 + 11 ].Value = task.Note;
         worksheet.Columns [ numberOfMonths * 6 + 11 ].AutoFit();
