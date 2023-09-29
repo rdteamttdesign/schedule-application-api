@@ -176,8 +176,9 @@ public class VersionService : IVersionService
               {
                 RelatedProcessorStepWork = predecessor.RelatedStepworkId,
                 Lag = predecessor.Lag,
-                Type = sw.Predecessors.Count != 0 ? ( ExportExcel.PredecessorType ) sw.Predecessors.First().Type : ExportExcel.PredecessorType.FinishToStart
-              } );
+                Type = ( ExportExcel.PredecessorType ) predecessor.Type //sw.Predecessors.Count != 0 ? ( ExportExcel.PredecessorType ) sw.Predecessors.First().Type : ExportExcel.PredecessorType.FinishToStart
+              } )
+            ;
           }
           data.Add( chartSw );
         }
