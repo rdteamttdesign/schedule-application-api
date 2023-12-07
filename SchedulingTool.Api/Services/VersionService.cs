@@ -262,12 +262,15 @@ public class VersionService : IVersionService
     if ( numberOfTeams > 0 )
       gap /= numberOfTeams;
     for ( int i = 1; i < stepworks.Count(); i++ ) {
+      // TODO: Fix bug stepwork
+      bool sameStart = i < stepworks.Count() - 1 && ( Math.Abs( stepworks.ElementAt( i ).Start - stepworks.ElementAt( i - 1 ).Start ) < 10e-6 );
       var stepwork = stepworks.ElementAt( i );
       stepwork.Start += gap;
-      if ( numberOfTeams > 1 )
-        gap += stepwork.Duration * factor;
-      else
-        gap += stepwork.Duration * factor / numberOfTeams;
+      if ( sameStart )
+        if ( numberOfTeams > 1 )
+          gap += stepwork.Duration * factor;
+        else
+          gap += stepwork.Duration * factor / numberOfTeams;
     }
   }
 
