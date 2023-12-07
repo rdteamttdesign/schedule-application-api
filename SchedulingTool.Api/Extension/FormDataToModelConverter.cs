@@ -305,7 +305,7 @@ public class FormDataToModelConverter
       var stepwork = stepworks.ElementAt( i );
 
       // TODO: Fix bug stepwork
-      bool sameStart = i < stepworks.Count() - 1 && ( Math.Abs( stepworks.ElementAt( i ).Start - stepworks.ElementAt( i - 1 ).Start ) < 10e-6 );
+      bool sameStart = i < stepworks.Count() - 1 && ( Math.Abs( stepworks.ElementAt( i ).Start - stepworks.ElementAt( i + 1 ).Start ) < 10e-6 );
 
       stepwork.Start = stepwork.Start.ColumnWidthToDays( setting.ColumnWidth ) - gap;
       var stepDuration = stepwork.PercentStepWork * duration / 100;
