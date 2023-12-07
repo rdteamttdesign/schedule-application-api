@@ -266,7 +266,7 @@ public class VersionService : IVersionService
       bool sameStart = i < stepworks.Count() - 1 && ( Math.Abs( stepworks.ElementAt( i ).Start - stepworks.ElementAt( i - 1 ).Start ) < 10e-6 );
       var stepwork = stepworks.ElementAt( i );
       stepwork.Start += gap;
-      if ( sameStart )
+      if ( !sameStart )
         if ( numberOfTeams > 1 )
           gap += stepwork.Duration * factor;
         else
