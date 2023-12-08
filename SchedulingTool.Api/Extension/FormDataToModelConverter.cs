@@ -323,7 +323,7 @@ public class FormDataToModelConverter
       var stepwork = stepworks.ElementAt( i );
 
       // TODO: Fix bug stepwork
-      bool overlap = StepworksOverlap( stepworks.ElementAt( i ), stepworks.ElementAt( i + 1 ), setting.ColumnWidth, true );
+      bool overlap = i < stepworks.Count() - 1 && StepworksOverlap( stepworks.ElementAt( i ), stepworks.ElementAt( i + 1 ), setting.ColumnWidth, true );
 
       stepwork.Start = stepwork.Start.ColumnWidthToDays( setting.ColumnWidth ) - gap;
       var stepDuration = stepwork.PercentStepWork * duration / 100;
