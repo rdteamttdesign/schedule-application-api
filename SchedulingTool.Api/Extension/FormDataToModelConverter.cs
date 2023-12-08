@@ -289,11 +289,11 @@ public class FormDataToModelConverter
 
   private bool StepworksOverlap( StepworkResource first, StepworkResource second, double columnWidth, bool invert = false )
   {
-    first.Start = first.Start.ColumnWidthToDays( columnWidth );
-    second.Start = second.Start.ColumnWidthToDays( columnWidth );
-    first.End = first.Start + GetDuration( first );
-    second.End = second.Start + GetDuration( second );
-    if ( first.Start > second.Start && first.Start < second.End ) {
+    var firstStart = first.Start.ColumnWidthToDays( columnWidth );
+    var secondStart = second.Start.ColumnWidthToDays( columnWidth );
+    //var firstEnd = first.Start + GetDuration( first );
+    var secondEnd = second.Start + GetDuration( second );
+    if ( firstStart > secondStart && firstStart < secondEnd ) {
       return true;
     }
     if ( invert && StepworksOverlap( second, first, columnWidth ) ) {
