@@ -293,7 +293,7 @@ public class FormDataToModelConverter
     var secondStart = second.Start.ColumnWidthToDays( columnWidth );
     //var firstEnd = first.Start + GetDuration( first );
     var secondEnd = second.Start + GetDuration( second );
-    if ( firstStart > secondStart && firstStart < secondEnd ) {
+    if ( firstStart >= secondStart && firstStart < secondEnd ) {
       return true;
     }
     if ( invert && StepworksOverlap( second, first, columnWidth ) ) {
