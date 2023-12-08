@@ -296,7 +296,7 @@ public class FormDataToModelConverter
     if ( first.Start > second.Start && first.Start < second.End ) {
       return true;
     }
-    if ( StepworksOverlap( second, first, columnWidth ) ) {
+    if ( invert && StepworksOverlap( second, first, columnWidth ) ) {
       return true;
     }
 
