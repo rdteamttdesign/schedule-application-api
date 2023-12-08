@@ -254,6 +254,19 @@ public class VersionService : IVersionService
     return result.OrderBy( o => o.Key ).Select( o => o.Value );
   }
 
+  private bool StepworksOverlap( Stepwork first, Stepwork second, bool invert = false )
+  {
+    var secondEnd = second.Start + second.Duration;
+    if ( first.Start >= second.Start && first.Start < secondEnd ) {
+      return true;
+    }
+    if ( invert && StepworksOverlap( second, first ) ) {
+      return true;
+    }
+
+    return false;
+  }
+
   private void CalculateStartDay( IEnumerable<Stepwork> stepworks, double amplifiedFactor, int numberOfTeams )
   {
     var factor = amplifiedFactor - 1;
@@ -263,7 +276,7 @@ public class VersionService : IVersionService
       gap /= numberOfTeams;
     for ( int i = 1; i < stepworks.Count(); i++ ) {
       // TODO: Fix bug stepwork
-      bool sameStart = i < stepworks.Count() - 1 && ( Math.Abs( stepworks.ElementAt( i ).Start - stepworks.ElementAt( i + 1 ).Start ) < 10e-6 );
+      bool sameStart = i < stepworks.Count() - 1 && StepworksOverlap( stepworks.ElementAt( i ), stepworks.ElementAt( i + 1 ), true );
       var stepwork = stepworks.ElementAt( i );
       stepwork.Start += gap;
       if ( !sameStart )
