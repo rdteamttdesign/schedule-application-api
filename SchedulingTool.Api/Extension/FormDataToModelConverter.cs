@@ -285,24 +285,6 @@ public class FormDataToModelConverter
       }
   }
 
-  private double GetDuration( StepworkResource stepwork ) => stepwork.PercentStepWork * stepwork.Duration / 100;
-
-  private bool StepworksOverlap( StepworkResource first, StepworkResource second, double columnWidth, bool invert = false )
-  {
-    var firstStart = first.Start.ColumnWidthToDays( columnWidth );
-    var secondStart = second.Start.ColumnWidthToDays( columnWidth );
-    //var firstEnd = first.Start + GetDuration( first );
-    var secondEnd = second.Start + GetDuration( second );
-    if ( firstStart >= secondStart && firstStart < secondEnd ) {
-      return true;
-    }
-    if ( invert && StepworksOverlap( second, first, columnWidth ) ) {
-      return true;
-    }
-
-    return false;
-  }
-
   private void CalculateStartDay( IEnumerable<StepworkResource> stepworks, ProjectSetting setting, int numberOfTeams, double duration )
   {
     var factor = setting!.AmplifiedFactor - 1;
@@ -321,10 +303,6 @@ public class FormDataToModelConverter
 
     for ( int i = 1; i < stepworks.Count(); i++ ) {
       var stepwork = stepworks.ElementAt( i );
-
-      // TODO: Fix bug stepwork
-      bool overlap = i < stepworks.Count() - 1 && StepworksOverlap( stepworks.ElementAt( i ), stepworks.ElementAt( i + 1 ), setting.ColumnWidth, true );
-
       stepwork.Start = stepwork.Start.ColumnWidthToDays( setting.ColumnWidth ) - gap;
       var stepDuration = stepwork.PercentStepWork * duration / 100;
       stepwork.End = stepDuration;
@@ -334,11 +312,10 @@ public class FormDataToModelConverter
       }
       stepwork.End += stepwork.Start;
 
-      if ( !overlap )
-        if ( numberOfTeams > 1 )
-          gap += stepDuration * factor;
-        else
-          gap += stepDuration * factor / numberOfTeams;
+      if ( numberOfTeams > 1 )
+        gap += stepDuration * factor;
+      else
+        gap += stepDuration * factor / numberOfTeams;
     }
   }
 }

@@ -262,15 +262,12 @@ public class VersionService : IVersionService
     if ( numberOfTeams > 0 )
       gap /= numberOfTeams;
     for ( int i = 1; i < stepworks.Count(); i++ ) {
-      // TODO: Fix bug stepwork
-      bool sameStart = i < stepworks.Count() - 1 && ( Math.Abs( stepworks.ElementAt( i ).Start - stepworks.ElementAt( i + 1 ).Start ) < 10e-6 );
       var stepwork = stepworks.ElementAt( i );
       stepwork.Start += gap;
-      if ( !sameStart )
-        if ( numberOfTeams > 1 )
-          gap += stepwork.Duration * factor;
-        else
-          gap += stepwork.Duration * factor / numberOfTeams;
+      if ( numberOfTeams > 1 )
+        gap += stepwork.Duration * factor;
+      else
+        gap += stepwork.Duration * factor / numberOfTeams;
     }
   }
 
@@ -841,7 +838,7 @@ public class VersionService : IVersionService
       #region Remove project if it is empty
       var projectVersions = await _projectVersionRepository.GetAll();
       var emptyProjectIdList = fromProjectIdList.Where( id => !projectVersions.Any( p => p.ProjectId == id ) );
-      
+
       foreach ( var projectId in emptyProjectIdList ) {
         var project = await _projectRepository.GetById( projectId );
         if ( project == null ) {
